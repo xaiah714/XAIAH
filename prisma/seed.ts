@@ -25,11 +25,23 @@ const prisma = new PrismaClient();
 // the guided walkthrough may under-represent some real programs' full
 // requirements — always double check the official listing.
 //
-// eligibleCountries filters on the student's *country of study* (where a
-// program restricts to a specific study destination, e.g. DAAD -> Germany).
-// It does not yet model applicant-home-country eligibility (e.g. "US
-// citizens only, studying anywhere") — that's a real gap, noted rather than
-// faked with an incorrect filter.
+// Two separate country axes, per the matching engine:
+//   - eligibleCountries: where the award can be USED (country of study).
+//     Defaults to ["United States"] below since every pre-existing entry
+//     here is a domestic program; global entries override it explicitly
+//     (empty = any study destination, e.g. Fulbright sends students
+//     to many different host countries).
+//   - homeCountryEligibility: who's eligible to apply, by nationality/
+//     residency. Also defaults to ["United States"] for the domestic batch
+//     (nearly all U.S. scholarship funds require citizenship/permanent
+//     residency), overridden to [] for TheDream.US (specifically for
+//     non-citizens) and for global programs open to any nationality
+//     (DAAD, Erasmus Mundus, Rotary). Chevening and Australia Awards
+//     really do restrict by a long, specific eligible-country list, but
+//     I don't have confident current lists for either, so both are left
+//     unrestricted here rather than guessed — flagged in each entry.
+//     Commonwealth Scholarships gets an explicit list since Commonwealth
+//     membership is stable public record, not something I'm guessing at.
 
 type SeedScholarship = {
   name: string;
@@ -51,6 +63,7 @@ type SeedScholarship = {
   minGpa?: number;
   eligibleMajors?: string[];
   eligibleCountries?: string[];
+  homeCountryEligibility?: string[];
   region?: string;
   schoolName?: string;
   sourceUrl: string;
@@ -779,6 +792,9 @@ const scholarships: SeedScholarship[] = [
     essayRequired: true,
     eligibilityTags: ["LOW_INCOME_PELL_ELIGIBLE", "FIRST_GENERATION"],
     minGpa: 2.5,
+    // Specifically for students who are NOT U.S. citizens/permanent
+    // residents (DACA/undocumented), so the domestic default is wrong here.
+    homeCountryEligibility: [],
     sourceUrl: "https://www.thedream.us",
     legitimacyScore: 91,
   },
@@ -992,6 +1008,8 @@ const scholarships: SeedScholarship[] = [
     recommendationLettersRequired: 2,
     eligibilityTags: [],
     eligibleCountries: ["Germany"],
+    // Open to any nationality — that's DAAD's whole model.
+    homeCountryEligibility: [],
     region: "Germany",
     sourceUrl: "https://www.daad.de/en",
     legitimacyScore: 93,
@@ -1011,7 +1029,12 @@ const scholarships: SeedScholarship[] = [
     recommendationLettersRequired: 2,
     eligibilityTags: [],
     eligibleCountries: ["United Kingdom"],
-    region: "United Kingdom (open to applicants from 160+ eligible home countries)",
+    // Chevening really does restrict by a specific ~160-country eligible
+    // list (and notably excludes some, historically including the US) —
+    // I don't have a confident current list, so left unrestricted here
+    // rather than guessed. Check the official eligibility checker.
+    homeCountryEligibility: [],
+    region: "United Kingdom (open to applicants from 160+ eligible home countries — check official eligibility checker)",
     sourceUrl: "https://www.chevening.org",
     legitimacyScore: 95,
     verified: false,
@@ -1029,6 +1052,22 @@ const scholarships: SeedScholarship[] = [
     recommendationLettersRequired: 2,
     eligibilityTags: [],
     eligibleCountries: ["United Kingdom"],
+    // Commonwealth membership (56 states) is stable public record, not a
+    // guess — unlike Chevening/Australia Awards' eligibility lists above.
+    homeCountryEligibility: [
+      "Antigua and Barbuda", "Australia", "Bahamas", "Bangladesh",
+      "Barbados", "Belize", "Botswana", "Brunei", "Cameroon", "Canada",
+      "Cyprus", "Dominica", "Eswatini", "Fiji", "Gabon", "Gambia", "Ghana",
+      "Grenada", "Guyana", "India", "Jamaica", "Kenya", "Kiribati",
+      "Lesotho", "Malawi", "Malaysia", "Maldives", "Malta", "Mauritius",
+      "Mozambique", "Namibia", "Nauru", "New Zealand", "Nigeria",
+      "Pakistan", "Papua New Guinea", "Rwanda", "Saint Kitts and Nevis",
+      "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa",
+      "Seychelles", "Sierra Leone", "Singapore", "Solomon Islands",
+      "South Africa", "Sri Lanka", "Tanzania", "Togo", "Tonga",
+      "Trinidad and Tobago", "Tuvalu", "Uganda", "United Kingdom",
+      "Vanuatu", "Zambia",
+    ],
     region: "Commonwealth countries, studying in the UK",
     sourceUrl: "https://cscuk.fcdo.gov.uk",
     legitimacyScore: 93,
@@ -1046,7 +1085,11 @@ const scholarships: SeedScholarship[] = [
     essayRequired: true,
     eligibilityTags: [],
     eligibleCountries: ["Australia"],
-    region: "Partner countries, studying in Australia",
+    // Restricted to a specific, changing list of Indo-Pacific/developing
+    // partner countries — I don't have a confident current list, so left
+    // unrestricted here rather than guessed.
+    homeCountryEligibility: [],
+    region: "Partner countries (mainly Indo-Pacific), studying in Australia — check official partner list",
     sourceUrl: "https://www.australiaawards.gov.au",
     legitimacyScore: 92,
     verified: false,
@@ -1064,6 +1107,7 @@ const scholarships: SeedScholarship[] = [
     recommendationLettersRequired: 2,
     eligibilityTags: [],
     eligibleCountries: [],
+    homeCountryEligibility: [],
     region: "European Union (consortium universities)",
     sourceUrl: "https://education.ec.europa.eu/erasmus-mundus-catalogue",
     legitimacyScore: 91,
@@ -1083,6 +1127,7 @@ const scholarships: SeedScholarship[] = [
     recommendationLettersRequired: 3,
     eligibilityTags: [],
     eligibleCountries: [],
+    homeCountryEligibility: ["United States"],
     region: "Global (U.S. citizens; host country varies)",
     sourceUrl: "https://us.fulbrightonline.org",
     legitimacyScore: 94,
@@ -1102,6 +1147,9 @@ const scholarships: SeedScholarship[] = [
     otherRequirements: ["Local Rotary club sponsorship"],
     eligibilityTags: [],
     eligibleCountries: [],
+    // Sponsorship-based (a local Rotary club backs your application), not
+    // restricted by nationality.
+    homeCountryEligibility: [],
     region: "Global",
     sourceUrl: "https://www.rotary.org/en/our-programs/scholarships",
     legitimacyScore: 88,
@@ -1121,6 +1169,7 @@ const scholarships: SeedScholarship[] = [
     otherRequirements: ["Federal service commitment"],
     eligibilityTags: [],
     eligibleCountries: [],
+    homeCountryEligibility: ["United States"],
     region: "Global (U.S. citizens)",
     sourceUrl: "https://www.borenawards.org",
     legitimacyScore: 90,
@@ -1161,6 +1210,7 @@ async function main() {
       // Defaults to US-only since every pre-existing entry here is a
       // domestic program; new global entries override this explicitly.
       eligibleCountries: s.eligibleCountries ?? ["United States"],
+      homeCountryEligibility: s.homeCountryEligibility ?? ["United States"],
       region: s.region,
       schoolName: s.schoolName,
       sourceUrl: s.sourceUrl,

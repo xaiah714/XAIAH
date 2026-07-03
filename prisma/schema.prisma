@@ -135,27 +135,41 @@ enum ApplicationStepType {
 // Core tables
 // ---------------------------------------------------------------------------
 
-model Student {
-  id             String        @id @default(cuid())
-  email          String        @unique
+// Named `User` (not `Student`) because this table doubles as the Auth.js
+// adapter's user model — email/emailVerified/image/name plus Account/Session
+// are the auth identity; everything else is student profile data. Table name
+// stays "students" via @@map since that's what the rest of the schema/app
+// conceptually means by this entity.
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  emailVerified  DateTime?        @map("email_verified") @db.Timestamptz(3)
+  name           String?
+  image          String?
   phone          String?
   school         String?
   major          String?
   year           SchoolYear?
   gpa            Float?
   state          String?
+  // Home country (nationality/residency) vs. countryOfStudy below — a
+  // scholarship can restrict by either independently (e.g. Fulbright wants
+  // U.S. home country but sends students anywhere; DAAD wants study in
+  // Germany regardless of home country).
   country        String?
-  countryOfStudy String?       @map("country_of_study")
+  countryOfStudy String?          @map("country_of_study")
   // IANA time zone (e.g. "America/Chicago"), auto-detected from the
   // student's browser — there is no manual timezone picker anywhere in
   // the UI. Used to localize notification copy sent outside a page render.
   timezone       String?
-  incomeBracket  IncomeBracket? @map("income_bracket")
-  firstGen       Boolean?      @map("first_gen")
+  incomeBracket  IncomeBracket?   @map("income_bracket")
+  firstGen       Boolean?         @map("first_gen")
   demographics   DemographicTag[]
-  createdAt      DateTime      @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt      DateTime      @updatedAt @db.Timestamptz(3) @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  accounts      Account[]
+  sessions      Session[]
   matches       Match[]
   documents     Document[]
   notifications Notification[]
@@ -163,51 +177,97 @@ model Student {
   @@map("students")
 }
 
+// --- Auth.js (NextAuth v5) Prisma adapter tables ---
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime @db.Timestamptz(3)
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
 model Scholarship {
-  id               String           @id @default(cuid())
-  name             String
-  orgName          String           @map("org_name")
-  description      String?
-  awardType        AwardType        @default(SCHOLARSHIP) @map("award_type")
-  amountMin        Int              @map("amount_min")
-  amountMax        Int              @map("amount_max")
-  currencyCode     String           @default("USD") @map("currency_code")
-  deadline         DateTime         @db.Timestamptz(3)
-  renewable        Boolean          @default(false)
-  essayRequired    Boolean          @default(false) @map("essay_required")
-  essayCount       Int?             @map("essay_count")
-  essayWordCount   Int?             @map("essay_word_count")
-  requiresTranscript             Boolean @default(false) @map("requires_transcript")
-  recommendationLettersRequired  Int     @default(0) @map("recommendation_letters_required")
-  otherRequirements              String[] @map("other_requirements")
-  eligibilityTags  DemographicTag[] @map("eligibility_tags")
+  id                            String           @id @default(cuid())
+  name                          String
+  orgName                       String           @map("org_name")
+  description                   String?
+  awardType                     AwardType        @default(SCHOLARSHIP) @map("award_type")
+  amountMin                     Int              @map("amount_min")
+  amountMax                     Int              @map("amount_max")
+  currencyCode                  String           @default("USD") @map("currency_code")
+  deadline                      DateTime         @db.Timestamptz(3)
+  renewable                     Boolean          @default(false)
+  essayRequired                 Boolean          @default(false) @map("essay_required")
+  essayCount                    Int?             @map("essay_count")
+  essayWordCount                Int?             @map("essay_word_count")
+  requiresTranscript            Boolean          @default(false) @map("requires_transcript")
+  recommendationLettersRequired Int              @default(0) @map("recommendation_letters_required")
+  otherRequirements             String[]         @map("other_requirements")
+  eligibilityTags               DemographicTag[] @map("eligibility_tags")
 
   // Hard-filter eligibility criteria
-  minGpa           Float?           @map("min_gpa")
-  eligibleStates   String[]         @map("eligible_states")
-  eligibleMajors   String[]         @map("eligible_majors")
-  // Empty = open worldwide. Non-US/regional programs (e.g. "study in
-  // Germany") restrict by country of study, checked against the student's
-  // countryOfStudy the same benefit-of-the-doubt way state filtering works.
-  eligibleCountries String[]        @map("eligible_countries")
+  minGpa                 Float?   @map("min_gpa")
+  eligibleStates         String[] @map("eligible_states")
+  eligibleMajors         String[] @map("eligible_majors")
+  // Where the award can be USED — empty means open worldwide. Checked
+  // against the student's countryOfStudy (e.g. DAAD -> study in Germany).
+  eligibleCountries      String[] @map("eligible_countries")
+  // Who is ELIGIBLE to apply, by nationality/residency — a separate axis
+  // from eligibleCountries. Empty means open to any nationality. Checked
+  // against the student's home country (e.g. Fulbright/Boren -> U.S.
+  // citizens only, sent to study in many different countries).
+  homeCountryEligibility String[] @map("home_country_eligibility")
   // Free-text descriptive region shown on the card (e.g. "European Union",
   // "Commonwealth") — informational, not a hard filter.
-  region           String?
+  region                 String?
   // For a future school-lookup feature (e.g. a browser extension surfacing
   // a school's active scholarships); most national/global programs leave
   // this null.
-  schoolName       String?          @map("school_name")
+  schoolName             String?  @map("school_name")
 
   // Legitimacy layer
-  sourceUrl        String           @map("source_url")
-  verified         Boolean          @default(false)
-  lastVerifiedDate DateTime?        @db.Timestamptz(3) @map("last_verified_date")
-  legitimacyScore  Int?             @map("legitimacy_score")
-  acceptanceRate   Float?           @map("acceptance_rate")
-  flagCount        Int              @default(0) @map("flag_count")
+  sourceUrl        String    @map("source_url")
+  verified         Boolean   @default(false)
+  lastVerifiedDate DateTime? @map("last_verified_date") @db.Timestamptz(3)
+  legitimacyScore  Int?      @map("legitimacy_score")
+  acceptanceRate   Float?    @map("acceptance_rate")
+  flagCount        Int       @default(0) @map("flag_count")
 
-  createdAt        DateTime         @default(now()) @db.Timestamptz(3) @map("created_at")
-  updatedAt        DateTime         @updatedAt @db.Timestamptz(3) @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   matches Match[]
   flags   ScholarshipFlag[]
@@ -221,11 +281,11 @@ model Match {
   scholarshipId   String      @map("scholarship_id")
   matchScore      Float       @map("match_score")
   status          MatchStatus @default(NOT_STARTED)
-  statusUpdatedAt DateTime    @default(now()) @db.Timestamptz(3) @map("status_updated_at")
+  statusUpdatedAt DateTime    @default(now()) @map("status_updated_at") @db.Timestamptz(3)
   confirmationUrl String?     @map("confirmation_url")
-  createdAt       DateTime    @default(now()) @db.Timestamptz(3) @map("created_at")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
   scholarship   Scholarship       @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
   notifications Notification[]
   steps         ApplicationStep[]
@@ -247,8 +307,8 @@ model ApplicationStep {
   label       String
   order       Int
   completed   Boolean             @default(false)
-  completedAt DateTime?           @db.Timestamptz(3) @map("completed_at")
-  createdAt   DateTime            @default(now()) @db.Timestamptz(3) @map("created_at")
+  completedAt DateTime?           @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
 
   match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
@@ -263,9 +323,9 @@ model Document {
   type         DocumentType
   fileUrl      String       @map("file_url")
   taggedTopics String[]     @map("tagged_topics")
-  createdAt    DateTime     @default(now()) @db.Timestamptz(3) @map("created_at")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@map("documents")
@@ -277,11 +337,11 @@ model Notification {
   matchId   String?             @map("match_id")
   type      NotificationType
   channel   NotificationChannel
-  sentAt    DateTime?           @db.Timestamptz(3) @map("sent_at")
-  createdAt DateTime            @default(now()) @db.Timestamptz(3) @map("created_at")
+  sentAt    DateTime?           @map("sent_at") @db.Timestamptz(3)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  match   Match?  @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  match   Match? @relation(fields: [matchId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([matchId])
@@ -289,11 +349,11 @@ model Notification {
 }
 
 model ScholarshipFlag {
-  id            String      @id @default(cuid())
-  scholarshipId String      @map("scholarship_id")
+  id            String   @id @default(cuid())
+  scholarshipId String   @map("scholarship_id")
   reason        String
-  reporterEmail String?     @map("reporter_email")
-  createdAt     DateTime    @default(now()) @db.Timestamptz(3) @map("created_at")
+  reporterEmail String?  @map("reporter_email")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
 

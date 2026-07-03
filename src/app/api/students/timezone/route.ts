@@ -19,13 +19,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid timezone" }, { status: 422 });
   }
 
-  const student = await prisma.student.findUnique({ where: { id: studentId } });
+  const student = await prisma.user.findUnique({ where: { id: studentId } });
   if (!student) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   if (student.timezone !== parsed.data.timezone) {
-    await prisma.student.update({
+    await prisma.user.update({
       where: { id: studentId },
       data: { timezone: parsed.data.timezone },
     });

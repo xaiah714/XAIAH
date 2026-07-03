@@ -129,6 +129,11 @@ export default function ScholarshipCard({ match }: { match: ClientMatch }) {
             {scholarship.region}
           </span>
         )}
+        {scholarship.homeCountryEligibility.length > 0 && (
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+            Open to: {scholarship.homeCountryEligibility.join(", ")}
+          </span>
+        )}
         {tagLabels.map((label) => (
           <span key={label} className="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-700">
             {label}

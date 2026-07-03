@@ -1,19 +1,7 @@
-import { cookies } from "next/headers";
+import { auth } from "@/auth";
 
-const STUDENT_COOKIE = "student_id";
-
+/** The signed-in student's id (their User row id), or null if not authenticated. */
 export async function getCurrentStudentId(): Promise<string | null> {
-  const store = await cookies();
-  return store.get(STUDENT_COOKIE)?.value ?? null;
-}
-
-export async function setCurrentStudentId(studentId: string) {
-  const store = await cookies();
-  store.set(STUDENT_COOKIE, studentId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  const session = await auth();
+  return session?.user?.id ?? null;
 }

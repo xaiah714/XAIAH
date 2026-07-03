@@ -19,7 +19,7 @@ export default function HomePage() {
         </p>
       </div>
       <Link
-        href="/profile"
+        href="/login"
         className="inline-flex min-h-[52px] items-center rounded-full bg-accent-500 px-8 py-3 text-base font-semibold text-brand-950 shadow-sm transition hover:bg-accent-600"
       >
         Build my profile — it&apos;s free

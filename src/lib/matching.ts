@@ -1,4 +1,4 @@
-import { Student, Scholarship, Match } from "@prisma/client";
+import { User as Student, Scholarship, Match } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { ClientMatch } from "@/lib/client-types";
 
@@ -38,6 +38,13 @@ export function passesHardFilters(student: Student, scholarship: Scholarship): b
     if (!scholarship.eligibleCountries.includes(student.countryOfStudy)) return false;
   }
 
+  // Home country/nationality eligibility — a separate axis from country of
+  // study (e.g. Fulbright wants U.S. home country but sends students to
+  // study in many different countries).
+  if (scholarship.homeCountryEligibility.length > 0 && student.country) {
+    if (!scholarship.homeCountryEligibility.includes(student.country)) return false;
+  }
+
   return true;
 }
 
@@ -67,7 +74,7 @@ export function rankingValue(matchScore: number, scholarship: Scholarship): numb
  * added a GPA that happens to miss a cutoff).
  */
 export async function syncMatchesForStudent(studentId: string) {
-  const student = await prisma.student.findUniqueOrThrow({ where: { id: studentId } });
+  const student = await prisma.user.findUniqueOrThrow({ where: { id: studentId } });
   const scholarships = await prisma.scholarship.findMany();
 
   const eligible = scholarships.filter((s) => passesHardFilters(student, s));
@@ -117,6 +124,7 @@ export function toClientMatch(match: MatchWithScholarship): ClientMatch {
       minGpa: s.minGpa,
       eligibleMajors: s.eligibleMajors,
       eligibleCountries: s.eligibleCountries,
+      homeCountryEligibility: s.homeCountryEligibility,
       region: s.region,
       schoolName: s.schoolName,
       sourceUrl: s.sourceUrl,

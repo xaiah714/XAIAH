@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { DemographicTag, IncomeBracket, SchoolYear } from "@prisma/client";
 
+// Email is intentionally not part of this schema — it's the verified
+// identity tied to the signed-in account (Google or magic-link email) and
+// isn't editable through the profile form.
 export const studentIntakeSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
   phone: z
     .string()
     .trim()

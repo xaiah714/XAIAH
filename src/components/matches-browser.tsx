@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { AwardType, DemographicTag } from "@prisma/client";
-import type { ClientMatch } from "@/lib/client-types";
-import { isQuickWin } from "@/lib/client-types";
+import type { ClientMatch, EssayLengthFilter } from "@/lib/client-types";
+import { ESSAY_LENGTH_OPTIONS, matchesEssayLength } from "@/lib/client-types";
 import { AWARD_TYPE_LABELS, DEMOGRAPHIC_TAG_GROUPS } from "@/lib/taxonomy";
 import ScholarshipCard from "@/components/scholarship-card";
 
@@ -11,27 +11,27 @@ const AWARD_TYPE_OPTIONS: (AwardType | "ALL")[] = ["ALL", "SCHOLARSHIP", "GRANT"
 
 export default function MatchesBrowser({ matches }: { matches: ClientMatch[] }) {
   const [awardType, setAwardType] = useState<AwardType | "ALL">("ALL");
-  const [quickWinOnly, setQuickWinOnly] = useState(false);
+  const [essayLength, setEssayLength] = useState<EssayLengthFilter>("ANY");
   const [selectedTags, setSelectedTags] = useState<DemographicTag[]>([]);
   const [browsing, setBrowsing] = useState(false);
 
   const filtered = useMemo(() => {
     return matches.filter((m) => {
       if (awardType !== "ALL" && m.scholarship.awardType !== awardType) return false;
-      if (quickWinOnly && !isQuickWin(m.scholarship)) return false;
+      if (!matchesEssayLength(m.scholarship, essayLength)) return false;
       if (selectedTags.length > 0) {
         const overlap = m.scholarship.eligibilityTags.some((t) => selectedTags.includes(t));
         if (!overlap) return false;
       }
       return true;
     });
-  }, [matches, awardType, quickWinOnly, selectedTags]);
+  }, [matches, awardType, essayLength, selectedTags]);
 
   function toggleTag(tag: DemographicTag) {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
   }
 
-  const hasActiveFilters = awardType !== "ALL" || quickWinOnly || selectedTags.length > 0;
+  const hasActiveFilters = awardType !== "ALL" || essayLength !== "ANY" || selectedTags.length > 0;
 
   return (
     <div className="space-y-4">
@@ -54,13 +54,18 @@ export default function MatchesBrowser({ matches }: { matches: ClientMatch[] }) 
         </div>
 
         <label className="flex min-h-[40px] w-fit items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-slate-300"
-            checked={quickWinOnly}
-            onChange={(e) => setQuickWinOnly(e.target.checked)}
-          />
-          Quick wins only (no essay, or a short one)
+          Essay length
+          <select
+            className="input min-h-[40px] max-w-[220px] py-1.5 text-sm"
+            value={essayLength}
+            onChange={(e) => setEssayLength(e.target.value as EssayLengthFilter)}
+          >
+            {ESSAY_LENGTH_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div>
@@ -121,7 +126,7 @@ export default function MatchesBrowser({ matches }: { matches: ClientMatch[] }) 
             type="button"
             onClick={() => {
               setAwardType("ALL");
-              setQuickWinOnly(false);
+              setEssayLength("ANY");
               setSelectedTags([]);
             }}
             className="min-h-[36px] text-xs font-medium text-slate-500 hover:underline"

@@ -16,7 +16,7 @@ import { COUNTRIES } from "@/lib/countries";
 const STEPS = ["Basics", "Academics & finances", "Optional identity info", "Review"] as const;
 
 const STEP_FIELDS: Record<number, (keyof StudentIntakeInput)[]> = {
-  0: ["email", "phone", "school", "major", "year", "country", "countryOfStudy", "state"],
+  0: ["phone", "school", "major", "year", "country", "countryOfStudy", "state"],
   1: ["gpa", "incomeBracket", "firstGen"],
   2: ["demographics"],
   3: [],
@@ -24,8 +24,10 @@ const STEP_FIELDS: Record<number, (keyof StudentIntakeInput)[]> = {
 
 export default function IntakeForm({
   defaultValues,
+  email,
 }: {
   defaultValues?: Partial<StudentIntakeInput>;
+  email: string;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -42,7 +44,6 @@ export default function IntakeForm({
   } = useForm<StudentIntakeInput>({
     resolver: zodResolver(studentIntakeSchema),
     defaultValues: {
-      email: "",
       phone: "",
       school: "",
       major: "",
@@ -123,13 +124,8 @@ export default function IntakeForm({
                 anywhere in the world.
               </p>
             </div>
-            <Field label="Email" error={errors.email?.message}>
-              <input
-                type="email"
-                {...register("email")}
-                className="input"
-                placeholder="you@school.edu"
-              />
+            <Field label="Email">
+              <div className="input bg-slate-50 text-slate-500">{email}</div>
             </Field>
             <Field label="Phone (for deadline text alerts)" error={errors.phone?.message}>
               <input type="tel" {...register("phone")} className="input" placeholder="(555) 555-5555" />
