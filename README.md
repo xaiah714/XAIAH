@@ -40,6 +40,19 @@ submission instead of stopping at discovery.
   by both the intake form and scholarship seed data.
 - `src/app/profile` — student intake form.
 - `src/app/dashboard` — matches, dollar-value hook, status tracker.
+- `src/lib/notifications` — SMS (Twilio)/email (Resend) senders and the
+  deadline/renewal reminder sweep. Without API keys set, sends are logged
+  instead of attempted, so the pipeline runs end-to-end in local dev.
+
+## Notification pipeline
+
+`POST /api/cron/notifications` runs one sweep: deadline reminders at 30/14/3
+days out, a day-after "did you submit?" nudge, and renewal reminders 60 days
+before a renewable award's next anniversary. It's meant to be hit by an
+external scheduler roughly once a day, authenticated with a bearer token
+matching `CRON_SECRET`. `vercel.json` wires this up for Vercel Cron (which
+auto-sends that header when `CRON_SECRET` is set as a project env var); swap
+in GitHub Actions or another scheduler if not deploying to Vercel.
 
 ## Roadmap (explicitly not in v1)
 
