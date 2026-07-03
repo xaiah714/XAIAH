@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { studentIntakeSchema } from "@/lib/validation";
 import { getCurrentStudentId, setCurrentStudentId } from "@/lib/session";
+import { syncMatchesForStudent } from "@/lib/matching";
 
 function emptyToUndefined<T extends string | undefined>(v: T) {
   return v === "" ? undefined : v;
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
   });
 
   await setCurrentStudentId(student.id);
+  await syncMatchesForStudent(student.id);
 
   return NextResponse.json({ student });
 }
