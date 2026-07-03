@@ -37,12 +37,18 @@ export default async function PayoutsPage() {
             <li className="card text-sm text-brand-muted">No payouts yet.</li>
           )}
           {payouts.map((p) => (
-            <li key={p.id} className="card flex items-center justify-between text-sm">
-              <span>
-                {p.periodStart.toLocaleDateString()} - {p.periodEnd.toLocaleDateString()}
-              </span>
-              <span className="font-semibold">${(p.amountCents / 100).toFixed(2)}</span>
-              <span className="text-brand-muted">{p.status}</span>
+            <li key={p.id} className="card text-sm">
+              <div className="flex items-center justify-between">
+                <span>
+                  {p.periodStart.toLocaleDateString()} - {p.periodEnd.toLocaleDateString()}
+                </span>
+                <span className="font-semibold">${(p.amountCents / 100).toFixed(2)}</span>
+                <span className="text-brand-muted">{p.status}</span>
+              </div>
+              <p className="mt-1 text-xs text-brand-muted">
+                Subscription pool ${(p.poolCents / 100).toFixed(2)} · Pay-per-session $
+                {(p.directCents / 100).toFixed(2)} · Tips ${(p.tipCents / 100).toFixed(2)}
+              </p>
             </li>
           ))}
         </ul>

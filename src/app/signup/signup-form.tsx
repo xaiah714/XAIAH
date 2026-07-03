@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useMemo } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { signupAction, type SignupState } from "@/actions/auth";
+import { GRADE_LEVELS } from "@/lib/grade-levels";
 
 const initialState: SignupState = {};
 
 export function SignupForm() {
   const [state, formAction, pending] = useActionState(signupAction, initialState);
+  const [role, setRole] = useState<"STUDENT" | "TUTOR">("STUDENT");
 
   const timezones = useMemo(() => {
     try {
@@ -66,15 +68,48 @@ export function SignupForm() {
         <span className="text-sm font-medium">I am a...</span>
         <div className="mt-1 grid grid-cols-2 gap-2">
           <label className="input flex cursor-pointer items-center gap-2">
-            <input type="radio" name="role" value="STUDENT" defaultChecked />
+            <input
+              type="radio"
+              name="role"
+              value="STUDENT"
+              checked={role === "STUDENT"}
+              onChange={() => setRole("STUDENT")}
+            />
             Student
           </label>
           <label className="input flex cursor-pointer items-center gap-2">
-            <input type="radio" name="role" value="TUTOR" />
+            <input
+              type="radio"
+              name="role"
+              value="TUTOR"
+              checked={role === "TUTOR"}
+              onChange={() => setRole("TUTOR")}
+            />
             Tutor
           </label>
         </div>
       </div>
+
+      {role === "STUDENT" && (
+        <div>
+          <label htmlFor="gradeLevel" className="text-sm font-medium">
+            Grade level
+          </label>
+          <select id="gradeLevel" name="gradeLevel" required className="input mt-1" defaultValue="">
+            <option value="" disabled>
+              Choose one
+            </option>
+            {GRADE_LEVELS.map((g) => (
+              <option key={g.value} value={g.value}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-brand-muted">
+            Shown to tutors instead of your name before they claim your request.
+          </p>
+        </div>
+      )}
 
       <div>
         <label htmlFor="timezone" className="text-sm font-medium">

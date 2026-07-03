@@ -83,6 +83,34 @@ export async function getAdminMetrics() {
   });
   const avgSessionsPerSubscriber = average(chatSessionsPerSubscriberRows.map((r) => r._count._all));
 
+  // Effective $/hr the subscription tutor pool works out to — the spec's
+  // core unit-economics check ("~$7.50/hr in range; usage above that needs
+  // the split or pricing revisited").
+  const [poolRevenue, subscriptionFundedSessions] = await Promise.all([
+    prisma.subscriptionInvoice.aggregate({
+      where: { createdAt: { gte: since } },
+      _sum: { amountCents: true },
+    }),
+    prisma.chatSession.findMany({
+      where: {
+        status: "ENDED",
+        paymentId: null,
+        endedAt: { gte: since },
+        matchedAt: { not: null },
+      },
+      select: { matchedAt: true, endedAt: true },
+    }),
+  ]);
+  const poolCentsThisPeriod = (poolRevenue._sum.amountCents ?? 0) * 0.5;
+  const subscriptionMinutesThisPeriod = subscriptionFundedSessions.reduce(
+    (sum, s) => sum + (s.endedAt!.getTime() - s.matchedAt!.getTime()) / 60000,
+    0
+  );
+  const effectiveTutorPayPerHour =
+    subscriptionMinutesThisPeriod > 0
+      ? poolCentsThisPeriod / (subscriptionMinutesThisPeriod / 60) / 100
+      : 0;
+
   const churnRate =
     subscribersAtStart > 0 ? (canceledThisPeriod.length / subscribersAtStart) * 100 : 0;
 
@@ -99,6 +127,7 @@ export async function getAdminMetrics() {
     })),
     activeSubscribers,
     avgSessionsPerSubscriber,
+    effectiveTutorPayPerHour,
     churnRatePct: churnRate,
     cancelReasons: canceledThisPeriod
       .map((c) => c.cancelReason)

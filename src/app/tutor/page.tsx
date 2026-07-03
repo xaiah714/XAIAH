@@ -2,8 +2,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth-helpers";
 import { subjectLabel } from "@/lib/subjects";
+import { gradeLevelLabel } from "@/lib/grade-levels";
 import { TutorProfileForm } from "./tutor-profile-form";
 import { AvailabilityToggle } from "./availability-toggle";
+import { MarkAllReadButton } from "./mark-all-read-button";
 
 const STATUS_COPY: Record<string, string> = {
   APPLIED: "Your application is in the vetting queue. An admin will review it shortly.",
@@ -17,15 +19,27 @@ export default async function TutorHubPage() {
   const sessionUser = await requireRole("TUTOR");
   const user = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser.id } });
 
-  const openQuestions = user.tutorSubjects.length
-    ? await prisma.question.findMany({
-        where: { subject: { in: user.tutorSubjects }, status: { in: ["OPEN", "ANSWERED"] } },
-        orderBy: { createdAt: "asc" },
-        take: 20,
-        include: { _count: { select: { answers: true } } },
-      })
-    : [];
+  const [notifications, openQuestions] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        question: { select: { title: true, author: { select: { gradeLevel: true } } } },
+        chatSession: { select: { student: { select: { gradeLevel: true } } } },
+      },
+    }),
+    user.tutorSubjects.length
+      ? prisma.question.findMany({
+          where: { subject: { in: user.tutorSubjects }, status: { in: ["OPEN", "ANSWERED"] } },
+          orderBy: { createdAt: "asc" },
+          take: 20,
+          include: { _count: { select: { answers: true } } },
+        })
+      : Promise.resolve([]),
+  ]);
 
+  const unreadCount = notifications.filter((n) => !n.read).length;
   const canGoLive = user.tutorStatus === "ACTIVE";
 
   return (
@@ -41,7 +55,48 @@ export default async function TutorHubPage() {
         )}
       </div>
 
-      <div className="card mt-4">
+      {notifications.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              New requests {unreadCount > 0 && `(${unreadCount} unread)`}
+            </h2>
+            {unreadCount > 0 && <MarkAllReadButton />}
+          </div>
+          <ul className="mt-4 flex flex-col gap-2">
+            {notifications.map((n) => {
+              const grade = gradeLevelLabel(
+                n.question?.author.gradeLevel ?? n.chatSession?.student.gradeLevel
+              );
+              const href =
+                n.type === "NEW_QUESTION" && n.questionId
+                  ? `/questions/${n.questionId}`
+                  : "/chat";
+
+              return (
+                <li key={n.id}>
+                  <Link
+                    href={href}
+                    className={`card block hover:border-brand-teal ${n.read ? "opacity-60" : ""}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="badge-community">{subjectLabel(n.subject)}</span>
+                      <span className="text-xs text-brand-muted">Grade level: {grade}</span>
+                    </div>
+                    <p className="mt-2 text-sm font-medium">
+                      {n.type === "NEW_QUESTION"
+                        ? (n.question?.title ?? "A new community question")
+                        : "New live chat request"}
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <div className="card mt-8">
         <h2 className="font-semibold">Your subjects &amp; bio</h2>
         <p className="mt-1 text-sm text-brand-muted">
           Batch mode below only shows questions in subjects you pick here.

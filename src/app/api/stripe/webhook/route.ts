@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { findAvailableTutor } from "@/lib/matching";
+import { notifyTutorsForSubject } from "@/lib/notify";
 import type { Subject } from "@/generated/prisma/client";
 
 export async function POST(request: Request) {
@@ -92,16 +92,13 @@ export async function POST(request: Request) {
           },
         });
 
-        const tutor = await findAvailableTutor(subject);
-        await prisma.chatSession.create({
-          data: {
-            studentId: userId,
-            subject,
-            status: tutor ? "ACTIVE" : "WAITING",
-            tutorId: tutor?.id,
-            matchedAt: tutor ? new Date() : undefined,
-            paymentId: payment.id,
-          },
+        const chatSession = await prisma.chatSession.create({
+          data: { studentId: userId, subject, status: "WAITING", paymentId: payment.id },
+        });
+
+        await notifyTutorsForSubject(subject, {
+          type: "NEW_CHAT_REQUEST",
+          chatSessionId: chatSession.id,
         });
       }
       break;
@@ -131,6 +128,36 @@ export async function POST(request: Request) {
           cancelAtPeriodEnd: sub.cancel_at_period_end,
           canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : undefined,
         },
+      });
+      break;
+    }
+
+    case "invoice.paid": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionRef = invoice.parent?.subscription_details?.subscription;
+      const stripeSubscriptionId =
+        typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef?.id;
+      if (!stripeSubscriptionId) break;
+
+      const subscription = await prisma.subscription.findUnique({
+        where: { stripeSubscriptionId },
+      });
+      if (!subscription) break;
+
+      const line = invoice.lines.data[0];
+      const periodStart = line?.period.start ?? invoice.period_start;
+      const periodEnd = line?.period.end ?? invoice.period_end;
+
+      await prisma.subscriptionInvoice.upsert({
+        where: { stripeInvoiceId: invoice.id },
+        create: {
+          userId: subscription.userId,
+          stripeInvoiceId: invoice.id,
+          amountCents: invoice.amount_paid,
+          periodStart: new Date(periodStart * 1000),
+          periodEnd: new Date(periodEnd * 1000),
+        },
+        update: {},
       });
       break;
     }

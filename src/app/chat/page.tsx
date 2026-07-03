@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
 import { subjectLabel } from "@/lib/subjects";
+import { gradeLevelLabel } from "@/lib/grade-levels";
 import { ClaimButton } from "./claim-button";
 
 export default async function ChatListPage() {
@@ -21,6 +22,7 @@ export default async function ChatListPage() {
           where: { status: "WAITING", tutorId: null },
           orderBy: { requestedAt: "asc" },
           take: 20,
+          include: { student: { select: { gradeLevel: true } } },
         })
       : Promise.resolve([]),
   ]);
@@ -42,7 +44,12 @@ export default async function ChatListPage() {
           <ul className="mt-3 flex flex-col gap-3">
             {openForTutor.map((s) => (
               <li key={s.id} className="card flex items-center justify-between">
-                <span className="badge-community">{subjectLabel(s.subject)}</span>
+                <div>
+                  <span className="badge-community">{subjectLabel(s.subject)}</span>
+                  <p className="mt-1 text-xs text-brand-muted">
+                    Grade level: {gradeLevelLabel(s.student.gradeLevel)}
+                  </p>
+                </div>
                 <ClaimButton chatSessionId={s.id} />
               </li>
             ))}

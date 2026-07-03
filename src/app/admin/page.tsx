@@ -40,6 +40,11 @@ export default async function AdminDashboardPage() {
           value={m.avgSessionsPerSubscriber.toFixed(2)}
           sub="Watch this against tutor pay — unlimited usage is not capped"
         />
+        <StatTile
+          label="Effective tutor pay (pool)"
+          value={`$${m.effectiveTutorPayPerHour.toFixed(2)}/hr`}
+          sub="Target ~$7.50/hr per the spec's math — revisit the split if usage pushes this down"
+        />
         <StatTile label="Monthly churn" value={`${m.churnRatePct.toFixed(1)}%`} />
         <StatTile
           label="Tip volume"

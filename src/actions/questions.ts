@@ -4,8 +4,9 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-helpers";
+import { requireUser, requireVerifiedUser } from "@/lib/auth-helpers";
 import { saveUploadedPhoto } from "@/lib/uploads";
+import { notifyTutorsForSubject } from "@/lib/notify";
 
 const SUBJECT_VALUES = [
   "MATH",
@@ -37,7 +38,7 @@ export async function createQuestionAction(
   _prevState: QuestionFormState,
   formData: FormData
 ): Promise<QuestionFormState> {
-  const user = await requireUser();
+  const user = await requireVerifiedUser();
 
   const parsed = questionSchema.safeParse({
     subject: formData.get("subject"),
@@ -77,6 +78,11 @@ export async function createQuestionAction(
     });
   }
 
+  await notifyTutorsForSubject(parsed.data.subject, {
+    type: "NEW_QUESTION",
+    questionId: question.id,
+  });
+
   revalidatePath("/questions");
   redirect(`/questions/${question.id}`);
 }
@@ -92,7 +98,7 @@ export async function createAnswerAction(
   _prevState: AnswerFormState,
   formData: FormData
 ): Promise<AnswerFormState> {
-  const user = await requireUser();
+  const user = await requireVerifiedUser();
 
   const parsed = answerSchema.safeParse({
     questionId: formData.get("questionId"),
@@ -116,9 +122,14 @@ export async function createAnswerAction(
       where: { id: parsed.data.questionId },
       data: { status: "ANSWERED" },
     }),
+    prisma.notification.updateMany({
+      where: { questionId: parsed.data.questionId, userId: user.id, read: false },
+      data: { read: true },
+    }),
   ]);
 
   revalidatePath(`/questions/${parsed.data.questionId}`);
+  revalidatePath("/tutor");
   return {};
 }
 

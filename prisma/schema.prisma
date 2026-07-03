@@ -82,6 +82,23 @@ enum PayoutStatus {
   FAILED
 }
 
+enum GradeLevel {
+  MIDDLE_SCHOOL
+  HIGH_SCHOOL
+  COLLEGE
+  GRAD
+  OTHER
+}
+
+enum VerificationTokenPurpose {
+  EMAIL_VERIFY
+}
+
+enum NotificationType {
+  NEW_QUESTION
+  NEW_CHAT_REQUEST
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -95,6 +112,11 @@ model User {
   timezone      String   @default("UTC")
   gender        Gender   @default(UNSPECIFIED)
   photoUrl      String?
+  emailVerified DateTime?
+
+  // 2FA (TOTP, authenticator app) — available to both roles
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean @default(false)
 
   // Tutor-only fields
   tutorStatus       TutorStatus?
@@ -109,6 +131,7 @@ model User {
 
   // Student-only fields
   stripeCustomerId  String?
+  gradeLevel        GradeLevel?
 
   // Relations
   questionsAsked    Question[]        @relation("QuestionAuthor")
@@ -123,9 +146,42 @@ model User {
   payouts           Payout[]          @relation("PayoutTutor")
   ratingsGiven      Rating[]          @relation("RatingFrom")
   ratingsReceived   Rating[]          @relation("RatingTo")
+  notifications     Notification[]    @relation("NotificationRecipient")
+  subscriptionInvoices SubscriptionInvoice[] @relation("SubscriptionInvoiceUser")
+  verificationTokens VerificationToken[] @relation("VerificationTokenUser")
 
   @@index([role])
   @@index([tutorStatus])
+}
+
+model VerificationToken {
+  id        String                   @id @default(cuid())
+  userId    String
+  user      User                     @relation("VerificationTokenUser", fields: [userId], references: [id], onDelete: Cascade)
+  token     String                   @unique
+  purpose   VerificationTokenPurpose
+  expiresAt DateTime
+  createdAt DateTime                 @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  subject       Subject
+  questionId    String?
+  question      Question?        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  chatSessionId String?
+  chatSession   ChatSession?     @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  read          Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+
+  @@index([userId, read])
+  @@index([questionId])
+  @@index([chatSessionId])
 }
 
 model Question {
@@ -141,7 +197,8 @@ model Question {
   updatedAt   DateTime       @updatedAt
   resolvedAt  DateTime?
 
-  answers     Answer[]
+  answers       Answer[]
+  notifications Notification[]
 
   @@index([subject, status])
   @@index([authorId])
@@ -179,9 +236,10 @@ model ChatSession {
   paymentId   String?           @unique
   payment     Payment?          @relation(fields: [paymentId], references: [id])
 
-  messages    Message[]
-  tip         Tip?
-  rating      Rating?
+  messages      Message[]
+  tip           Tip?
+  rating        Rating?
+  notifications Notification[]
 
   @@index([status, subject])
   @@index([tutorId])
@@ -269,12 +327,31 @@ model Payout {
   periodStart DateTime
   periodEnd   DateTime
   amountCents Int
+  // Breakdown of amountCents by source, for tutor-facing transparency.
+  poolCents   Int          @default(0) // pooled 50% subscription-revenue share
+  directCents Int          @default(0) // 75% direct share of pay-per-session payments
+  tipCents    Int          @default(0) // 100% of tips (0% platform cut by default)
   status      PayoutStatus @default(PENDING)
   stripeTransferId String?
   createdAt   DateTime     @default(now())
   paidAt      DateTime?
 
   @@index([tutorId, status])
+}
+
+// Actual collected Stripe invoice revenue per subscriber period — the base
+// for the pooled 50% tutor-pool payout calculation (see src/lib/payouts.ts).
+model SubscriptionInvoice {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("SubscriptionInvoiceUser", fields: [userId], references: [id])
+  stripeInvoiceId String   @unique
+  amountCents     Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([periodStart, periodEnd])
 }
 
 // Phase 2 scaffold: bulk licenses for schools / tutoring centers / scholarship programs.

@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo } from "react";
 import { updateProfileAction, type ProfileState } from "@/actions/account";
+import { GRADE_LEVELS } from "@/lib/grade-levels";
 
 const initialState: ProfileState = {};
 
@@ -15,9 +16,13 @@ const GENDERS = [
 export function ProfileForm({
   timezone,
   gender,
+  role,
+  gradeLevel,
 }: {
   timezone: string;
   gender: string;
+  role: string;
+  gradeLevel: string;
 }) {
   const [state, formAction, pending] = useActionState(updateProfileAction, initialState);
 
@@ -59,6 +64,29 @@ export function ProfileForm({
           Students can filter tutors by gender. This is only shown if you tutor.
         </p>
       </div>
+
+      {role === "STUDENT" && (
+        <div>
+          <label htmlFor="gradeLevel" className="text-sm font-medium">
+            Grade level
+          </label>
+          <select
+            id="gradeLevel"
+            name="gradeLevel"
+            defaultValue={gradeLevel}
+            className="input mt-1"
+          >
+            {GRADE_LEVELS.map((g) => (
+              <option key={g.value} value={g.value}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-brand-muted">
+            Shown to tutors instead of your name before they claim your request.
+          </p>
+        </div>
+      )}
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state.success && <p className="text-sm text-brand-teal-dark">Saved.</p>}

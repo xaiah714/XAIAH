@@ -16,9 +16,33 @@ export default async function AccountPage() {
       <p className="mt-1 text-sm text-brand-muted">
         {user.name} · {user.email} · {user.role.toLowerCase()}
       </p>
+      {!user.emailVerified && (
+        <p className="mt-2 rounded-xl bg-brand-purple-light px-4 py-3 text-sm text-brand-purple-dark">
+          Your email isn&apos;t verified yet.{" "}
+          <Link href="/verify-email" className="underline">
+            Finish verifying
+          </Link>{" "}
+          to unlock posting and live chat.
+        </p>
+      )}
 
       <div className="card mt-6">
-        <ProfileForm timezone={user.timezone} gender={user.gender} />
+        <ProfileForm
+          timezone={user.timezone}
+          gender={user.gender}
+          role={user.role}
+          gradeLevel={user.gradeLevel ?? ""}
+        />
+      </div>
+
+      <div className="card mt-6">
+        <h2 className="font-semibold">Security</h2>
+        <p className="mt-1 text-sm text-brand-muted">
+          Two-factor authentication: {user.twoFactorEnabled ? "on" : "off"}
+        </p>
+        <Link href="/account/security" className="btn-secondary mt-3 inline-flex !px-4 !py-2 text-sm">
+          Manage security
+        </Link>
       </div>
 
       {user.role === "STUDENT" && (
