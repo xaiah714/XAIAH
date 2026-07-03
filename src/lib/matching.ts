@@ -1,0 +1,171 @@
+import { User as Student, Scholarship, Match } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import type { ClientMatch } from "@/lib/client-types";
+
+const BASE_SCORE = 40;
+const TAG_OVERLAP_WEIGHT = 12;
+const MAX_SCORE = 100;
+
+export function scholarshipMidpointAmount(s: Pick<Scholarship, "amountMin" | "amountMax">) {
+  return Math.round((s.amountMin + s.amountMax) / 2);
+}
+
+/**
+ * Hard eligibility filters. Unknown student fields (not yet disclosed) are
+ * given the benefit of the doubt rather than disqualified, since we can't
+ * confirm a criterion is actually unmet.
+ */
+export function passesHardFilters(student: Student, scholarship: Scholarship): boolean {
+  if (scholarship.minGpa != null && student.gpa != null && student.gpa < scholarship.minGpa) {
+    return false;
+  }
+
+  if (scholarship.eligibleStates.length > 0 && student.state) {
+    if (!scholarship.eligibleStates.includes(student.state)) return false;
+  }
+
+  if (scholarship.eligibleMajors.length > 0 && student.major) {
+    const studentMajor = student.major.trim().toLowerCase();
+    const matches = scholarship.eligibleMajors.some(
+      (m) => m.toLowerCase() === studentMajor || studentMajor.includes(m.toLowerCase()),
+    );
+    if (!matches) return false;
+  }
+
+  // Country of study, not home country — "eligible in Germany" cares where
+  // you're enrolled, which may differ from where you're from.
+  if (scholarship.eligibleCountries.length > 0 && student.countryOfStudy) {
+    if (!scholarship.eligibleCountries.includes(student.countryOfStudy)) return false;
+  }
+
+  // Home country/nationality eligibility — a separate axis from country of
+  // study (e.g. Fulbright wants U.S. home country but sends students to
+  // study in many different countries).
+  if (scholarship.homeCountryEligibility.length > 0 && student.country) {
+    if (!scholarship.homeCountryEligibility.includes(student.country)) return false;
+  }
+
+  return true;
+}
+
+/**
+ * Soft score: scholarships open to everyone still score above zero (BASE_SCORE)
+ * once they pass hard filters; each overlapping self-disclosed demographic tag
+ * adds weight so multi-category students rank higher, capped at MAX_SCORE.
+ */
+export function computeMatchScore(student: Student, scholarship: Scholarship): number {
+  const overlap = scholarship.eligibilityTags.filter((tag) =>
+    student.demographics.includes(tag),
+  ).length;
+  return Math.min(MAX_SCORE, BASE_SCORE + overlap * TAG_OVERLAP_WEIGHT);
+}
+
+/** Display/ranking order: fit quality x award amount, biggest opportunities first. */
+export function rankingValue(matchScore: number, scholarship: Scholarship): number {
+  return matchScore * scholarshipMidpointAmount(scholarship);
+}
+
+/**
+ * Recomputes eligibility + score for a student against the full scholarship
+ * catalog and upserts Match rows. Existing status/progress on a match is
+ * preserved; only the score is refreshed. Matches for scholarships that no
+ * longer pass hard filters are left as-is (a student who already started an
+ * application shouldn't lose their tracked progress because, say, they later
+ * added a GPA that happens to miss a cutoff).
+ */
+export async function syncMatchesForStudent(studentId: string) {
+  const student = await prisma.user.findUniqueOrThrow({ where: { id: studentId } });
+  const scholarships = await prisma.scholarship.findMany();
+
+  const eligible = scholarships.filter((s) => passesHardFilters(student, s));
+
+  await Promise.all(
+    eligible.map((scholarship) => {
+      const matchScore = computeMatchScore(student, scholarship);
+      return prisma.match.upsert({
+        where: { studentId_scholarshipId: { studentId, scholarshipId: scholarship.id } },
+        create: { studentId, scholarshipId: scholarship.id, matchScore },
+        update: { matchScore },
+      });
+    }),
+  );
+
+  return eligible.length;
+}
+
+export type MatchWithScholarship = Match & { scholarship: Scholarship };
+
+/** Converts a Prisma match (Date objects) into a plain, JSON-safe shape for client components. */
+export function toClientMatch(match: MatchWithScholarship): ClientMatch {
+  const s = match.scholarship;
+  return {
+    id: match.id,
+    matchScore: match.matchScore,
+    status: match.status,
+    confirmationUrl: match.confirmationUrl,
+    scholarship: {
+      id: s.id,
+      name: s.name,
+      orgName: s.orgName,
+      description: s.description,
+      awardType: s.awardType,
+      amountMin: s.amountMin,
+      amountMax: s.amountMax,
+      currencyCode: s.currencyCode,
+      deadline: s.deadline.toISOString(),
+      renewable: s.renewable,
+      essayRequired: s.essayRequired,
+      essayCount: s.essayCount,
+      essayWordCount: s.essayWordCount,
+      requiresTranscript: s.requiresTranscript,
+      recommendationLettersRequired: s.recommendationLettersRequired,
+      otherRequirements: s.otherRequirements,
+      eligibilityTags: s.eligibilityTags,
+      minGpa: s.minGpa,
+      eligibleMajors: s.eligibleMajors,
+      eligibleCountries: s.eligibleCountries,
+      homeCountryEligibility: s.homeCountryEligibility,
+      region: s.region,
+      schoolName: s.schoolName,
+      sourceUrl: s.sourceUrl,
+      verified: s.verified,
+      lastVerifiedDate: s.lastVerifiedDate ? s.lastVerifiedDate.toISOString() : null,
+      legitimacyScore: s.legitimacyScore,
+      acceptanceRate: s.acceptanceRate,
+      flagCount: s.flagCount,
+    },
+  };
+}
+
+/** Matches for a student, joined with scholarship data, ranked for display. */
+export async function getStudentMatches(studentId: string) {
+  const matches = await prisma.match.findMany({
+    where: { studentId },
+    include: { scholarship: true },
+  });
+
+  return matches.sort(
+    (a, b) => rankingValue(b.matchScore, b.scholarship) - rankingValue(a.matchScore, a.scholarship),
+  );
+}
+
+/**
+ * Headline dollar-value hook: sum of award amounts for scholarships still
+ * live (not rejected), grouped by currency — awards in different currencies
+ * can't be added together without a conversion rate, so rather than fake a
+ * single blended total we surface one figure per currency and let the
+ * dashboard headline the largest bucket.
+ */
+export function totalEligibleAmountsByCurrency(
+  matches: MatchWithScholarship[],
+): { currencyCode: string; amount: number }[] {
+  const totals = new Map<string, number>();
+  for (const m of matches) {
+    if (m.status === "REJECTED") continue;
+    const code = m.scholarship.currencyCode;
+    totals.set(code, (totals.get(code) ?? 0) + scholarshipMidpointAmount(m.scholarship));
+  }
+  return Array.from(totals.entries())
+    .map(([currencyCode, amount]) => ({ currencyCode, amount }))
+    .sort((a, b) => b.amount - a.amount);
+}

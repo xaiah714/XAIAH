@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Shared taxonomy
+// ---------------------------------------------------------------------------
+
+// Demographic / eligibility taxonomy shared by students (self-disclosed
+// demographics) and scholarships (eligibility_tags). Keeping one enum keeps
+// the matching engine's tag-overlap scoring a simple set intersection.
+enum DemographicTag {
+  // Ethnicity and heritage
+  HISPANIC_LATINO
+  BLACK_AFRICAN_AMERICAN
+  ASIAN_AMERICAN_PACIFIC_ISLANDER
+  NATIVE_AMERICAN_INDIGENOUS
+  MIDDLE_EASTERN_ARAB_AMERICAN
+
+  // Gender and identity
+  WOMEN_IN_STEM
+  WOMEN_IN_TRADES_BUSINESS
+  LGBTQ
+  TRANSGENDER
+
+  // Family and life circumstance
+  SINGLE_PARENT
+  FIRST_GENERATION
+  STUDENT_WITH_CHILDREN
+  FOSTER_CARE_ALUMNI
+  VETERAN_OR_MILITARY_DEPENDENT
+  INCARCERATED_PARENT
+
+  // Disability and health
+  PHYSICAL_DISABILITY
+  LEARNING_DISABILITY_ADHD
+  CHRONIC_ILLNESS
+  MENTAL_HEALTH_ADVOCACY
+
+  // Academic and career path
+  STEM
+  HEALTHCARE_NURSING
+  EDUCATION
+  TRADES_VOCATIONAL
+  FIRST_RESPONDER
+  AGRICULTURE
+
+  // Socioeconomic
+  LOW_INCOME_PELL_ELIGIBLE
+  RURAL
+  HOUSING_INSECURE
+
+  // Religious and cultural affiliation
+  CATHOLIC
+  JEWISH
+  MUSLIM
+  OTHER_RELIGIOUS
+}
+
+enum IncomeBracket {
+  UNDER_30K
+  FROM_30K_TO_60K
+  FROM_60K_TO_100K
+  OVER_100K
+  PREFER_NOT_TO_SAY
+}
+
+// Covers college-bound high school seniors through enrolled adult/returning
+// students. Deliberately no under-18/pre-senior values — this product does
+// not support minors or parent-managed accounts.
+enum SchoolYear {
+  HIGH_SCHOOL_SENIOR
+  FRESHMAN
+  SOPHOMORE
+  JUNIOR
+  SENIOR
+  GRADUATE
+  OTHER
+}
+
+enum MatchStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  CONFIRMED_RECEIVED
+  UNDER_REVIEW
+  AWARDED
+  REJECTED
+}
+
+enum DocumentType {
+  TRANSCRIPT
+  FAFSA
+  ESSAY
+  REC_LETTER
+  STATUS_CONFIRMATION
+}
+
+enum NotificationType {
+  DEADLINE_30
+  DEADLINE_14
+  DEADLINE_3
+  STATUS_CHECK
+  RENEWAL
+}
+
+enum NotificationChannel {
+  SMS
+  EMAIL
+}
+
+enum AwardType {
+  SCHOLARSHIP
+  GRANT
+  FELLOWSHIP
+}
+
+// Steps in the guided application walkthrough. SUBMIT is always the final
+// step and is what flips a match's status to SUBMITTED.
+enum ApplicationStepType {
+  ESSAY
+  TRANSCRIPT
+  REC_LETTER
+  FAFSA
+  OTHER
+  SUBMIT
+}
+
+// ---------------------------------------------------------------------------
+// Core tables
+// ---------------------------------------------------------------------------
+
+// Named `User` (not `Student`) because this table doubles as the Auth.js
+// adapter's user model — email/emailVerified/image/name plus Account/Session
+// are the auth identity; everything else is student profile data. Table name
+// stays "students" via @@map since that's what the rest of the schema/app
+// conceptually means by this entity.
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  emailVerified  DateTime?        @map("email_verified") @db.Timestamptz(3)
+  name           String?
+  image          String?
+  phone          String?
+  school         String?
+  major          String?
+  year           SchoolYear?
+  gpa            Float?
+  state          String?
+  // Home country (nationality/residency) vs. countryOfStudy below — a
+  // scholarship can restrict by either independently (e.g. Fulbright wants
+  // U.S. home country but sends students anywhere; DAAD wants study in
+  // Germany regardless of home country).
+  country        String?
+  countryOfStudy String?          @map("country_of_study")
+  // IANA time zone (e.g. "America/Chicago"), auto-detected from the
+  // student's browser — there is no manual timezone picker anywhere in
+  // the UI. Used to localize notification copy sent outside a page render.
+  timezone       String?
+  incomeBracket  IncomeBracket?   @map("income_bracket")
+  firstGen       Boolean?         @map("first_gen")
+  demographics   DemographicTag[]
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  accounts      Account[]
+  sessions      Session[]
+  matches       Match[]
+  documents     Document[]
+  notifications Notification[]
+
+  @@map("students")
+}
+
+// --- Auth.js (NextAuth v5) Prisma adapter tables ---
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime @db.Timestamptz(3)
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Scholarship {
+  id                            String           @id @default(cuid())
+  name                          String
+  orgName                       String           @map("org_name")
+  description                   String?
+  awardType                     AwardType        @default(SCHOLARSHIP) @map("award_type")
+  amountMin                     Int              @map("amount_min")
+  amountMax                     Int              @map("amount_max")
+  currencyCode                  String           @default("USD") @map("currency_code")
+  deadline                      DateTime         @db.Timestamptz(3)
+  renewable                     Boolean          @default(false)
+  essayRequired                 Boolean          @default(false) @map("essay_required")
+  essayCount                    Int?             @map("essay_count")
+  essayWordCount                Int?             @map("essay_word_count")
+  requiresTranscript            Boolean          @default(false) @map("requires_transcript")
+  recommendationLettersRequired Int              @default(0) @map("recommendation_letters_required")
+  otherRequirements             String[]         @map("other_requirements")
+  eligibilityTags               DemographicTag[] @map("eligibility_tags")
+
+  // Hard-filter eligibility criteria
+  minGpa                 Float?   @map("min_gpa")
+  eligibleStates         String[] @map("eligible_states")
+  eligibleMajors         String[] @map("eligible_majors")
+  // Where the award can be USED — empty means open worldwide. Checked
+  // against the student's countryOfStudy (e.g. DAAD -> study in Germany).
+  eligibleCountries      String[] @map("eligible_countries")
+  // Who is ELIGIBLE to apply, by nationality/residency — a separate axis
+  // from eligibleCountries. Empty means open to any nationality. Checked
+  // against the student's home country (e.g. Fulbright/Boren -> U.S.
+  // citizens only, sent to study in many different countries).
+  homeCountryEligibility String[] @map("home_country_eligibility")
+  // Free-text descriptive region shown on the card (e.g. "European Union",
+  // "Commonwealth") — informational, not a hard filter.
+  region                 String?
+  // For a future school-lookup feature (e.g. a browser extension surfacing
+  // a school's active scholarships); most national/global programs leave
+  // this null.
+  schoolName             String?  @map("school_name")
+
+  // Legitimacy layer
+  sourceUrl        String    @map("source_url")
+  verified         Boolean   @default(false)
+  lastVerifiedDate DateTime? @map("last_verified_date") @db.Timestamptz(3)
+  legitimacyScore  Int?      @map("legitimacy_score")
+  acceptanceRate   Float?    @map("acceptance_rate")
+  flagCount        Int       @default(0) @map("flag_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  matches Match[]
+  flags   ScholarshipFlag[]
+
+  @@map("scholarships")
+}
+
+model Match {
+  id              String      @id @default(cuid())
+  studentId       String      @map("student_id")
+  scholarshipId   String      @map("scholarship_id")
+  matchScore      Float       @map("match_score")
+  status          MatchStatus @default(NOT_STARTED)
+  statusUpdatedAt DateTime    @default(now()) @map("status_updated_at") @db.Timestamptz(3)
+  confirmationUrl String?     @map("confirmation_url")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  student       User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scholarship   Scholarship       @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+  steps         ApplicationStep[]
+
+  @@unique([studentId, scholarshipId])
+  @@index([studentId])
+  @@index([scholarshipId])
+  @@map("matches")
+}
+
+// Guided application walkthrough steps, generated from a scholarship's
+// requirements the first time a student opens the walkthrough for a match.
+// Checking off the first step is what moves a match from NOT_STARTED to
+// IN_PROGRESS; completing the final SUBMIT step moves it to SUBMITTED.
+model ApplicationStep {
+  id          String              @id @default(cuid())
+  matchId     String              @map("match_id")
+  type        ApplicationStepType
+  label       String
+  order       Int
+  completed   Boolean             @default(false)
+  completedAt DateTime?           @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, type])
+  @@index([matchId])
+  @@map("application_steps")
+}
+
+model Document {
+  id           String       @id @default(cuid())
+  studentId    String       @map("student_id")
+  type         DocumentType
+  fileUrl      String       @map("file_url")
+  taggedTopics String[]     @map("tagged_topics")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("documents")
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  studentId String              @map("student_id")
+  matchId   String?             @map("match_id")
+  type      NotificationType
+  channel   NotificationChannel
+  sentAt    DateTime?           @map("sent_at") @db.Timestamptz(3)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  match   Match? @relation(fields: [matchId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([matchId])
+  @@map("notifications")
+}
+
+model ScholarshipFlag {
+  id            String   @id @default(cuid())
+  scholarshipId String   @map("scholarship_id")
+  reason        String
+  reporterEmail String?  @map("reporter_email")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@index([scholarshipId])
+  @@map("scholarship_flags")
+}
