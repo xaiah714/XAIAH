@@ -70,6 +70,11 @@ export async function runNotificationSweep() {
   for (const match of matches) {
     const { student, scholarship } = match;
     const daysLeft = daysUntil(scholarship.deadline);
+    // Student's browser-detected IANA timezone, when known — falls back to
+    // UTC rather than assuming any single region is the default.
+    const tz = student.timezone ?? "UTC";
+    const money = (amount: number) => formatCurrency(amount, scholarship.currencyCode);
+    const date = (d: Date) => formatDate(d, tz);
 
     if (ACTIVE_APPLICATION_STATUSES.includes(match.status)) {
       for (const threshold of DEADLINE_THRESHOLDS) {
@@ -82,13 +87,13 @@ export async function runNotificationSweep() {
           type: threshold.type,
           phone: student.phone,
           email: student.email,
-          smsBody: `${threshold.days} days left to apply for ${scholarship.name} (${formatCurrency(
+          smsBody: `${threshold.days} days left to apply for ${scholarship.name} (${money(
             scholarship.amountMax,
-          )}) — due ${formatDate(scholarship.deadline)}.`,
+          )}) — due ${date(scholarship.deadline)}.`,
           emailSubject: `${threshold.days} days left: ${scholarship.name}`,
-          emailHtml: `<p>Your match <strong>${scholarship.name}</strong> (${formatCurrency(
+          emailHtml: `<p>Your match <strong>${scholarship.name}</strong> (${money(
             scholarship.amountMin,
-          )}–${formatCurrency(scholarship.amountMax)}) is due <strong>${formatDate(
+          )}–${money(scholarship.amountMax)}) is due <strong>${date(
             scholarship.deadline,
           )}</strong>.</p><p>${scholarship.essayRequired ? `Essay required (~${scholarship.essayWordCount ?? "?"} words). ` : "No essay required. "}Apply here: <a href="${scholarship.sourceUrl}">${scholarship.sourceUrl}</a></p>`,
         });
@@ -104,7 +109,7 @@ export async function runNotificationSweep() {
           email: student.email,
           smsBody: `Did you submit your application for ${scholarship.name}? Update your status on ScholarMatch.`,
           emailSubject: `Did you submit your ${scholarship.name} application?`,
-          emailHtml: `<p>The deadline for <strong>${scholarship.name}</strong> passed on ${formatDate(
+          emailHtml: `<p>The deadline for <strong>${scholarship.name}</strong> passed on ${date(
             scholarship.deadline,
           )}. Log into ScholarMatch to update its status.</p>`,
         });
@@ -128,9 +133,9 @@ export async function runNotificationSweep() {
           type: "RENEWAL",
           phone: student.phone,
           email: student.email,
-          smsBody: `Renew your ${scholarship.name} award — renewal window closes ${formatDate(renewalDate)}.`,
+          smsBody: `Renew your ${scholarship.name} award — renewal window closes ${date(renewalDate)}.`,
           emailSubject: `Renew your ${scholarship.name} scholarship`,
-          emailHtml: `<p>Your <strong>${scholarship.name}</strong> award is renewable. The next renewal deadline is <strong>${formatDate(
+          emailHtml: `<p>Your <strong>${scholarship.name}</strong> award is renewable. The next renewal deadline is <strong>${date(
             renewalDate,
           )}</strong> — check the official listing for renewal requirements: <a href="${scholarship.sourceUrl}">${scholarship.sourceUrl}</a></p>`,
         });

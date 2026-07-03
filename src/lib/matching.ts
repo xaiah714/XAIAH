@@ -1,5 +1,6 @@
-import { Student, Scholarship } from "@prisma/client";
+import { Student, Scholarship, Match } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import type { ClientMatch } from "@/lib/client-types";
 
 const BASE_SCORE = 40;
 const TAG_OVERLAP_WEIGHT = 12;
@@ -29,6 +30,12 @@ export function passesHardFilters(student: Student, scholarship: Scholarship): b
       (m) => m.toLowerCase() === studentMajor || studentMajor.includes(m.toLowerCase()),
     );
     if (!matches) return false;
+  }
+
+  // Country of study, not home country — "eligible in Germany" cares where
+  // you're enrolled, which may differ from where you're from.
+  if (scholarship.eligibleCountries.length > 0 && student.countryOfStudy) {
+    if (!scholarship.eligibleCountries.includes(student.countryOfStudy)) return false;
   }
 
   return true;
@@ -79,7 +86,48 @@ export async function syncMatchesForStudent(studentId: string) {
   return eligible.length;
 }
 
-export type MatchWithScholarship = Awaited<ReturnType<typeof getStudentMatches>>[number];
+export type MatchWithScholarship = Match & { scholarship: Scholarship };
+
+/** Converts a Prisma match (Date objects) into a plain, JSON-safe shape for client components. */
+export function toClientMatch(match: MatchWithScholarship): ClientMatch {
+  const s = match.scholarship;
+  return {
+    id: match.id,
+    matchScore: match.matchScore,
+    status: match.status,
+    confirmationUrl: match.confirmationUrl,
+    scholarship: {
+      id: s.id,
+      name: s.name,
+      orgName: s.orgName,
+      description: s.description,
+      awardType: s.awardType,
+      amountMin: s.amountMin,
+      amountMax: s.amountMax,
+      currencyCode: s.currencyCode,
+      deadline: s.deadline.toISOString(),
+      renewable: s.renewable,
+      essayRequired: s.essayRequired,
+      essayCount: s.essayCount,
+      essayWordCount: s.essayWordCount,
+      requiresTranscript: s.requiresTranscript,
+      recommendationLettersRequired: s.recommendationLettersRequired,
+      otherRequirements: s.otherRequirements,
+      eligibilityTags: s.eligibilityTags,
+      minGpa: s.minGpa,
+      eligibleMajors: s.eligibleMajors,
+      eligibleCountries: s.eligibleCountries,
+      region: s.region,
+      schoolName: s.schoolName,
+      sourceUrl: s.sourceUrl,
+      verified: s.verified,
+      lastVerifiedDate: s.lastVerifiedDate ? s.lastVerifiedDate.toISOString() : null,
+      legitimacyScore: s.legitimacyScore,
+      acceptanceRate: s.acceptanceRate,
+      flagCount: s.flagCount,
+    },
+  };
+}
 
 /** Matches for a student, joined with scholarship data, ranked for display. */
 export async function getStudentMatches(studentId: string) {
@@ -93,9 +141,23 @@ export async function getStudentMatches(studentId: string) {
   );
 }
 
-/** Headline dollar-value hook: sum of award amounts for scholarships still live (not rejected). */
-export function totalEligibleAmount(matches: MatchWithScholarship[]): number {
-  return matches
-    .filter((m) => m.status !== "REJECTED")
-    .reduce((sum, m) => sum + scholarshipMidpointAmount(m.scholarship), 0);
+/**
+ * Headline dollar-value hook: sum of award amounts for scholarships still
+ * live (not rejected), grouped by currency — awards in different currencies
+ * can't be added together without a conversion rate, so rather than fake a
+ * single blended total we surface one figure per currency and let the
+ * dashboard headline the largest bucket.
+ */
+export function totalEligibleAmountsByCurrency(
+  matches: MatchWithScholarship[],
+): { currencyCode: string; amount: number }[] {
+  const totals = new Map<string, number>();
+  for (const m of matches) {
+    if (m.status === "REJECTED") continue;
+    const code = m.scholarship.currencyCode;
+    totals.set(code, (totals.get(code) ?? 0) + scholarshipMidpointAmount(m.scholarship));
+  }
+  return Array.from(totals.entries())
+    .map(([currencyCode, amount]) => ({ currencyCode, amount }))
+    .sort((a, b) => b.amount - a.amount);
 }

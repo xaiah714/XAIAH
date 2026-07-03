@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,11 +11,12 @@ import {
   SCHOOL_YEAR_LABELS,
   US_STATES,
 } from "@/lib/taxonomy";
+import { COUNTRIES } from "@/lib/countries";
 
 const STEPS = ["Basics", "Academics & finances", "Optional identity info", "Review"] as const;
 
 const STEP_FIELDS: Record<number, (keyof StudentIntakeInput)[]> = {
-  0: ["email", "phone", "school", "major", "year", "state"],
+  0: ["email", "phone", "school", "major", "year", "country", "countryOfStudy", "state"],
   1: ["gpa", "incomeBracket", "firstGen"],
   2: ["demographics"],
   3: [],
@@ -36,6 +37,7 @@ export default function IntakeForm({
     trigger,
     control,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<StudentIntakeInput>({
     resolver: zodResolver(studentIntakeSchema),
@@ -47,6 +49,9 @@ export default function IntakeForm({
       year: null,
       gpa: null,
       state: "",
+      country: "",
+      countryOfStudy: "",
+      timezone: "",
       incomeBracket: null,
       firstGen: null,
       demographics: [],
@@ -55,6 +60,16 @@ export default function IntakeForm({
   });
 
   const demographics = watch("demographics");
+
+  // Auto-detected — there is no manual timezone picker anywhere in the app.
+  useEffect(() => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz) setValue("timezone", tz);
+    } catch {
+      // Intl unsupported — leave timezone unset.
+    }
+  }, [setValue]);
 
   async function goNext() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -85,7 +100,7 @@ export default function IntakeForm({
         {STEPS.map((label, i) => (
           <li
             key={label}
-            className={`flex-1 rounded-full px-2 py-1 text-center ${
+            className={`flex-1 rounded-full px-2 py-1.5 text-center ${
               i === step
                 ? "bg-brand-600 text-white"
                 : i < step
@@ -101,7 +116,13 @@ export default function IntakeForm({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {step === 0 && (
           <fieldset className="space-y-4">
-            <h2 className="text-xl font-semibold text-slate-900">Basics</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-brand-950">Basics</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                For college-bound high school seniors through grad students and adult learners,
+                anywhere in the world.
+              </p>
+            </div>
             <Field label="Email" error={errors.email?.message}>
               <input
                 type="email"
@@ -129,9 +150,29 @@ export default function IntakeForm({
                 ))}
               </select>
             </Field>
-            <Field label="State" error={errors.state?.message}>
+            <Field label="Home country">
+              <select {...register("country")} className="input">
+                <option value="">Select country</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Country you're studying in">
+              <select {...register("countryOfStudy")} className="input">
+                <option value="">Select country</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="US state (if applicable)" error={errors.state?.message}>
               <select {...register("state")} className="input">
-                <option value="">Select state</option>
+                <option value="">Not applicable / select state</option>
                 {US_STATES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -144,7 +185,7 @@ export default function IntakeForm({
 
         {step === 1 && (
           <fieldset className="space-y-4">
-            <h2 className="text-xl font-semibold text-slate-900">Academics & finances</h2>
+            <h2 className="text-xl font-semibold text-brand-950">Academics & finances</h2>
             <Field label="GPA (4.0 scale)" error={errors.gpa?.message}>
               <input
                 type="number"
@@ -170,7 +211,7 @@ export default function IntakeForm({
               control={control}
               name="firstGen"
               render={({ field }) => (
-                <label className="flex items-center gap-2 text-sm text-slate-700">
+                <label className="flex min-h-[44px] items-center gap-2 text-sm text-slate-700">
                   <input
                     type="checkbox"
                     checked={field.value === true}
@@ -187,11 +228,12 @@ export default function IntakeForm({
         {step === 2 && (
           <fieldset className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Optional identity info</h2>
+              <h2 className="text-xl font-semibold text-brand-950">Optional identity info</h2>
               <p className="mt-1 text-sm text-slate-500">
                 Every field here is optional and self-disclosed. We only use it to surface
                 scholarships that consider these categories — matching more tags can unlock
-                more awards.
+                more awards. You can also just browse these categories yourself later on your
+                dashboard.
               </p>
             </div>
             <Controller
@@ -208,7 +250,7 @@ export default function IntakeForm({
                           return (
                             <label
                               key={tag.value}
-                              className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                              className="flex min-h-[44px] items-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                             >
                               <input
                                 type="checkbox"
@@ -236,7 +278,7 @@ export default function IntakeForm({
 
         {step === 3 && (
           <fieldset className="space-y-4">
-            <h2 className="text-xl font-semibold text-slate-900">Review</h2>
+            <h2 className="text-xl font-semibold text-brand-950">Review</h2>
             <p className="text-sm text-slate-600">
               You selected {demographics?.length ?? 0} optional identity tag
               {demographics?.length === 1 ? "" : "s"}. Submitting will build your matches and take
@@ -251,7 +293,7 @@ export default function IntakeForm({
             type="button"
             onClick={goBack}
             disabled={step === 0}
-            className="rounded-full px-5 py-2 text-sm font-medium text-slate-600 disabled:opacity-0"
+            className="min-h-[44px] rounded-full px-5 py-2 text-sm font-medium text-slate-600 disabled:opacity-0"
           >
             Back
           </button>
@@ -259,7 +301,7 @@ export default function IntakeForm({
             <button
               type="button"
               onClick={goNext}
-              className="rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+              className="min-h-[44px] rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-700"
             >
               Continue
             </button>
@@ -267,7 +309,7 @@ export default function IntakeForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              className="min-h-[44px] rounded-full bg-accent-500 px-6 py-2 text-sm font-semibold text-brand-950 hover:bg-accent-600 disabled:opacity-60"
             >
               {isSubmitting ? "Saving..." : "See my matches"}
             </button>

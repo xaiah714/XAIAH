@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { MatchStatus } from "@prisma/client";
 import { MATCH_STATUS_LABELS, MATCH_STATUS_ORDER } from "@/lib/match-status";
 
+function statusDotClass(status: MatchStatus) {
+  if (status === "AWARDED" || status === "CONFIRMED_RECEIVED") return "bg-emerald-500";
+  if (status === "REJECTED") return "bg-coral-400";
+  if (status === "NOT_STARTED") return "bg-slate-300";
+  return "bg-brand-500";
+}
+
 export default function StatusControl({
   matchId,
   status,
@@ -45,8 +52,9 @@ export default function StatusControl({
     <div className="flex flex-col gap-2 border-t border-slate-100 pt-3">
       <div className="flex items-center gap-2">
         <label className="text-xs font-medium text-slate-500">Status</label>
+        <span className={`h-2 w-2 shrink-0 rounded-full ${statusDotClass(status)}`} aria-hidden />
         <select
-          className="input max-w-[220px] py-1.5 text-sm"
+          className="input min-h-[44px] max-w-[220px] text-sm"
           value={status}
           disabled={isPending}
           onChange={(e) => updateStatus(e.target.value as MatchStatus)}
@@ -58,7 +66,7 @@ export default function StatusControl({
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <label className="flex min-h-[44px] items-center gap-2 text-xs text-slate-500">
         <input
           ref={fileInputRef}
           type="file"
@@ -66,7 +74,7 @@ export default function StatusControl({
           className="text-xs"
         />
         <span>Optional confirmation screenshot</span>
-      </div>
+      </label>
       {confirmationUrl && (
         <a
           href={confirmationUrl}

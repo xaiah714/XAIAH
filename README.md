@@ -1,8 +1,9 @@
 # ScholarMatch
 
-A scholarship matching and completion platform: it matches college students to
-scholarships they actually qualify for, and tracks each application through to
-submission instead of stopping at discovery.
+A scholarship and grant matching and completion platform for college-bound
+high school seniors through grad students and adult learners, anywhere in
+the world: it matches students to aid they actually qualify for, and walks
+each application through to submission instead of stopping at discovery.
 
 ## Stack
 
@@ -33,16 +34,40 @@ submission instead of stopping at discovery.
 ## Project layout
 
 - `prisma/schema.prisma` — students, scholarships, matches, documents,
-  notifications tables and the shared demographic/eligibility taxonomy.
-- `prisma/seed.ts` — curated starter scholarship listings.
-- `src/lib/matching.ts` — hard-filter + demographic-overlap matching engine.
-- `src/lib/taxonomy.ts` — demographic tag groups, income brackets, etc. used
-  by both the intake form and scholarship seed data.
+  notifications, and application_steps tables, plus the shared
+  demographic/eligibility taxonomy. Deadlines and other timestamps are
+  stored as `timestamptz` (UTC internally).
+- `prisma/seed.ts` — curated starter scholarship + grant listings (US and
+  global), with provenance/confidence notes at the top of the file.
+- `src/lib/matching.ts` — hard-filter (GPA, state, major, country of study)
+  + demographic-overlap scoring engine.
+- `src/lib/taxonomy.ts` / `src/lib/countries.ts` — demographic tag groups,
+  income brackets, award types, and country list used by both the intake
+  form and scholarship seed data.
+- `src/lib/steps.ts` — generates the guided application walkthrough steps
+  for a match from the scholarship's requirements.
+- `src/components/local-date.tsx` — client-side date/countdown rendering in
+  the browser's own timezone (auto-detected, no manual picker anywhere).
 - `src/app/profile` — student intake form.
-- `src/app/dashboard` — matches, dollar-value hook, status tracker.
+- `src/app/dashboard` — matches, dollar-value hook (grouped by currency),
+  award-type/quick-win/category filters, status tracker.
+- `src/app/dashboard/matches/[id]` — guided, step-by-step application
+  walkthrough; opening it moves a match from Not Started to In Progress,
+  completing the final step moves it to Submitted.
 - `src/lib/notifications` — SMS (Twilio)/email (Resend) senders and the
-  deadline/renewal reminder sweep. Without API keys set, sends are logged
-  instead of attempted, so the pipeline runs end-to-end in local dev.
+  deadline/renewal reminder sweep, localized to each student's stored
+  timezone. Without API keys set, sends are logged instead of attempted,
+  so the pipeline runs end-to-end in local dev.
+
+## Global by default
+
+Students set a home country and a (possibly different) country of study;
+scholarships can restrict by country of study, describe a region for
+context (e.g. "Commonwealth"), and carry their own currency. The dashboard
+totals eligible amounts per currency rather than pretending USD + EUR + GBP
+can be summed into one number. Known gap: the matching engine filters by
+country of study, not applicant home-country eligibility (relevant to a
+few of the seeded global fellowships) — noted in `prisma/seed.ts`.
 
 ## Notification pipeline
 

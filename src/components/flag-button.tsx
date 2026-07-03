@@ -23,7 +23,7 @@ export default function FlagButton({ scholarshipId }: { scholarshipId: string })
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs font-medium text-slate-400 hover:text-red-600"
+        className="min-h-[44px] px-1 text-xs font-medium text-slate-400 hover:text-coral-600"
       >
         Report as suspicious
       </button>
@@ -35,8 +35,8 @@ export default function FlagButton({ scholarshipId }: { scholarshipId: string })
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-red-100 bg-red-50 p-3">
-      <label className="text-xs font-medium text-red-700">
+    <div className="flex flex-col gap-2 rounded-lg border border-coral-100 bg-coral-50 p-3">
+      <label className="text-xs font-medium text-coral-700">
         What looks wrong about this listing?
       </label>
       <textarea
@@ -51,19 +51,19 @@ export default function FlagButton({ scholarshipId }: { scholarshipId: string })
           type="button"
           onClick={submit}
           disabled={status === "sending"}
-          className="rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+          className="min-h-[40px] rounded-full bg-coral-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-coral-600 disabled:opacity-60"
         >
           {status === "sending" ? "Sending..." : "Submit report"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-xs text-slate-500 hover:underline"
+          className="min-h-[40px] px-2 text-xs text-slate-500 hover:underline"
         >
           Cancel
         </button>
       </div>
-      {status === "error" && <p className="text-xs text-red-700">Couldn&apos;t send — try again.</p>}
+      {status === "error" && <p className="text-xs text-coral-700">Couldn&apos;t send — try again.</p>}
     </div>
   );
 }

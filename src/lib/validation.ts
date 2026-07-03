@@ -19,6 +19,9 @@ export const studentIntakeSchema = z.object({
     .optional()
     .nullable(),
   state: z.string().trim().length(2, "Use a 2-letter state code").optional().or(z.literal("")),
+  country: z.string().trim().max(100).optional().or(z.literal("")),
+  countryOfStudy: z.string().trim().max(100).optional().or(z.literal("")),
+  timezone: z.string().trim().max(100).optional().or(z.literal("")),
   incomeBracket: z.nativeEnum(IncomeBracket).optional().nullable(),
   firstGen: z.boolean().optional().nullable(),
   demographics: z.array(z.nativeEnum(DemographicTag)).default([]),

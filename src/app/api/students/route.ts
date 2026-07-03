@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
       year: data.year ?? undefined,
       gpa: data.gpa ?? undefined,
       state: emptyToUndefined(data.state)?.toUpperCase(),
+      country: emptyToUndefined(data.country),
+      countryOfStudy: emptyToUndefined(data.countryOfStudy),
+      timezone: emptyToUndefined(data.timezone),
       incomeBracket: data.incomeBracket ?? undefined,
       firstGen: data.firstGen ?? undefined,
       demographics: data.demographics,
@@ -45,6 +48,11 @@ export async function POST(req: NextRequest) {
       year: data.year ?? undefined,
       gpa: data.gpa ?? undefined,
       state: emptyToUndefined(data.state)?.toUpperCase(),
+      country: emptyToUndefined(data.country),
+      countryOfStudy: emptyToUndefined(data.countryOfStudy),
+      // Keep whichever timezone we already have if this update omits it
+      // (e.g. a background timezone-sync ping vs. a full profile save).
+      timezone: emptyToUndefined(data.timezone) ?? undefined,
       incomeBracket: data.incomeBracket ?? undefined,
       firstGen: data.firstGen ?? undefined,
       demographics: data.demographics,

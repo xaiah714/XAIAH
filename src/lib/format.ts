@@ -1,22 +1,42 @@
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
+const currencyFormatterCache = new Map<string, Intl.NumberFormat>();
 
-export function formatCurrency(amount: number) {
-  return currencyFormatter.format(amount);
+function getCurrencyFormatter(currencyCode: string) {
+  let formatter = currencyFormatterCache.get(currencyCode);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+      maximumFractionDigits: 0,
+    });
+    currencyFormatterCache.set(currencyCode, formatter);
+  }
+  return formatter;
 }
 
-export function formatAmountRange(min: number, max: number) {
-  if (min === max) return formatCurrency(min);
-  return `${formatCurrency(min)} - ${formatCurrency(max)}`;
+export function formatCurrency(amount: number, currencyCode = "USD") {
+  try {
+    return getCurrencyFormatter(currencyCode).format(amount);
+  } catch {
+    // Unknown/invalid ISO currency code — fall back to a plain label.
+    return `${amount.toLocaleString("en-US")} ${currencyCode}`;
+  }
 }
 
-export function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(
-    date,
-  );
+export function formatAmountRange(min: number, max: number, currencyCode = "USD") {
+  if (min === max) return formatCurrency(min, currencyCode);
+  return `${formatCurrency(min, currencyCode)} - ${formatCurrency(max, currencyCode)}`;
+}
+
+/** Server-side date formatting (e.g. for notification copy). Pass a
+ * student's stored IANA timezone when available; UI rendering should use
+ * the browser-side LocalDate/LocalDeadline components instead. */
+export function formatDate(date: Date, timeZone?: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
+  }).format(date);
 }
 
 export function daysUntil(date: Date) {

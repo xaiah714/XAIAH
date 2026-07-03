@@ -1,4 +1,4 @@
-import { DemographicTag, IncomeBracket, SchoolYear } from "@prisma/client";
+import { DemographicTag, IncomeBracket, SchoolYear, AwardType } from "@prisma/client";
 
 export type TagGroup = {
   label: string;
@@ -92,12 +92,19 @@ export const INCOME_BRACKET_LABELS: Record<IncomeBracket, string> = {
 };
 
 export const SCHOOL_YEAR_LABELS: Record<SchoolYear, string> = {
+  HIGH_SCHOOL_SENIOR: "High school senior (college-bound)",
   FRESHMAN: "Freshman",
   SOPHOMORE: "Sophomore",
   JUNIOR: "Junior",
   SENIOR: "Senior",
   GRADUATE: "Graduate student",
-  OTHER: "Other",
+  OTHER: "Other / returning student",
+};
+
+export const AWARD_TYPE_LABELS: Record<AwardType, string> = {
+  SCHOLARSHIP: "Scholarship",
+  GRANT: "Grant",
+  FELLOWSHIP: "Fellowship",
 };
 
 export const US_STATES = [

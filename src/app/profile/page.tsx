@@ -18,6 +18,8 @@ export default async function ProfilePage() {
         year: student.year,
         gpa: student.gpa,
         state: student.state ?? "",
+        country: student.country ?? "",
+        countryOfStudy: student.countryOfStudy ?? "",
         incomeBracket: student.incomeBracket,
         firstGen: student.firstGen,
         demographics: student.demographics,
