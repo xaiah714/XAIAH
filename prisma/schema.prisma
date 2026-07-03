@@ -1,0 +1,236 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Shared taxonomy
+// ---------------------------------------------------------------------------
+
+// Demographic / eligibility taxonomy shared by students (self-disclosed
+// demographics) and scholarships (eligibility_tags). Keeping one enum keeps
+// the matching engine's tag-overlap scoring a simple set intersection.
+enum DemographicTag {
+  // Ethnicity and heritage
+  HISPANIC_LATINO
+  BLACK_AFRICAN_AMERICAN
+  ASIAN_AMERICAN_PACIFIC_ISLANDER
+  NATIVE_AMERICAN_INDIGENOUS
+  MIDDLE_EASTERN_ARAB_AMERICAN
+
+  // Gender and identity
+  WOMEN_IN_STEM
+  WOMEN_IN_TRADES_BUSINESS
+  LGBTQ
+  TRANSGENDER
+
+  // Family and life circumstance
+  SINGLE_PARENT
+  FIRST_GENERATION
+  STUDENT_WITH_CHILDREN
+  FOSTER_CARE_ALUMNI
+  VETERAN_OR_MILITARY_DEPENDENT
+  INCARCERATED_PARENT
+
+  // Disability and health
+  PHYSICAL_DISABILITY
+  LEARNING_DISABILITY_ADHD
+  CHRONIC_ILLNESS
+  MENTAL_HEALTH_ADVOCACY
+
+  // Academic and career path
+  STEM
+  HEALTHCARE_NURSING
+  EDUCATION
+  TRADES_VOCATIONAL
+  FIRST_RESPONDER
+  AGRICULTURE
+
+  // Socioeconomic
+  LOW_INCOME_PELL_ELIGIBLE
+  RURAL
+  HOUSING_INSECURE
+
+  // Religious and cultural affiliation
+  CATHOLIC
+  JEWISH
+  MUSLIM
+  OTHER_RELIGIOUS
+}
+
+enum IncomeBracket {
+  UNDER_30K
+  FROM_30K_TO_60K
+  FROM_60K_TO_100K
+  OVER_100K
+  PREFER_NOT_TO_SAY
+}
+
+enum SchoolYear {
+  FRESHMAN
+  SOPHOMORE
+  JUNIOR
+  SENIOR
+  GRADUATE
+  OTHER
+}
+
+enum MatchStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  CONFIRMED_RECEIVED
+  UNDER_REVIEW
+  AWARDED
+  REJECTED
+}
+
+enum DocumentType {
+  TRANSCRIPT
+  FAFSA
+  ESSAY
+  REC_LETTER
+  STATUS_CONFIRMATION
+}
+
+enum NotificationType {
+  DEADLINE_30
+  DEADLINE_14
+  DEADLINE_3
+  STATUS_CHECK
+  RENEWAL
+}
+
+enum NotificationChannel {
+  SMS
+  EMAIL
+}
+
+// ---------------------------------------------------------------------------
+// Core tables
+// ---------------------------------------------------------------------------
+
+model Student {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  phone          String?
+  school         String?
+  major          String?
+  year           SchoolYear?
+  gpa            Float?
+  state          String?
+  incomeBracket  IncomeBracket? @map("income_bracket")
+  firstGen       Boolean?      @map("first_gen")
+  demographics   DemographicTag[]
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  matches       Match[]
+  documents     Document[]
+  notifications Notification[]
+
+  @@map("students")
+}
+
+model Scholarship {
+  id               String           @id @default(cuid())
+  name             String
+  orgName          String           @map("org_name")
+  description      String?
+  amountMin        Int              @map("amount_min")
+  amountMax        Int              @map("amount_max")
+  deadline         DateTime
+  renewable        Boolean          @default(false)
+  essayRequired    Boolean          @default(false) @map("essay_required")
+  essayWordCount   Int?             @map("essay_word_count")
+  eligibilityTags  DemographicTag[] @map("eligibility_tags")
+
+  // Hard-filter eligibility criteria
+  minGpa           Float?           @map("min_gpa")
+  eligibleStates   String[]         @map("eligible_states")
+  eligibleMajors   String[]         @map("eligible_majors")
+
+  // Legitimacy layer
+  sourceUrl        String           @map("source_url")
+  verified         Boolean          @default(false)
+  lastVerifiedDate DateTime?        @map("last_verified_date")
+  legitimacyScore  Int?             @map("legitimacy_score")
+  acceptanceRate   Float?           @map("acceptance_rate")
+  flagCount        Int              @default(0) @map("flag_count")
+
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  matches Match[]
+  flags   ScholarshipFlag[]
+
+  @@map("scholarships")
+}
+
+model Match {
+  id              String      @id @default(cuid())
+  studentId       String      @map("student_id")
+  scholarshipId   String      @map("scholarship_id")
+  matchScore      Float       @map("match_score")
+  status          MatchStatus @default(NOT_STARTED)
+  statusUpdatedAt DateTime    @default(now()) @map("status_updated_at")
+  confirmationUrl String?     @map("confirmation_url")
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  student       Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scholarship   Scholarship     @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  @@unique([studentId, scholarshipId])
+  @@index([studentId])
+  @@index([scholarshipId])
+  @@map("matches")
+}
+
+model Document {
+  id           String       @id @default(cuid())
+  studentId    String       @map("student_id")
+  type         DocumentType
+  fileUrl      String       @map("file_url")
+  taggedTopics String[]     @map("tagged_topics")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("documents")
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  studentId String              @map("student_id")
+  matchId   String?             @map("match_id")
+  type      NotificationType
+  channel   NotificationChannel
+  sentAt    DateTime?           @map("sent_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  match   Match?  @relation(fields: [matchId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([matchId])
+  @@map("notifications")
+}
+
+model ScholarshipFlag {
+  id            String      @id @default(cuid())
+  scholarshipId String      @map("scholarship_id")
+  reason        String
+  reporterEmail String?     @map("reporter_email")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  scholarship Scholarship @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+
+  @@index([scholarshipId])
+  @@map("scholarship_flags")
+}
