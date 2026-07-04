@@ -1,6 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const MODEL = "claude-opus-4-8";
+// Deliberate quality-over-cost choice: Fable 5 for synthesis (it costs more
+// per call than Opus/Sonnet — see BUILD_PLAN.md). Fable's safety layer can
+// occasionally decline benign academic content, so the request carries a
+// server-side fallback to Opus 4.8: if Fable declines, the same request is
+// re-served by Opus inside the same call instead of the student silently
+// getting no summary.
+const MODEL = "claude-fable-5";
+const FALLBACK_MODEL = "claude-opus-4-8";
 
 type VerifiedAnswer = { tutorName: string; reasoning: string; body: string };
 
@@ -41,9 +48,12 @@ export async function synthesizeVerifiedAnswers(
     .join("\n\n");
 
   try {
-    const response = await client.messages.create({
+    const response = await client.beta.messages.create({
       model: MODEL,
       max_tokens: 4096,
+      betas: ["server-side-fallback-2026-06-01"],
+      fallbacks: [{ model: FALLBACK_MODEL }],
+      // Fable 5 always thinks; "adaptive" is the only accepted configuration.
       thinking: { type: "adaptive" },
       output_config: { effort: "medium" },
       system:
@@ -61,8 +71,18 @@ export async function synthesizeVerifiedAnswers(
       ],
     });
 
+    // The whole fallback chain declined — leave the question without a
+    // synthesis rather than surface anything partial.
+    if (response.stop_reason === "refusal") {
+      console.warn(
+        `[ai] Synthesis declined by the model for "${questionTitle}"` +
+          (response.stop_details?.explanation ? `: ${response.stop_details.explanation}` : ""),
+      );
+      return null;
+    }
+
     const text = response.content.find((b) => b.type === "text");
-    return text?.type === "text" ? text.text.trim() : null;
+    return text?.type === "text" && text.text.trim() ? text.text.trim() : null;
   } catch (error) {
     if (error instanceof Anthropic.APIError) {
       console.error(`[ai] Synthesis failed (${error.status}):`, error.message);

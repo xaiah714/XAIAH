@@ -114,7 +114,7 @@ a phase-2 `B2BLicense` table.
       subject-tagged tutor, so this doesn't need new routing; it flags the
       question for the AI synthesis step below.
     - **AI synthesis** (`src/lib/ai.ts`, Claude API via `@anthropic-ai/sdk`,
-      model `claude-opus-4-8`, adaptive thinking): once a
+      model `claude-fable-5`, adaptive thinking): once a
       `secondOpinionRequested` question has 2+ *verified-tutor* answers and
       no cached synthesis yet, the reasoning+final answer of every verified
       answer is sent to Claude with a system prompt that explicitly forbids
@@ -137,7 +137,24 @@ a phase-2 `B2BLicense` table.
       requests until their ratio recovers. This is separate from (and in
       addition to) the star rating, per the spec's requirement that
       low-quality tutors get routed less work, not just rated lower.
-15. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+15. **Delay notice + second-opinion auto-escalation** — a sweep job
+    (`src/lib/question-sweep.ts`, run every 5 minutes via
+    `GET /api/cron/question-sweep`, same `CRON_SECRET` bearer pattern as
+    the payout cron) so students are never left wondering whether anything
+    is happening:
+    - **30 minutes unanswered** → a proactive `QUESTION_DELAY_NOTICE`
+      notification plus a "Still working on connecting you with an expert"
+      banner on the question page (author-only).
+    - **1 hour unanswered** → the question is automatically flagged
+      `secondOpinionRequested` (the exact mechanism behind the manual
+      checkbox, just time-triggered), a `QUESTION_ESCALATED` notification
+      goes out, and the banner switches to "We've escalated this to
+      multiple experts."
+    - Each stage records a timestamp on the question
+      (`delayNoticeSentAt` / `autoEscalatedAt`) so re-running the sweep
+      never double-sends, and questions answered between sweeps drop out
+      naturally (their status is no longer `OPEN`).
+16. **Searchable answer bank** — `/questions` has a search box (`?q=`)
     that matches against title/body/course/textbook and, when a query is
     present, surfaces questions with more answers first. The "ask a
     question" form also does a debounced (400ms) live lookup against
@@ -173,11 +190,12 @@ under-threshold tutor but skips the over-threshold one.
 - **Video walkthrough answers** — `Answer.videoUrl` field exists but there's
   no upload/recording UI. Same for full audio/video live chat — the spec
   says text-first is fine for v1.
-- **Weekly payout scheduling** — the payout logic itself runs, but nothing
-  in this environment can register an actual weekly trigger. Wire
-  `GET /api/cron/weekly-payouts` (bearer-protected via `CRON_SECRET`) to
-  Vercel Cron (`vercel.json` `crons` entry) or a GitHub Actions scheduled
-  workflow.
+- **Cron scheduling** — `vercel.json` now registers both jobs on Vercel
+  Cron (weekly payouts Mondays 12:00 UTC, question sweep every 5 minutes);
+  they only actually fire once the app is deployed there. Note Vercel's
+  Hobby plan runs crons at most once per day — see DEPLOY.md for the
+  external-scheduler workaround (both routes accept any caller presenting
+  the `CRON_SECRET` bearer).
 - **File storage** — photo uploads write to `public/uploads` on local disk.
   Fine for local dev; won't persist across deploys on most hosting
   platforms. Swap `src/lib/uploads.ts` for S3/Cloudinary/R2 before shipping.
@@ -234,14 +252,35 @@ under-threshold tutor but skips the over-threshold one.
   account settings), not per-question — a student's grade level doesn't
   usually change question-to-question, and this keeps the "ask a question"
   form to its minimal-fields ADHD-friendly design.
-- **Anthropic Claude API** (`claude-opus-4-8`) for the answer-synthesis
-  step, un-specified in the spec beyond "AI synthesis" — same dev-safe-
-  fallback pattern as Resend/Stripe: without `ANTHROPIC_API_KEY` set, it
-  logs and skips instead of failing the answer submission.
+- **Anthropic Claude API — `claude-fable-5`** for the answer-synthesis
+  step. This is a deliberate quality-over-cost choice: Fable 5 costs more
+  per call than Sonnet or Opus ($10/$50 per 1M input/output tokens vs.
+  $5/$25 for Opus 4.8), accepted for this feature because the synthesis
+  card is a student-facing quality signal and runs at most once per
+  question. Two Fable-specific behaviors are handled in `src/lib/ai.ts`:
+  thinking is always on (configured as `adaptive`, the only accepted
+  form), and its safety layer can occasionally decline benign academic
+  content — so every request carries a server-side fallback to
+  `claude-opus-4-8` (`server-side-fallback-2026-06-01` beta): if Fable
+  declines, Opus re-serves the same request inside the same call, and only
+  if the whole chain declines does the question simply go without a
+  synthesis card. Same dev-safe fallback as Resend/Stripe: without
+  `ANTHROPIC_API_KEY` set, it logs and skips instead of failing the
+  answer submission.
 - Tutor-standing suppression threshold (5+ verified answers, >30% flagged)
   is a starting number, not from the spec — it only needed to be "more
   than one bad answer" and "not so aggressive a single flag buries someone
   new." Tune `src/lib/tutor-standing.ts` once real flag data exists.
+
+## Deploying to staging
+
+See [`DEPLOY.md`](./DEPLOY.md) — the repo is Vercel-ready (`vercel.json`
+crons, `prisma generate` wired into the build). The pipeline is set up to
+receive real Stripe test-mode keys and a real `ANTHROPIC_API_KEY` whenever
+they're available: every integration degrades gracefully while its key is
+blank, so deploy first, add keys later. The one step that can't be done
+from this environment is the initial repo import on vercel.com (it needs
+your Vercel account) — DEPLOY.md walks through it.
 
 ## Running locally
 

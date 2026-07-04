@@ -43,4 +43,5 @@ link is logged to the server console instead of emailed.
   synthesis)
 
 Full build status, what's stubbed for phase 2, and setup notes for Stripe
-and the weekly payout cron are in [`BUILD_PLAN.md`](./BUILD_PLAN.md).
+and the cron jobs are in [`BUILD_PLAN.md`](./BUILD_PLAN.md). Staging
+deployment (Vercel) is documented in [`DEPLOY.md`](./DEPLOY.md).

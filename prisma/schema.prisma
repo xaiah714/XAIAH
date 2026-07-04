@@ -106,6 +106,9 @@ enum NotificationType {
   PAYOUT_REMINDER
   PAYOUT_RELEASED
   PAYOUT_EXPIRED
+  // Student-facing: sent by the unanswered-question sweep (src/lib/question-sweep.ts)
+  QUESTION_DELAY_NOTICE
+  QUESTION_ESCALATED
 }
 
 model User {
@@ -228,6 +231,12 @@ model Question {
   secondOpinionRequested Boolean   @default(false)
   aiSynthesis            String?
   aiSynthesizedAt        DateTime?
+
+  // Unanswered-question sweep state (src/lib/question-sweep.ts): the 30-min
+  // "still working on it" notice and the 1-hour auto second-opinion
+  // escalation each record when they fired so they only ever fire once.
+  delayNoticeSentAt DateTime?
+  autoEscalatedAt   DateTime?
 
   answers       Answer[]
   notifications Notification[]

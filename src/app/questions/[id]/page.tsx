@@ -7,6 +7,10 @@ import { AnswerForm } from "./answer-form";
 import { ResolveButton } from "./resolve-button";
 import { FlagAnswerButton } from "./flag-answer-button";
 
+// Answer submission can trigger the Claude synthesis call (src/lib/ai.ts),
+// which routinely takes longer than Vercel's default function timeout.
+export const maxDuration = 60;
+
 export default async function QuestionPage({
   params,
 }: {
@@ -66,6 +70,29 @@ export default async function QuestionPage({
               <Image src={question.methodPhotoUrl} alt="Class example" fill className="object-contain" unoptimized />
             </div>
           )}
+        </div>
+      )}
+
+      {isAuthor && question.status === "OPEN" && question.autoEscalatedAt && (
+        <div className="card mt-4 border-brand-purple text-sm">
+          <p className="font-semibold text-brand-purple-dark">
+            We&apos;ve escalated this to multiple experts.
+          </p>
+          <p className="mt-1 text-brand-muted">
+            This question is taking longer than we&apos;d like, so it&apos;s now flagged for a
+            second opinion — more than one verified tutor will weigh in, and we&apos;ll combine
+            their answers into one clear explanation.
+          </p>
+        </div>
+      )}
+      {isAuthor && question.status === "OPEN" && question.delayNoticeSentAt && !question.autoEscalatedAt && (
+        <div className="card mt-4 border-brand-teal text-sm">
+          <p className="font-semibold">Still working on connecting you with an expert.</p>
+          <p className="mt-1 text-brand-muted">
+            Your question is out to every available tutor in this subject — hang tight. If it
+            stays unanswered much longer, we&apos;ll automatically route it to multiple tutors
+            for a second opinion.
+          </p>
         </div>
       )}
 
