@@ -90,19 +90,16 @@ never need to run a command on your own computer.
 1. In the project, click **+ Create** → **GitHub Repo** → pick
    **xaiah714/XAIAH** again (same branch as Step 1's note, if you changed
    it).
-2. Click the new service → **Settings**:
-   - Under **Deploy**, set **Custom Start Command** to:
-
-     ```
-     npm run cron:worker
-     ```
-
-   - Do **not** generate a domain for this one — it's internal.
+2. Do **not** generate a domain for this one — it's internal.
 3. Open its **Variables** tab → **Raw Editor** → paste just:
 
    ```env
    DATABASE_URL=${{Postgres.DATABASE_URL}}
+   SERVICE_ROLE=cron-worker
    ```
+
+   (`SERVICE_ROLE=cron-worker` is what makes this service run the
+   scheduler instead of the web app — no custom start command needed.)
 
    (Add `STRIPE_SECRET_KEY` here too later, when you have it — the weekly
    payout job is what actually moves money via Stripe.)
