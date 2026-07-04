@@ -10,7 +10,8 @@ full status of what's built vs. stubbed, and the assumptions behind it.
 
 Next.js 16 (App Router + Server Actions) · TypeScript · Tailwind CSS 4 ·
 Prisma 7 + PostgreSQL · Auth.js v5 (+ TOTP 2FA) · Stripe (Checkout, Billing
-Portal, Connect) · Resend (email)
+Portal, Connect) · Resend (email) · Anthropic Claude API (verified-answer
+synthesis)
 
 ## Quick start
 
@@ -38,7 +39,8 @@ link is logged to the server console instead of emailed.
   `admin`, `account`, `verify-email`)
 - `src/actions` — Server Actions (mutations)
 - `src/lib` — Prisma client, Stripe client, email, TOTP, tutor notification
-  routing, metrics, payouts, uploads
+  routing, tutor standing, metrics, payouts, uploads, Claude API (answer
+  synthesis)
 
 Full build status, what's stubbed for phase 2, and setup notes for Stripe
 and the weekly payout cron are in [`BUILD_PLAN.md`](./BUILD_PLAN.md).

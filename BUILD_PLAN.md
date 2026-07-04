@@ -96,6 +96,54 @@ a phase-2 `B2BLicense` table.
 13. **Mobile nav** — the header collapses into a hamburger menu below the
     `sm` breakpoint; the rest of the UI was already responsive (single
     primary action per screen, fluid Tailwind layouts).
+14. **Answer quality control** — repositioning the product around "every
+    answer is verified":
+    - `Answer.reasoning` is a required field on the schema and in
+      `createAnswerAction`/the answer form — an answer can't be submitted
+      with only a final result, no steps shown. The question detail page
+      renders reasoning and the final answer as clearly separate blocks.
+    - A student can optionally attach their class's method/constraints
+      (free text + an optional photo of a class example) plus course name
+      and textbook/edition when posting a question, so a tutor answers the
+      way the student's class is actually taught instead of a technically-
+      correct-but-unusable alternate method. Shown as a highlighted "this
+      student's class method" card on the question page.
+    - A "route to multiple tutors for a second opinion" checkbox
+      (`Question.secondOpinionRequested`) — the existing broadcast/claim
+      notification model already fans a question out to every available,
+      subject-tagged tutor, so this doesn't need new routing; it flags the
+      question for the AI synthesis step below.
+    - **AI synthesis** (`src/lib/ai.ts`, Claude API via `@anthropic-ai/sdk`,
+      model `claude-opus-4-8`, adaptive thinking): once a
+      `secondOpinionRequested` question has 2+ *verified-tutor* answers and
+      no cached synthesis yet, the reasoning+final answer of every verified
+      answer is sent to Claude with a system prompt that explicitly forbids
+      introducing new problem-solving — it may only reconcile/simplify
+      reasoning tutors have already written and had verified. Triggered
+      from `createAnswerAction` right after an answer is saved; cached on
+      `Question.aiSynthesis`/`aiSynthesizedAt` so it only ever runs once per
+      question. Rendered as a clearly-labeled "AI-simplified summary (of
+      verified tutor answers)" card, visually distinct from the tutor
+      answers themselves. Follows the same dev-safe-fallback pattern as
+      Resend/Stripe: without `ANTHROPIC_API_KEY` set, it logs and skips
+      rather than failing the answer submission.
+    - **Flagging + tutor standing** (`AnswerFlag` model,
+      `src/lib/tutor-standing.ts`) — anyone but the answer's author can
+      flag a verified answer as incomplete/incorrect from the question
+      page. Once a tutor has 5+ verified answers and more than 30% of them
+      are flagged, `getSuppressedTutorIds` excludes them from
+      `notifyTutorsForSubject`'s broadcasts — they keep their account,
+      rating, and existing claimed work, they just stop being routed *new*
+      requests until their ratio recovers. This is separate from (and in
+      addition to) the star rating, per the spec's requirement that
+      low-quality tutors get routed less work, not just rated lower.
+15. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+    that matches against title/body/course/textbook and, when a query is
+    present, surfaces questions with more answers first. The "ask a
+    question" form also does a debounced (400ms) live lookup against
+    `GET /api/questions/search` (answered/resolved questions only) and
+    shows matches inline as "Already answered — check these first," so a
+    duplicate question can be avoided before it's ever posted.
 
 All of the above was exercised through the actual UI in a browser, not just
 typechecked, including: signup with grade level → blocked from posting pre-
@@ -104,7 +152,18 @@ link → tutor approved by admin → tutor sets subjects and goes available →
 student posts a question → tutor sees an anonymized notification with grade
 level (not name) → tutor claims a live chat request → chat becomes active
 and messages send → 2FA setup → login correctly requires the code and
-rejects a wrong one before accepting the right one.
+rejects a wrong one before accepting the right one. For this round
+specifically: a student posted a question with class-method notes, course
+name, and "second opinion" checked → the method context and second-opinion
+badge rendered on the question page → two different verified tutors each
+submitted a reasoning+final-answer pair → the AI synthesis step ran and
+correctly no-op'd with a console log (no `ANTHROPIC_API_KEY` in this
+environment) instead of erroring → the student flagged one tutor's answer
+and saw it register → the posted question was found via `/questions?q=...`
+search. Separately, a direct Prisma script pushed one tutor to 6 verified
+answers/3 flags (50%) and another to 6 verified answers/1 flag (~17%) and
+confirmed `notifyTutorsForSubject` broadcasts a new question to the
+under-threshold tutor but skips the over-threshold one.
 
 ## Explicitly stubbed / phase 2
 
@@ -134,6 +193,14 @@ rejects a wrong one before accepting the right one.
 - **Native/wrapped mobile app** — the spec asks for a responsive web app
   first, then a native/wrapped layer on top "without cutting features for
   mobile." Only the responsive web app is built; no native wrapper.
+- **Photo-to-search** (reverse image lookup for "has this exact problem
+  already been answered?") — not built this round. The text-based search
+  bank (title/body/course/textbook) is; a vision-based version needs its
+  own design pass (what counts as a "match," how to handle a partially-
+  matching photo) rather than being bolted onto the text search endpoint.
+- **Practice problems library, study guides, flashcards, step-by-step math
+  solver** — all explicitly Phase 2 per the spec's own roadmap ("once core
+  loop is proven"); not started.
 
 ## Assumptions made (per the spec's "open items")
 
@@ -167,6 +234,14 @@ rejects a wrong one before accepting the right one.
   account settings), not per-question — a student's grade level doesn't
   usually change question-to-question, and this keeps the "ask a question"
   form to its minimal-fields ADHD-friendly design.
+- **Anthropic Claude API** (`claude-opus-4-8`) for the answer-synthesis
+  step, un-specified in the spec beyond "AI synthesis" — same dev-safe-
+  fallback pattern as Resend/Stripe: without `ANTHROPIC_API_KEY` set, it
+  logs and skips instead of failing the answer submission.
+- Tutor-standing suppression threshold (5+ verified answers, >30% flagged)
+  is a starting number, not from the spec — it only needed to be "more
+  than one bad answer" and "not so aggressive a single flag buries someone
+  new." Tune `src/lib/tutor-standing.ts` once real flag data exists.
 
 ## Running locally
 
@@ -186,6 +261,13 @@ There's no self-serve admin signup by design (`npm run db:seed`, or set
 Leave `RESEND_API_KEY` blank and verification emails are written to the
 server's stdout instead of sent — copy the `/verify-email/<token>` link
 from the terminal to complete signup during local development.
+
+### AI answer synthesis without a real provider
+
+Leave `ANTHROPIC_API_KEY` blank and the synthesis step logs a skip notice
+to the server console instead of calling Claude — the rest of the answer
+flow (reasoning + final answer, flags, second-opinion routing) works fully
+without it; you just won't see the "AI-simplified summary" card appear.
 
 ### Stripe setup for local testing
 
