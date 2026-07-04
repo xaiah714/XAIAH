@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { notifyTutorsForSubject } from "@/lib/notify";
+import { releaseHeldPayoutsForTutor } from "@/lib/payouts";
 import type { Subject } from "@/generated/prisma/client";
 
 export async function POST(request: Request) {
@@ -167,10 +168,17 @@ export async function POST(request: Request) {
       const tutor = await prisma.user.findFirst({ where: { stripeConnectId: account.id } });
       if (!tutor) break;
 
+      const nowReady = Boolean(account.payouts_enabled);
       await prisma.user.update({
         where: { id: tutor.id },
-        data: { stripeConnectReady: Boolean(account.payouts_enabled) },
+        data: { stripeConnectReady: nowReady },
       });
+
+      // Just finished onboarding — pay out anything held for them right
+      // away instead of making them wait for the next scheduled run.
+      if (nowReady && !tutor.stripeConnectReady) {
+        await releaseHeldPayoutsForTutor(tutor.id);
+      }
       break;
     }
 

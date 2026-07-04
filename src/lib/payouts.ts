@@ -18,30 +18,37 @@ const PAY_PER_SESSION_TUTOR_SHARE = 0.75;
 const DEFAULT_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
+ * A tutor without a ready Connect account still earns their share — it's
+ * held rather than dropped. Held funds expire after 30 days if they still
+ * haven't connected payouts (avoids indefinite holds turning into an
+ * escrow-law/accounting problem), with a reminder before the deadline so
+ * it's never a silent forfeiture. Expired amounts roll back into the next
+ * run's pool rather than becoming platform breakage.
+ */
+const HOLD_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+const REMINDER_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
  * Weekly payout run. Trigger via GET /api/cron/weekly-payouts on a weekly
  * schedule (Vercel Cron, GitHub Actions cron, etc) — see BUILD_PLAN.md.
- *
- * Only tutors with a ready Stripe Connect account are paid. Their pool share
- * is computed against total subscription-funded minutes served by *other
- * ready tutors* in the same window, so a not-yet-connected tutor's minutes
- * don't shrink everyone else's share, but also means they should connect
- * payouts before a run to be included in that week's pool — see BUILD_PLAN.md
- * for this known limitation.
  */
 export async function runWeeklyPayouts() {
   const lastRun = await prisma.payout.aggregate({ _max: { periodEnd: true } });
   const periodStart = lastRun._max.periodEnd ?? new Date(Date.now() - DEFAULT_LOOKBACK_MS);
-  const periodEnd = new Date();
+  const now = new Date();
+  const periodEnd = now;
 
-  const tutors = await prisma.user.findMany({
-    where: { role: "TUTOR", stripeConnectReady: true, stripeConnectId: { not: null } },
-  });
+  const carryoverCents = await expireStaleHeldPayouts(now);
+  await sendExpiryReminders(now);
+
+  const tutors = await prisma.user.findMany({ where: { role: "TUTOR" } });
 
   const poolInvoices = await prisma.subscriptionInvoice.aggregate({
     where: { createdAt: { gt: periodStart, lte: periodEnd } },
     _sum: { amountCents: true },
   });
-  const totalPoolCents = Math.round((poolInvoices._sum.amountCents ?? 0) * SUBSCRIPTION_POOL_SHARE);
+  const totalPoolCents =
+    Math.round((poolInvoices._sum.amountCents ?? 0) * SUBSCRIPTION_POOL_SHARE) + carryoverCents;
 
   const minutesByTutor = new Map<string, number>();
   let totalMinutes = 0;
@@ -92,6 +99,8 @@ export async function runWeeklyPayouts() {
     const amountCents = poolCents + directCents + tipCents;
     if (amountCents <= 0) continue;
 
+    const ready = tutor.stripeConnectReady && Boolean(tutor.stripeConnectId);
+
     const payout = await prisma.payout.create({
       data: {
         tutorId: tutor.id,
@@ -101,9 +110,18 @@ export async function runWeeklyPayouts() {
         poolCents,
         directCents,
         tipCents,
-        status: "PENDING",
+        status: ready ? "PENDING" : "HELD",
+        holdExpiresAt: ready ? undefined : new Date(now.getTime() + HOLD_DURATION_MS),
       },
     });
+
+    if (!ready) {
+      await prisma.notification.create({
+        data: { userId: tutor.id, type: "PAYOUT_HELD", payoutId: payout.id },
+      });
+      results.push({ tutorId: tutor.id, amountCents, status: "HELD" });
+      continue;
+    }
 
     try {
       const transfer = await stripe.transfers.create({
@@ -128,5 +146,94 @@ export async function runWeeklyPayouts() {
     }
   }
 
+  // Safety net in case a Connect-ready webhook didn't fire for some reason —
+  // don't leave payable funds sitting in HELD indefinitely.
+  for (const tutor of tutors) {
+    if (tutor.stripeConnectReady && tutor.stripeConnectId) {
+      await releaseHeldPayoutsForTutor(tutor.id);
+    }
+  }
+
   return results;
+}
+
+/** Marks HELD payouts past their hold deadline as EXPIRED, returns the total to fold back into the pool. */
+async function expireStaleHeldPayouts(now: Date): Promise<number> {
+  const stale = await prisma.payout.findMany({
+    where: { status: "HELD", holdExpiresAt: { lte: now } },
+  });
+  if (stale.length === 0) return 0;
+
+  let total = 0;
+  for (const payout of stale) {
+    total += payout.amountCents;
+    await prisma.$transaction([
+      prisma.payout.update({
+        where: { id: payout.id },
+        data: { status: "EXPIRED", expiredAt: now },
+      }),
+      prisma.notification.create({
+        data: { userId: payout.tutorId, type: "PAYOUT_EXPIRED", payoutId: payout.id },
+      }),
+    ]);
+  }
+  return total;
+}
+
+/** Sends a one-time reminder for HELD payouts expiring within the reminder window. */
+async function sendExpiryReminders(now: Date) {
+  const soon = new Date(now.getTime() + REMINDER_WINDOW_MS);
+  const dueForReminder = await prisma.payout.findMany({
+    where: {
+      status: "HELD",
+      holdExpiresAt: { lte: soon, gt: now },
+      reminderSentAt: null,
+    },
+  });
+
+  for (const payout of dueForReminder) {
+    await prisma.$transaction([
+      prisma.payout.update({ where: { id: payout.id }, data: { reminderSentAt: now } }),
+      prisma.notification.create({
+        data: { userId: payout.tutorId, type: "PAYOUT_REMINDER", payoutId: payout.id },
+      }),
+    ]);
+  }
+}
+
+/**
+ * Pays out any non-expired HELD payouts for a tutor — called right when
+ * their Connect account becomes ready (see the account.updated webhook) so
+ * held earnings land as soon as onboarding finishes, not on the next
+ * scheduled run.
+ */
+export async function releaseHeldPayoutsForTutor(tutorId: string) {
+  const tutor = await prisma.user.findUnique({ where: { id: tutorId } });
+  if (!tutor?.stripeConnectReady || !tutor.stripeConnectId) return;
+
+  const held = await prisma.payout.findMany({ where: { tutorId, status: "HELD" } });
+
+  for (const payout of held) {
+    try {
+      const transfer = await stripe.transfers.create({
+        amount: payout.amountCents,
+        currency: "usd",
+        destination: tutor.stripeConnectId,
+        transfer_group: payout.id,
+      });
+
+      await prisma.$transaction([
+        prisma.payout.update({
+          where: { id: payout.id },
+          data: { status: "PAID", paidAt: new Date(), stripeTransferId: transfer.id },
+        }),
+        prisma.notification.create({
+          data: { userId: tutorId, type: "PAYOUT_RELEASED", payoutId: payout.id },
+        }),
+      ]);
+    } catch {
+      // Leave it HELD — retried on the next release trigger or weekly run,
+      // still bounded by its original holdExpiresAt.
+    }
+  }
 }

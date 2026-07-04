@@ -21,7 +21,7 @@ export default async function TutorHubPage() {
 
   const [notifications, openQuestions] = await Promise.all([
     prisma.notification.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, type: { in: ["NEW_QUESTION", "NEW_CHAT_REQUEST"] } },
       orderBy: { createdAt: "desc" },
       take: 20,
       include: {
@@ -80,7 +80,7 @@ export default async function TutorHubPage() {
                     className={`card block hover:border-brand-teal ${n.read ? "opacity-60" : ""}`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="badge-community">{subjectLabel(n.subject)}</span>
+                      <span className="badge-community">{subjectLabel(n.subject ?? "OTHER")}</span>
                       <span className="text-xs text-brand-muted">Grade level: {grade}</span>
                     </div>
                     <p className="mt-2 text-sm font-medium">

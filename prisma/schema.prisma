@@ -80,6 +80,11 @@ enum PayoutStatus {
   PENDING
   PAID
   FAILED
+  // Earned but the tutor's Stripe Connect account isn't ready yet — held
+  // for 30 days, then EXPIRED and rolled back into the tutor pool if the
+  // tutor still hasn't connected payouts (see src/lib/payouts.ts).
+  HELD
+  EXPIRED
 }
 
 enum GradeLevel {
@@ -97,6 +102,10 @@ enum VerificationTokenPurpose {
 enum NotificationType {
   NEW_QUESTION
   NEW_CHAT_REQUEST
+  PAYOUT_HELD
+  PAYOUT_REMINDER
+  PAYOUT_RELEASED
+  PAYOUT_EXPIRED
 }
 
 model User {
@@ -171,17 +180,22 @@ model Notification {
   userId        String
   user          User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   type          NotificationType
-  subject       Subject
+  // Subject/question/chatSession apply to NEW_QUESTION and NEW_CHAT_REQUEST;
+  // payoutId applies to the PAYOUT_* types. Exactly one context is set.
+  subject       Subject?
   questionId    String?
   question      Question?        @relation(fields: [questionId], references: [id], onDelete: Cascade)
   chatSessionId String?
   chatSession   ChatSession?     @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  payoutId      String?
+  payout        Payout?          @relation(fields: [payoutId], references: [id], onDelete: Cascade)
   read          Boolean          @default(false)
   createdAt     DateTime         @default(now())
 
   @@index([userId, read])
   @@index([questionId])
   @@index([chatSessionId])
+  @@index([payoutId])
 }
 
 model Question {
@@ -336,7 +350,16 @@ model Payout {
   createdAt   DateTime     @default(now())
   paidAt      DateTime?
 
+  // HELD-lifecycle fields: set when a tutor without a ready Connect account
+  // earns a share that can't be transferred yet.
+  holdExpiresAt  DateTime? // 30 days after the hold started
+  reminderSentAt DateTime? // when the "expiring soon" notification went out
+  expiredAt      DateTime? // when it rolled back into the pool, unclaimed
+
+  notifications Notification[]
+
   @@index([tutorId, status])
+  @@index([status, holdExpiresAt])
 }
 
 // Actual collected Stripe invoice revenue per subscriber period — the base

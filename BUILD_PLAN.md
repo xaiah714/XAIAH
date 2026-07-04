@@ -67,10 +67,23 @@ a phase-2 `B2BLicense` table.
     (`src/lib/payouts.ts`, triggered via `GET /api/cron/weekly-payouts`):
     - Subscription revenue is pooled (tracked per-invoice via the
       `invoice.paid` webhook into `SubscriptionInvoice`) and split 50% to a
-      tutor pool, distributed proportional to each ready tutor's share of
-      subscription-funded live-chat minutes served that period.
-    - Pay-per-session pays 75% direct to the tutor who handled it.
-    - Tips pass through at 100% by default (`platformCutCents` is 0).
+      tutor pool, distributed proportional to *every* tutor's share of
+      subscription-funded live-chat minutes served that period — whether or
+      not their Connect account is ready yet.
+    - Pay-per-session pays 75% direct to the tutor who handled it; tips
+      pass through at 100% by default (`platformCutCents` is 0).
+    - **Held payouts**: a tutor without a ready Stripe Connect account
+      still earns their share — it's created as a `HELD` payout instead of
+      being dropped or silently redistributed. Held funds carry a 30-day
+      `holdExpiresAt`; the tutor gets a `PAYOUT_HELD` notification
+      immediately, a `PAYOUT_REMINDER` about a week before the deadline,
+      and either a `PAYOUT_RELEASED` notification (paid automatically the
+      moment their Connect account becomes ready — see the
+      `account.updated` webhook handler) or a `PAYOUT_EXPIRED` one if the
+      30 days lapse first. Expired amounts roll back into the *next* run's
+      pool rather than becoming platform breakage. None of this is a
+      silent forfeiture — every state transition sends a notification, and
+      `/account/payouts` shows a "held for you" banner with the countdown.
     - Payout records break down `poolCents` / `directCents` / `tipCents`
       for tutor-facing transparency on `/account/payouts`.
     - The admin dashboard's "Effective tutor pay (pool)" tile computes the
@@ -106,12 +119,6 @@ rejects a wrong one before accepting the right one.
   `GET /api/cron/weekly-payouts` (bearer-protected via `CRON_SECRET`) to
   Vercel Cron (`vercel.json` `crons` entry) or a GitHub Actions scheduled
   workflow.
-- **Pool payout limitation** — only tutors with a *ready* Stripe Connect
-  account at run time are included in a given week's pool distribution
-  (their minutes are excluded from the denominator too, so it redistributes
-  rather than "losing" the money, but a tutor who connects payouts late
-  misses that week's pool share retroactively). Worth revisiting with a
-  proper accrual ledger if this becomes a real complaint.
 - **File storage** — photo uploads write to `public/uploads` on local disk.
   Fine for local dev; won't persist across deploys on most hosting
   platforms. Swap `src/lib/uploads.ts` for S3/Cloudinary/R2 before shipping.
@@ -132,6 +139,15 @@ rejects a wrong one before accepting the right one.
 
 - **Stripe** for payments, **Stripe Connect (Express)** for tutor payouts,
   running the 50/50 pooled subscription split — all explicitly specified.
+- **Payout rail**: Stripe Connect Express is the only payout system — no
+  second processor (e.g. Mercury) integrated. Express accounts aren't
+  created with a hardcoded country, so Stripe's hosted onboarding
+  (`account_onboarding` link in `src/actions/connect.ts`) collects the
+  tutor's country and bank details itself and routes payouts over whatever
+  local rail applies automatically (ACH for US tutors, SEPA/local transfer
+  for supported countries elsewhere) — this requires no branching in this
+  codebase. Revisit only if a specific country in the tutor base falls
+  outside [Stripe Connect's supported regions](https://stripe.com/global).
 - **Resend** for verification email, un-specified in the spec — swap
   `src/lib/email.ts` for another provider if preferred. Without
   `RESEND_API_KEY` set, emails are logged to the server console instead of
@@ -177,8 +193,9 @@ from the terminal to complete signup during local development.
    `STRIPE_SECRET_KEY`.
 2. `stripe listen --forward-to localhost:3000/api/stripe/webhook` and copy
    the printed webhook secret into `STRIPE_WEBHOOK_SECRET`. Make sure
-   `invoice.paid` is included (needed for the tutor payout pool
-   calculation, not just `checkout.session.completed`).
+   `invoice.paid` (tutor payout pool revenue) and `account.updated` (releases
+   held payouts the moment a tutor finishes Connect onboarding) are included,
+   not just `checkout.session.completed`.
 3. Optionally create real Prices in the Stripe dashboard and set
    `STRIPE_SUBSCRIPTION_PRICE_ID` / `STRIPE_PAY_PER_SESSION_PRICE_ID` — if
    left blank the app creates inline one-off prices instead.
