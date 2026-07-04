@@ -126,7 +126,16 @@ a phase-2 `B2BLicense` table.
       verified tutor answers)" card, visually distinct from the tutor
       answers themselves. Follows the same dev-safe-fallback pattern as
       Resend/Stripe: without `ANTHROPIC_API_KEY` set, it logs and skips
-      rather than failing the answer submission.
+      rather than failing the answer submission. The system prompt carries
+      the platform's mission (student-first, patient-tutor tone, credible
+      to education partners) and a hard requirement that every output
+      explains *why* the answer is correct simply enough for a third
+      grader — not just restates it. `scripts/test-synthesis.ts` runs the
+      real function against two sample questions (math + psychology) with
+      mock verified answers and prints the full outputs for human tone
+      judgment; **pending** — it needs `ANTHROPIC_API_KEY`, which doesn't
+      exist in the build environment yet, so the prompt's output quality
+      has not been verified against real completions.
     - **Flagging + tutor standing** (`AnswerFlag` model,
       `src/lib/tutor-standing.ts`) — anyone but the answer's author can
       flag a verified answer as incomplete/incorrect from the question
