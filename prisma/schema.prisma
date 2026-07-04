@@ -109,6 +109,10 @@ enum NotificationType {
   // Student-facing: sent by the unanswered-question sweep (src/lib/question-sweep.ts)
   QUESTION_DELAY_NOTICE
   QUESTION_ESCALATED
+  // Tutor-facing: a disputed question in one of their subjects needs review
+  DISPUTE_REVIEW
+  // Tutor-facing: a new student signed up needing one of their subjects
+  NEW_STUDENT_SIGNUP
 }
 
 model User {
@@ -144,11 +148,15 @@ model User {
   // Student-only fields
   stripeCustomerId String?
   gradeLevel       GradeLevel?
+  // Subjects the student says they need help with (optional at signup) —
+  // used to tell subject-tagged tutors a new student is in their lane.
+  studentSubjects  Subject[]   @default([])
 
   // Relations
   questionsAsked        Question[]            @relation("QuestionAuthor")
   answers               Answer[]              @relation("AnswerAuthor")
   answerFlagsGiven      AnswerFlag[]          @relation("AnswerFlagAuthor")
+  answerEndorsements    AnswerEndorsement[]   @relation("AnswerEndorsementTutor")
   chatSessionsAsStudent ChatSession[]         @relation("ChatStudent")
   chatSessionsAsTutor   ChatSession[]         @relation("ChatTutor")
   messages              Message[]             @relation("MessageSender")
@@ -232,11 +240,19 @@ model Question {
   aiSynthesis            String?
   aiSynthesizedAt        DateTime?
 
-  // Unanswered-question sweep state (src/lib/question-sweep.ts): the 30-min
-  // "still working on it" notice and the 1-hour auto second-opinion
+  // Unanswered-question sweep state (src/lib/question-sweep.ts): the 15-min
+  // "still working on it" notice and the 30-min auto second-opinion
   // escalation each record when they fired so they only ever fire once.
   delayNoticeSentAt DateTime?
   autoEscalatedAt   DateTime?
+
+  // Dispute state (src/lib/consensus.ts): set when a verified tutor submits
+  // an answer that disagrees with the existing verified answer(s); cleared
+  // (resolved) when one answer gains consensus backing from the subject's
+  // tutor pool. While disputed+unresolved, the question sits on the subject
+  // review board and shows no verification badge.
+  disputedAt        DateTime?
+  disputeResolvedAt DateTime?
 
   answers       Answer[]
   notifications Notification[]
@@ -261,10 +277,33 @@ model Answer {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  flags AnswerFlag[]
+  // Stance a verified tutor declares when answering a question that already
+  // has verified answer(s): true = agrees with them, false = disagrees
+  // (opens a dispute). Null for the first verified answer, community
+  // answers, and answers posted while a dispute is already open (those back
+  // only themselves).
+  agreesWithPrior Boolean?
+
+  flags        AnswerFlag[]
+  endorsements AnswerEndorsement[]
 
   @@index([questionId])
   @@index([authorId])
+}
+
+// A verified tutor backing another tutor's answer ("I reviewed this and
+// it's correct") — the weigh-in mechanism on the dispute review board, and
+// what the "Verified by N tutors" badge counts.
+model AnswerEndorsement {
+  id        String   @id @default(cuid())
+  answerId  String
+  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  tutorId   String
+  tutor     User     @relation("AnswerEndorsementTutor", fields: [tutorId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([answerId, tutorId])
+  @@index([answerId])
 }
 
 // A student (or another tutor) flagging an answer as incomplete/incorrect.

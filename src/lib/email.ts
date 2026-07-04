@@ -32,3 +32,45 @@ export async function sendVerificationEmail(to: string, token: string) {
     html: `<p>Confirm your email to finish setting up your TutorApp account:</p><p><a href="${link}">${link}</a></p><p>This link expires in 24 hours.</p>`,
   });
 }
+
+export async function sendDisputeReviewEmail(
+  to: string,
+  subjectName: string,
+  questionTitle: string,
+  questionId: string
+) {
+  const link = `${appUrl()}/questions/${questionId}`;
+  await sendEmail({
+    to,
+    subject: `Disputed ${subjectName} question needs review`,
+    text: `Two verified tutors disagree on a ${subjectName} question: "${questionTitle}". Review both answers and weigh in — consensus among ${subjectName} tutors resolves it.\n\n${link}`,
+    html: `<p>Two verified tutors disagree on a ${subjectName} question: &ldquo;${questionTitle}&rdquo;.</p><p>Review both answers and weigh in — consensus among ${subjectName} tutors resolves it.</p><p><a href="${link}">${link}</a></p>`,
+  });
+}
+
+/**
+ * Owner-facing alert on every dispute — informational, the owner is never
+ * required to resolve it (the subject tutor pool does that). Uses
+ * ADMIN_ALERT_EMAIL; skips with a log when unset, like every other
+ * integration here.
+ */
+export async function sendAdminDisputeAlert(
+  subjectName: string,
+  questionTitle: string,
+  questionId: string
+) {
+  const to = process.env.ADMIN_ALERT_EMAIL;
+  if (!to) {
+    console.log(
+      `[email:dev-fallback] ADMIN_ALERT_EMAIL not set — skipping admin dispute alert for "${questionTitle}".`
+    );
+    return;
+  }
+  const link = `${appUrl()}/questions/${questionId}`;
+  await sendEmail({
+    to,
+    subject: `Tutor disagreement on a ${subjectName} question`,
+    text: `Two verified tutors disagree on: "${questionTitle}" (${subjectName}). It's been posted to the ${subjectName} review board and all ${subjectName} tutors were notified — no action needed from you unless you want to look.\n\n${link}`,
+    html: `<p>Two verified tutors disagree on: &ldquo;${questionTitle}&rdquo; (${subjectName}).</p><p>It's been posted to the ${subjectName} review board and all ${subjectName} tutors were notified — no action needed from you unless you want to look.</p><p><a href="${link}">${link}</a></p>`,
+  });
+}

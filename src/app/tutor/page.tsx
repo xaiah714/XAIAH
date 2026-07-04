@@ -19,9 +19,12 @@ export default async function TutorHubPage() {
   const sessionUser = await requireRole("TUTOR");
   const user = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser.id } });
 
-  const [notifications, openQuestions] = await Promise.all([
+  const [notifications, openQuestions, disputedQuestions] = await Promise.all([
     prisma.notification.findMany({
-      where: { userId: user.id, type: { in: ["NEW_QUESTION", "NEW_CHAT_REQUEST"] } },
+      where: {
+        userId: user.id,
+        type: { in: ["NEW_QUESTION", "NEW_CHAT_REQUEST", "DISPUTE_REVIEW", "NEW_STUDENT_SIGNUP"] },
+      },
       orderBy: { createdAt: "desc" },
       take: 20,
       include: {
@@ -33,6 +36,18 @@ export default async function TutorHubPage() {
       ? prisma.question.findMany({
           where: { subject: { in: user.tutorSubjects }, status: { in: ["OPEN", "ANSWERED"] } },
           orderBy: { createdAt: "asc" },
+          take: 20,
+          include: { _count: { select: { answers: true } } },
+        })
+      : Promise.resolve([]),
+    user.tutorSubjects.length
+      ? prisma.question.findMany({
+          where: {
+            subject: { in: user.tutorSubjects },
+            disputedAt: { not: null },
+            disputeResolvedAt: null,
+          },
+          orderBy: { disputedAt: "asc" },
           take: 20,
           include: { _count: { select: { answers: true } } },
         })
@@ -68,10 +83,19 @@ export default async function TutorHubPage() {
               const grade = gradeLevelLabel(
                 n.question?.author.gradeLevel ?? n.chatSession?.student.gradeLevel
               );
-              const href =
-                n.type === "NEW_QUESTION" && n.questionId
-                  ? `/questions/${n.questionId}`
+              const href = n.questionId
+                ? `/questions/${n.questionId}`
+                : n.type === "NEW_STUDENT_SIGNUP"
+                  ? `/questions?subject=${n.subject ?? ""}`
                   : "/chat";
+              const copy =
+                n.type === "NEW_QUESTION"
+                  ? (n.question?.title ?? "A new community question")
+                  : n.type === "NEW_CHAT_REQUEST"
+                    ? "New live chat request"
+                    : n.type === "DISPUTE_REVIEW"
+                      ? `Disputed: ${n.question?.title ?? "a question in your subject"} — review both answers and weigh in`
+                      : "A new student who needs your subject just joined";
 
               return (
                 <li key={n.id}>
@@ -81,17 +105,51 @@ export default async function TutorHubPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="badge-community">{subjectLabel(n.subject ?? "OTHER")}</span>
-                      <span className="text-xs text-brand-muted">Grade level: {grade}</span>
+                      {(n.type === "NEW_QUESTION" || n.type === "NEW_CHAT_REQUEST") && (
+                        <span className="text-xs text-brand-muted">Grade level: {grade}</span>
+                      )}
+                      {n.type === "DISPUTE_REVIEW" && (
+                        <span className="text-xs font-medium text-brand-purple-dark">
+                          Needs review
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-2 text-sm font-medium">
-                      {n.type === "NEW_QUESTION"
-                        ? (n.question?.title ?? "A new community question")
-                        : "New live chat request"}
-                    </p>
+                    <p className="mt-2 text-sm font-medium">{copy}</p>
                   </Link>
                 </li>
               );
             })}
+          </ul>
+        </div>
+      )}
+
+      {disputedQuestions.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-brand-purple-dark">
+            Review board: disputed questions in your subjects
+          </h2>
+          <p className="mt-1 text-sm text-brand-muted">
+            Verified tutors disagreed on these. Read both answers and weigh in — back the one
+            you believe is correct (or add your own). Consensus among {""}
+            tutors in the subject resolves the dispute.
+          </p>
+          <ul className="mt-4 flex flex-col gap-3">
+            {disputedQuestions.map((q) => (
+              <li key={q.id}>
+                <Link href={`/questions/${q.id}`} className="card block border-brand-purple hover:border-brand-teal">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="badge-community">{subjectLabel(q.subject)}</span>
+                    <span className="text-xs font-medium text-brand-purple-dark">
+                      Disputed {q.disputedAt ? `since ${q.disputedAt.toLocaleDateString()}` : ""}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 font-semibold">{q.title}</h3>
+                  <p className="mt-1 text-xs text-brand-muted">
+                    {q._count.answers} answers to review
+                  </p>
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       )}

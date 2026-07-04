@@ -1,4 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { prisma } from "@/lib/prisma";
+
+// ─────────────────────────────────────────────────────────────────────────
+// PARKED — nothing in the active launch flow imports this module. The
+// verified-answer synthesis feature is fully disabled until an Anthropic
+// API key is in place (and the prompt's output quality has been verified
+// via scripts/test-synthesis.ts). To re-enable: call
+// maybeSynthesizeSecondOpinion(questionId) from createAnswerAction after an
+// answer is saved. The active launch flow has zero ANTHROPIC_API_KEY
+// dependency — agreement badges and dispute review are tutor-driven.
+// ─────────────────────────────────────────────────────────────────────────
 
 // Deliberate quality-over-cost choice: Fable 5 for synthesis (it costs more
 // per call than Opus/Sonnet — see BUILD_PLAN.md). Fable's safety layer can
@@ -97,4 +108,37 @@ export async function synthesizeVerifiedAnswers(
     }
     return null;
   }
+}
+
+/**
+ * PARKED trigger (see module comment): once a second-opinion question has
+ * 2+ verified-tutor answers and no cached synthesis, reconcile them into one
+ * simplified explanation and cache it on the question. Not called anywhere
+ * in the active flow.
+ */
+export async function maybeSynthesizeSecondOpinion(questionId: string) {
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+    select: { id: true, title: true, body: true, secondOpinionRequested: true, aiSynthesis: true },
+  });
+  if (!question || !question.secondOpinionRequested || question.aiSynthesis) return;
+
+  const verifiedAnswers = await prisma.answer.findMany({
+    where: { questionId, isVerifiedTutorAnswer: true },
+    select: { reasoning: true, body: true, author: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  if (verifiedAnswers.length < 2) return;
+
+  const synthesis = await synthesizeVerifiedAnswers(
+    question.title,
+    question.body,
+    verifiedAnswers.map((a) => ({ tutorName: a.author.name, reasoning: a.reasoning, body: a.body }))
+  );
+  if (!synthesis) return;
+
+  await prisma.question.update({
+    where: { id: questionId },
+    data: { aiSynthesis: synthesis, aiSynthesizedAt: new Date() },
+  });
 }

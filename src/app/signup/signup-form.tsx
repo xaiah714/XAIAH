@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { signupAction, type SignupState } from "@/actions/auth";
 import { GRADE_LEVELS } from "@/lib/grade-levels";
+import { SUBJECTS } from "@/lib/subjects";
 
 const initialState: SignupState = {};
 
@@ -107,6 +108,23 @@ export function SignupForm() {
           </select>
           <p className="mt-1 text-xs text-brand-muted">
             Shown to tutors instead of your name before they claim your request.
+          </p>
+        </div>
+      )}
+
+      {role === "STUDENT" && (
+        <div>
+          <span className="text-sm font-medium">What do you need help with? (optional)</span>
+          <div className="mt-1 grid grid-cols-2 gap-1">
+            {SUBJECTS.filter((s) => s.value !== "OTHER").map((s) => (
+              <label key={s.value} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="studentSubjects" value={s.value} />
+                {s.label}
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-brand-muted">
+            Verified tutors in these subjects get a heads-up that you&apos;ve joined.
           </p>
         </div>
       )}

@@ -113,8 +113,14 @@ a phase-2 `B2BLicense` table.
       notification model already fans a question out to every available,
       subject-tagged tutor, so this doesn't need new routing; it flags the
       question for the AI synthesis step below.
-    - **AI synthesis** (`src/lib/ai.ts`, Claude API via `@anthropic-ai/sdk`,
-      model `claude-fable-5`, adaptive thinking): once a
+    - **AI synthesis — PARKED, fully disabled.** `src/lib/ai.ts` (Claude
+      API, `claude-fable-5`) is kept in the tree but nothing in the active
+      flow imports or calls it, and the active launch flow has zero
+      `ANTHROPIC_API_KEY` dependency. Verification badges and dispute
+      resolution below are entirely tutor-driven. Re-enable by calling
+      `maybeSynthesizeSecondOpinion()` from `createAnswerAction` once a
+      key exists and `scripts/test-synthesis.ts` outputs have been
+      reviewed. Original design (for when it returns): once a
       `secondOpinionRequested` question has 2+ *verified-tutor* answers and
       no cached synthesis yet, the reasoning+final answer of every verified
       answer is sent to Claude with a system prompt that explicitly forbids
@@ -151,19 +157,56 @@ a phase-2 `B2BLicense` table.
     `GET /api/cron/question-sweep`, same `CRON_SECRET` bearer pattern as
     the payout cron) so students are never left wondering whether anything
     is happening:
-    - **30 minutes unanswered** → a proactive `QUESTION_DELAY_NOTICE`
-      notification plus a "Still working on connecting you with an expert"
-      banner on the question page (author-only).
-    - **1 hour unanswered** → the question is automatically flagged
+    - **15 minutes unanswered** → a proactive `QUESTION_DELAY_NOTICE`
+      notification plus a "Still working on connecting you with a
+      verified tutor" banner on the question page (author-only) — this
+      deliberately fires before escalation so the student always hears
+      something first.
+    - **30 minutes unanswered** → the question is automatically flagged
       `secondOpinionRequested` (the exact mechanism behind the manual
       checkbox, just time-triggered), a `QUESTION_ESCALATED` notification
       goes out, and the banner switches to "We've escalated this to
-      multiple experts."
+      multiple verified tutors."
     - Each stage records a timestamp on the question
       (`delayNoticeSentAt` / `autoEscalatedAt`) so re-running the sweep
       never double-sends, and questions answered between sweeps drop out
       naturally (their status is no longer `OPEN`).
-16. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+16. **Agreement badges + dispute review board (zero AI)** — trust comes
+    from tutors checking each other, with no API dependency:
+    - A verified tutor answering a question that already has a verified
+      answer must declare a stance: agree or disagree
+      (`Answer.agreesWithPrior`). Tutors can also endorse an existing
+      verified answer ("Agree — this answer is correct",
+      `AnswerEndorsement`).
+    - **Agreement** → a "✓✓ Verified by N tutors" badge on the question
+      page and the questions list, where N is the distinct verified
+      tutors backing the agreeing side (authors + endorsers,
+      2 minimum — `src/lib/consensus.ts`).
+    - **Disagreement** → NO badge. The question is marked disputed
+      (`Question.disputedAt`) and lands on the subject review board (a
+      section on `/tutor` visible to every tutor tagged in that subject).
+      Every ACTIVE subject tutor except the disputer gets an in-app
+      `DISPUTE_REVIEW` notification AND an email — availability toggle
+      and standing don't matter here, the whole subject pool is invited.
+      The platform owner simultaneously gets an informational email
+      (`ADMIN_ALERT_EMAIL`, console-logged when blank) plus an
+      admin-dashboard "open tutor disagreements" flag — the owner always
+      knows, but is never required to resolve anything.
+    - **Consensus resolves it**: tutors weigh in by endorsing the answer
+      they believe is correct (or adding their own). When one answer is
+      backed by at least 3 tutors and strictly more than every other, the
+      dispute resolves, the winning answer is highlighted as "✓ Consensus
+      answer," and the badge appears with the winning side's count.
+    - Student-facing copy says "verified tutor," never "expert" — these
+      are vetted, skilled tutors and that's the accurate trust label.
+17. **New-student signup notifications** — students can optionally pick
+    the subjects they need help with at signup (`User.studentSubjects`);
+    every ACTIVE tutor tagged in one of them gets a `NEW_STUDENT_SIGNUP`
+    notification (one per tutor, not per subject). Delivery is instant
+    per-signup for now (pre-launch volume); `notifyTutorsOfNewStudent` in
+    `src/lib/notify.ts` is the single delivery seam, with a mode constant
+    documenting the switch to a daily-digest cron later.
+18. **Searchable answer bank** — `/questions` has a search box (`?q=`)
     that matches against title/body/course/textbook and, when a query is
     present, surfaces questions with more answers first. The "ask a
     question" form also does a debounced (400ms) live lookup against

@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireVerifiedUser } from "@/lib/auth-helpers";
 import { saveUploadedPhoto } from "@/lib/uploads";
-import { notifyTutorsForSubject } from "@/lib/notify";
-import { synthesizeVerifiedAnswers } from "@/lib/ai";
+import { notifyTutorsForSubject, notifyDisputeReview } from "@/lib/notify";
+import { checkDisputeResolution } from "@/lib/consensus";
 
 const SUBJECT_VALUES = [
   "MATH",
@@ -110,6 +110,7 @@ const answerSchema = z.object({
   questionId: z.string().min(1),
   reasoning: z.string().min(1, "Show your reasoning/steps before the final answer"),
   body: z.string().min(1, "Write a final answer before submitting"),
+  stance: z.enum(["agree", "disagree"]).optional(),
 });
 
 export type AnswerFormState = { error?: string };
@@ -124,70 +125,115 @@ export async function createAnswerAction(
     questionId: formData.get("questionId"),
     reasoning: formData.get("reasoning"),
     body: formData.get("body"),
+    stance: formData.get("stance") || undefined,
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  const question = await prisma.question.findUnique({
+    where: { id: parsed.data.questionId },
+    select: {
+      id: true,
+      title: true,
+      subject: true,
+      disputedAt: true,
+      disputeResolvedAt: true,
+      answers: {
+        where: { isVerifiedTutorAnswer: true },
+        select: { authorId: true },
+      },
+    },
+  });
+  if (!question) return { error: "Question not found" };
+
+  // A verified tutor answering after other verified tutor(s) must declare a
+  // stance — unless a dispute is already open, in which case the new answer
+  // just backs itself (endorsements are the weigh-in mechanism).
+  const isTutor = user.role === "TUTOR";
+  const hasPriorVerified = question.answers.some((a) => a.authorId !== user.id);
+  const disputeOpen = Boolean(question.disputedAt && !question.disputeResolvedAt);
+  let agreesWithPrior: boolean | null = null;
+  if (isTutor && hasPriorVerified && !disputeOpen) {
+    if (!parsed.data.stance) {
+      return {
+        error:
+          "This question already has a verified answer — say whether yours agrees or disagrees with it.",
+      };
+    }
+    agreesWithPrior = parsed.data.stance === "agree";
+  }
+
+  const opensDispute = agreesWithPrior === false && !question.disputedAt;
+
   await prisma.$transaction([
     prisma.answer.create({
       data: {
-        questionId: parsed.data.questionId,
+        questionId: question.id,
         authorId: user.id,
         reasoning: parsed.data.reasoning,
         body: parsed.data.body,
-        isVerifiedTutorAnswer: user.role === "TUTOR",
+        isVerifiedTutorAnswer: isTutor,
+        agreesWithPrior,
       },
     }),
     prisma.question.update({
-      where: { id: parsed.data.questionId },
-      data: { status: "ANSWERED" },
+      where: { id: question.id },
+      data: { status: "ANSWERED", ...(opensDispute ? { disputedAt: new Date() } : {}) },
     }),
     prisma.notification.updateMany({
-      where: { questionId: parsed.data.questionId, userId: user.id, read: false },
+      where: { questionId: question.id, userId: user.id, read: false },
       data: { read: true },
     }),
   ]);
 
-  await maybeSynthesizeSecondOpinion(parsed.data.questionId);
+  if (opensDispute) {
+    await notifyDisputeReview(
+      { id: question.id, title: question.title, subject: question.subject },
+      user.id
+    );
+  }
 
-  revalidatePath(`/questions/${parsed.data.questionId}`);
+  revalidatePath(`/questions/${question.id}`);
   revalidatePath("/tutor");
   return {};
 }
 
+export type EndorseFormState = { error?: string };
+
 /**
- * Once a question flagged for a second opinion has 2+ independent verified-
- * tutor answers and no cached synthesis yet, ask the AI layer to reconcile
- * them into one simplified explanation. Synthesis only ever reformats
- * reasoning tutors already verified — see src/lib/ai.ts.
+ * A verified tutor backing another tutor's answer ("I reviewed this and it's
+ * correct"). Counts toward the "Verified by N tutors" badge, and on disputed
+ * questions it's the weigh-in that builds consensus.
  */
-async function maybeSynthesizeSecondOpinion(questionId: string) {
-  const question = await prisma.question.findUnique({
-    where: { id: questionId },
-    select: { id: true, title: true, body: true, secondOpinionRequested: true, aiSynthesis: true },
-  });
-  if (!question || !question.secondOpinionRequested || question.aiSynthesis) return;
+export async function endorseAnswerAction(
+  _prevState: EndorseFormState,
+  formData: FormData
+): Promise<EndorseFormState> {
+  const user = await requireVerifiedUser();
+  if (user.role !== "TUTOR") return { error: "Only verified tutors can endorse answers" };
 
-  const verifiedAnswers = await prisma.answer.findMany({
-    where: { questionId, isVerifiedTutorAnswer: true },
-    select: { reasoning: true, body: true, author: { select: { name: true } } },
-    orderBy: { createdAt: "asc" },
-  });
-  if (verifiedAnswers.length < 2) return;
+  const answerId = String(formData.get("answerId") ?? "");
+  if (!answerId) return { error: "Invalid answer" };
 
-  const synthesis = await synthesizeVerifiedAnswers(
-    question.title,
-    question.body,
-    verifiedAnswers.map((a) => ({ tutorName: a.author.name, reasoning: a.reasoning, body: a.body }))
-  );
-  if (!synthesis) return;
-
-  await prisma.question.update({
-    where: { id: questionId },
-    data: { aiSynthesis: synthesis, aiSynthesizedAt: new Date() },
+  const answer = await prisma.answer.findUnique({
+    where: { id: answerId },
+    select: { id: true, questionId: true, authorId: true, isVerifiedTutorAnswer: true },
   });
+  if (!answer || !answer.isVerifiedTutorAnswer) return { error: "Answer not found" };
+  if (answer.authorId === user.id) return { error: "You already back your own answer" };
+
+  await prisma.answerEndorsement.upsert({
+    where: { answerId_tutorId: { answerId, tutorId: user.id } },
+    create: { answerId, tutorId: user.id },
+    update: {},
+  });
+
+  await checkDisputeResolution(answer.questionId);
+
+  revalidatePath(`/questions/${answer.questionId}`);
+  return {};
 }
 
 const flagAnswerSchema = z.object({

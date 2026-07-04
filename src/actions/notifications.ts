@@ -13,7 +13,11 @@ import { requireRole } from "@/lib/auth-helpers";
 export async function markAllNotificationsReadAction() {
   const user = await requireRole("TUTOR");
   await prisma.notification.updateMany({
-    where: { userId: user.id, read: false, type: { in: ["NEW_QUESTION", "NEW_CHAT_REQUEST"] } },
+    where: {
+      userId: user.id,
+      read: false,
+      type: { in: ["NEW_QUESTION", "NEW_CHAT_REQUEST", "DISPUTE_REVIEW", "NEW_STUDENT_SIGNUP"] },
+    },
     data: { read: true },
   });
   revalidatePath("/tutor");

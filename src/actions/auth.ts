@@ -6,8 +6,20 @@ import { prisma } from "@/lib/prisma";
 import { signIn, TwoFactorRequiredError, TwoFactorInvalidError } from "@/auth";
 import { AuthError } from "next-auth";
 import { issueEmailVerification } from "@/lib/verification";
+import { notifyTutorsOfNewStudent } from "@/lib/notify";
 
 const GRADE_LEVEL_VALUES = ["MIDDLE_SCHOOL", "HIGH_SCHOOL", "COLLEGE", "GRAD", "OTHER"] as const;
+const SUBJECT_VALUES = [
+  "MATH",
+  "PHYSICS",
+  "CHEMISTRY",
+  "BIOLOGY",
+  "COMPUTER_SCIENCE",
+  "PSYCHOLOGY",
+  "PHILOSOPHY",
+  "NURSING",
+  "OTHER",
+] as const;
 
 const signupSchema = z
   .object({
@@ -17,6 +29,7 @@ const signupSchema = z
     role: z.enum(["STUDENT", "TUTOR"]),
     timezone: z.string().min(1),
     gradeLevel: z.enum(GRADE_LEVEL_VALUES).optional(),
+    studentSubjects: z.array(z.enum(SUBJECT_VALUES)).max(SUBJECT_VALUES.length).optional(),
   })
   .refine((data) => data.role !== "STUDENT" || Boolean(data.gradeLevel), {
     message: "Pick a grade level",
@@ -38,13 +51,14 @@ export async function signupAction(
     role: formData.get("role"),
     timezone: formData.get("timezone"),
     gradeLevel: formData.get("gradeLevel") || undefined,
+    studentSubjects: formData.getAll("studentSubjects"),
   });
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { name, email, password, role, timezone, gradeLevel } = parsed.data;
+  const { name, email, password, role, timezone, gradeLevel, studentSubjects } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -62,10 +76,15 @@ export async function signupAction(
       timezone,
       tutorStatus: role === "TUTOR" ? "APPLIED" : undefined,
       gradeLevel: role === "STUDENT" ? gradeLevel : undefined,
+      studentSubjects: role === "STUDENT" ? (studentSubjects ?? []) : [],
     },
   });
 
   await issueEmailVerification(user.id, user.email);
+
+  if (role === "STUDENT" && studentSubjects && studentSubjects.length > 0) {
+    await notifyTutorsOfNewStudent(studentSubjects);
+  }
 
   try {
     await signIn("credentials", { email, password, redirectTo: "/verify-email" });

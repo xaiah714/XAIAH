@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SUBJECTS, subjectLabel } from "@/lib/subjects";
+import { getVerificationState } from "@/lib/consensus";
 import type { Subject } from "@/generated/prisma/client";
 
 export default async function QuestionsPage({
@@ -30,7 +31,19 @@ export default async function QuestionsPage({
     },
     orderBy: query ? [{ answers: { _count: "desc" } }, { createdAt: "desc" }] : { createdAt: "desc" },
     take: 50,
-    include: { _count: { select: { answers: true } } },
+    include: {
+      _count: { select: { answers: true } },
+      answers: {
+        where: { isVerifiedTutorAnswer: true },
+        select: {
+          id: true,
+          authorId: true,
+          isVerifiedTutorAnswer: true,
+          agreesWithPrior: true,
+          endorsements: { select: { tutorId: true } },
+        },
+      },
+    },
   });
 
   return (
@@ -83,24 +96,37 @@ export default async function QuestionsPage({
             No questions yet. Be the first to ask.
           </li>
         )}
-        {questions.map((question) => (
-          <li key={question.id}>
-            <Link href={`/questions/${question.id}`} className="card block hover:border-brand-teal">
-              <div className="flex items-center justify-between gap-2">
-                <span className="badge-community">{subjectLabel(question.subject)}</span>
-                <span className="text-xs text-brand-muted">
-                  {question._count.answers} {question._count.answers === 1 ? "answer" : "answers"} ·{" "}
-                  {question.status === "RESOLVED"
-                    ? "Resolved"
-                    : question.status === "ANSWERED"
-                      ? "Answered"
-                      : "Open"}
-                </span>
-              </div>
-              <h2 className="mt-2 font-semibold">{question.title}</h2>
-            </Link>
-          </li>
-        ))}
+        {questions.map((question) => {
+          const verification = getVerificationState(question);
+          return (
+            <li key={question.id}>
+              <Link href={`/questions/${question.id}`} className="card block hover:border-brand-teal">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="badge-community">{subjectLabel(question.subject)}</span>
+                    {(verification.kind === "VERIFIED" || verification.kind === "RESOLVED") && (
+                      <span className="badge-verified">
+                        ✓✓ Verified by {verification.tutorCount} tutors
+                      </span>
+                    )}
+                    {verification.kind === "DISPUTED" && (
+                      <span className="badge-community">Under tutor review</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-brand-muted">
+                    {question._count.answers} {question._count.answers === 1 ? "answer" : "answers"} ·{" "}
+                    {question.status === "RESOLVED"
+                      ? "Resolved"
+                      : question.status === "ANSWERED"
+                        ? "Answered"
+                        : "Open"}
+                  </span>
+                </div>
+                <h2 className="mt-2 font-semibold">{question.title}</h2>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

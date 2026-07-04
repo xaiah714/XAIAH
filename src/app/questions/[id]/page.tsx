@@ -6,10 +6,8 @@ import { auth } from "@/auth";
 import { AnswerForm } from "./answer-form";
 import { ResolveButton } from "./resolve-button";
 import { FlagAnswerButton } from "./flag-answer-button";
-
-// Answer submission can trigger the Claude synthesis call (src/lib/ai.ts),
-// which routinely takes longer than Vercel's default function timeout.
-export const maxDuration = 60;
+import { EndorseAnswerButton } from "./endorse-answer-button";
+import { getVerificationState } from "@/lib/consensus";
 
 export default async function QuestionPage({
   params,
@@ -25,7 +23,10 @@ export default async function QuestionPage({
       author: { select: { name: true } },
       answers: {
         orderBy: [{ isVerifiedTutorAnswer: "desc" }, { createdAt: "asc" }],
-        include: { author: { select: { name: true, role: true, tutorVerified: true } } },
+        include: {
+          author: { select: { name: true, role: true, tutorVerified: true } },
+          endorsements: { select: { tutorId: true } },
+        },
       },
     },
   });
@@ -33,9 +34,21 @@ export default async function QuestionPage({
   if (!question) notFound();
 
   const isAuthor = session?.user?.id === question.authorId;
+  const viewerIsTutor = session?.user?.role === "TUTOR";
   const classTags = [question.courseName, question.textbookName, question.textbookEdition]
     .filter(Boolean)
     .join(" · ");
+
+  const verification = getVerificationState(question);
+  const disputeOpen = verification.kind === "DISPUTED";
+  const winningAnswerId = verification.kind === "RESOLVED" ? verification.winningAnswerId : null;
+  const badgeTutorCount =
+    verification.kind === "VERIFIED" || verification.kind === "RESOLVED"
+      ? verification.tutorCount
+      : null;
+  const priorVerifiedAuthorIds = new Set(
+    question.answers.filter((a) => a.isVerifiedTutorAnswer).map((a) => a.authorId)
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -43,6 +56,11 @@ export default async function QuestionPage({
         <span className="badge-community">{subjectLabel(question.subject)}</span>
         {question.secondOpinionRequested && (
           <span className="badge-verified">Second opinion requested</span>
+        )}
+        {badgeTutorCount !== null && (
+          <span className="badge-verified">
+            ✓✓ Verified by {badgeTutorCount} tutors
+          </span>
         )}
       </div>
       <h1 className="mt-3 text-2xl font-bold">{question.title}</h1>
@@ -76,22 +94,21 @@ export default async function QuestionPage({
       {isAuthor && question.status === "OPEN" && question.autoEscalatedAt && (
         <div className="card mt-4 border-brand-purple text-sm">
           <p className="font-semibold text-brand-purple-dark">
-            We&apos;ve escalated this to multiple experts.
+            We&apos;ve escalated this to multiple verified tutors.
           </p>
           <p className="mt-1 text-brand-muted">
             This question is taking longer than we&apos;d like, so it&apos;s now flagged for a
-            second opinion — more than one verified tutor will weigh in, and we&apos;ll combine
-            their answers into one clear explanation.
+            second opinion — more than one verified tutor will weigh in on it.
           </p>
         </div>
       )}
       {isAuthor && question.status === "OPEN" && question.delayNoticeSentAt && !question.autoEscalatedAt && (
         <div className="card mt-4 border-brand-teal text-sm">
-          <p className="font-semibold">Still working on connecting you with an expert.</p>
+          <p className="font-semibold">Still working on connecting you with a verified tutor.</p>
           <p className="mt-1 text-brand-muted">
-            Your question is out to every available tutor in this subject — hang tight. If it
-            stays unanswered much longer, we&apos;ll automatically route it to multiple tutors
-            for a second opinion.
+            Your question is out to every available verified tutor in this subject — hang
+            tight. If it stays unanswered much longer, we&apos;ll automatically route it to
+            multiple verified tutors for a second opinion.
           </p>
         </div>
       )}
@@ -99,6 +116,19 @@ export default async function QuestionPage({
       {isAuthor && question.status !== "RESOLVED" && (
         <div className="mt-4">
           <ResolveButton questionId={question.id} />
+        </div>
+      )}
+
+      {disputeOpen && (
+        <div className="card mt-8 border-brand-purple">
+          <h2 className="font-semibold text-brand-purple-dark">
+            Verified tutors are reviewing a disagreement on this question
+          </h2>
+          <p className="mt-1 text-sm text-brand-muted">
+            Two verified tutors reached different answers, so this question is on the{" "}
+            {subjectLabel(question.subject)} review board. It gets its verified badge once the
+            subject&apos;s tutors reach consensus — no badge is shown until then.
+          </p>
         </div>
       )}
 
@@ -119,36 +149,76 @@ export default async function QuestionPage({
       </h2>
 
       <ul className="mt-4 flex flex-col gap-4">
-        {question.answers.map((a) => (
-          <li key={a.id} className="card">
-            <div className="flex items-center justify-between">
-              <span className={a.isVerifiedTutorAnswer ? "badge-verified" : "badge-community"}>
-                {a.isVerifiedTutorAnswer ? "Verified tutor" : "Community"}
-              </span>
-              <span className="text-xs text-brand-muted">{a.author.name}</span>
-            </div>
-            <div className="mt-3">
-              <p className="text-xs font-medium text-brand-muted">Reasoning</p>
-              <p className="whitespace-pre-wrap text-sm">{a.reasoning}</p>
-            </div>
-            <div className="mt-3">
-              <p className="text-xs font-medium text-brand-muted">Final answer</p>
-              <p className="whitespace-pre-wrap font-medium">{a.body}</p>
-            </div>
-            {session?.user && session.user.id !== a.authorId && (
-              <div className="mt-3">
-                <FlagAnswerButton answerId={a.id} />
+        {question.answers.map((a) => {
+          const alreadyEndorsed = Boolean(
+            session?.user && a.endorsements.some((e) => e.tutorId === session.user!.id)
+          );
+          return (
+            <li
+              key={a.id}
+              className={`card ${a.id === winningAnswerId ? "border-brand-teal" : ""}`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={a.isVerifiedTutorAnswer ? "badge-verified" : "badge-community"}>
+                    {a.isVerifiedTutorAnswer ? "Verified tutor" : "Community"}
+                  </span>
+                  {a.id === winningAnswerId && (
+                    <span className="badge-verified">✓ Consensus answer</span>
+                  )}
+                  {a.agreesWithPrior === true && (
+                    <span className="text-xs text-brand-muted">
+                      Agrees with the earlier verified answer
+                    </span>
+                  )}
+                  {a.agreesWithPrior === false && (
+                    <span className="text-xs font-medium text-brand-purple-dark">
+                      Disagrees with the earlier verified answer
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-brand-muted">{a.author.name}</span>
               </div>
-            )}
-          </li>
-        ))}
+              <div className="mt-3">
+                <p className="text-xs font-medium text-brand-muted">Reasoning</p>
+                <p className="whitespace-pre-wrap text-sm">{a.reasoning}</p>
+              </div>
+              <div className="mt-3">
+                <p className="text-xs font-medium text-brand-muted">Final answer</p>
+                <p className="whitespace-pre-wrap font-medium">{a.body}</p>
+              </div>
+              {a.isVerifiedTutorAnswer && a.endorsements.length > 0 && (
+                <p className="mt-2 text-xs text-brand-muted">
+                  ✓ Backed by {a.endorsements.length + 1} verified tutor
+                  {a.endorsements.length + 1 === 1 ? "" : "s"} (author included)
+                </p>
+              )}
+              {session?.user && session.user.id !== a.authorId && (
+                <div className="mt-3 flex flex-wrap items-center gap-4">
+                  {viewerIsTutor && a.isVerifiedTutorAnswer && (
+                    <EndorseAnswerButton answerId={a.id} alreadyEndorsed={alreadyEndorsed} />
+                  )}
+                  <FlagAnswerButton answerId={a.id} />
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {session?.user ? (
         <div className="card mt-6">
           <h3 className="font-semibold">Add an answer</h3>
           <div className="mt-3">
-            <AnswerForm questionId={question.id} />
+            <AnswerForm
+              questionId={question.id}
+              requireStance={
+                viewerIsTutor &&
+                !disputeOpen &&
+                [...priorVerifiedAuthorIds].some((authorId) => authorId !== session.user!.id)
+              }
+              disputeOpen={disputeOpen}
+            />
           </div>
         </div>
       ) : (

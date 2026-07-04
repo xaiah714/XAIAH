@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-helpers";
 import { getAdminMetrics } from "@/lib/metrics";
+import { prisma } from "@/lib/prisma";
+import { subjectLabel } from "@/lib/subjects";
 
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -14,7 +16,15 @@ function StatTile({ label, value, sub }: { label: string; value: string; sub?: s
 
 export default async function AdminDashboardPage() {
   await requireRole("ADMIN");
-  const m = await getAdminMetrics();
+  const [m, openDisputes] = await Promise.all([
+    getAdminMetrics(),
+    prisma.question.findMany({
+      where: { disputedAt: { not: null }, disputeResolvedAt: null },
+      orderBy: { disputedAt: "asc" },
+      take: 20,
+      select: { id: true, title: true, subject: true, disputedAt: true },
+    }),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -25,6 +35,30 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
       <p className="mt-1 text-sm text-brand-muted">Last 30 days unless noted.</p>
+
+      {openDisputes.length > 0 && (
+        <div className="card mt-6 border-brand-purple">
+          <h2 className="font-semibold text-brand-purple-dark">
+            ⚑ {openDisputes.length} open tutor disagreement{openDisputes.length === 1 ? "" : "s"}
+          </h2>
+          <p className="mt-1 text-xs text-brand-muted">
+            Informational — each is on its subject&apos;s review board and the subject&apos;s
+            tutors were notified. Consensus among them resolves it; you don&apos;t need to act.
+          </p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {openDisputes.map((q) => (
+              <li key={q.id}>
+                <Link href={`/questions/${q.id}`} className="text-sm underline">
+                  [{subjectLabel(q.subject)}] {q.title}
+                </Link>
+                <span className="ml-2 text-xs text-brand-muted">
+                  since {q.disputedAt?.toLocaleDateString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile label="Avg async response time" value={m.avgAsyncResponseTime} />
