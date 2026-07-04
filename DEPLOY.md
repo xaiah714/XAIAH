@@ -53,6 +53,7 @@ never need to run a command on your own computer.
    ```env
    DATABASE_URL=${{Postgres.DATABASE_URL}}
    AUTH_SECRET=REPLACE-WITH-A-LONG-RANDOM-STRING
+   AUTH_TRUST_HOST=true
    ADMIN_EMAIL=you@yourdomain.com
    ADMIN_PASSWORD=REPLACE-WITH-A-STRONG-PASSWORD
    ADMIN_ALERT_EMAIL=you@yourdomain.com
@@ -122,6 +123,7 @@ Set on the **web app** service (Raw Editor makes this copy-paste):
 | --- | --- | --- |
 | `DATABASE_URL` | **Now** | Exactly `${{Postgres.DATABASE_URL}}` — Railway fills it in. |
 | `AUTH_SECRET` | **Now** | Long random string; signs login sessions. |
+| `AUTH_TRUST_HOST` | **Now** | Set to `true` — required for login to work behind Railway's proxy (without it, every auth endpoint 500s). |
 | `NEXT_PUBLIC_APP_URL` | **Now** (Step 4) | The generated public URL. Used in emails + Stripe redirects. |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | **Now** | Auto-creates your admin account on deploy (never overwrites it after that — changing the password here later does nothing). |
 | `ADMIN_ALERT_EMAIL` | **Now** | Where tutor-disagreement alerts are emailed. Blank = logged only. |
