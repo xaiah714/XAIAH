@@ -242,12 +242,12 @@ under-threshold tutor but skips the over-threshold one.
 - **Video walkthrough answers** — `Answer.videoUrl` field exists but there's
   no upload/recording UI. Same for full audio/video live chat — the spec
   says text-first is fine for v1.
-- **Cron scheduling** — `vercel.json` now registers both jobs on Vercel
-  Cron (weekly payouts Mondays 12:00 UTC, question sweep every 5 minutes);
-  they only actually fire once the app is deployed there. Note Vercel's
-  Hobby plan runs crons at most once per day — see DEPLOY.md for the
-  external-scheduler workaround (both routes accept any caller presenting
-  the `CRON_SECRET` bearer).
+- **Cron scheduling** — `scripts/cron-worker.ts` is a long-running
+  scheduler deployed as a second Railway service (weekly payouts Mondays
+  12:00 UTC with a double-run database guard, question sweep every 5
+  minutes); it calls the job functions directly against the database. The
+  bearer-protected HTTP routes (`/api/cron/*`) remain for manual triggers
+  — see DEPLOY.md.
 - **File storage** — photo uploads write to `public/uploads` on local disk.
   Fine for local dev; won't persist across deploys on most hosting
   platforms. Swap `src/lib/uploads.ts` for S3/Cloudinary/R2 before shipping.
@@ -326,13 +326,16 @@ under-threshold tutor but skips the over-threshold one.
 
 ## Deploying to staging
 
-See [`DEPLOY.md`](./DEPLOY.md) — the repo is Vercel-ready (`vercel.json`
-crons, `prisma generate` wired into the build). The pipeline is set up to
-receive real Stripe test-mode keys and a real `ANTHROPIC_API_KEY` whenever
-they're available: every integration degrades gracefully while its key is
-blank, so deploy first, add keys later. The one step that can't be done
-from this environment is the initial repo import on vercel.com (it needs
-your Vercel account) — DEPLOY.md walks through it.
+See [`DEPLOY.md`](./DEPLOY.md) — the target is **Railway**, hosting the
+web app, the Postgres database, and a cron-worker service together in one
+project. Schema sync (`prisma db push`) and admin seeding run
+automatically on every deploy via `npm run start:railway`, so setup is
+entirely dashboard clicks — DEPLOY.md walks through them step by step for
+a first-time Railway user. The pipeline is ready to receive real Stripe
+test-mode keys and a Resend key whenever they're available: every
+integration degrades gracefully while its key is blank, so deploy first,
+add keys later. The initial repo import needs your Railway account, so
+that one-time step is yours.
 
 ## Running locally
 
@@ -377,7 +380,8 @@ without it; you just won't see the "AI-simplified summary" card appear.
 
 ### Weekly payouts
 
+In deployment the cron-worker service runs this automatically (Mondays
+12:00 UTC — see DEPLOY.md). For a manual run locally or in staging:
 `GET /api/cron/weekly-payouts` with header
-`Authorization: Bearer $CRON_SECRET` runs the payout job. Point a
-scheduler at it (Vercel Cron, GitHub Actions `schedule:`, etc) — weekly,
-per the spec's "weekly payouts, not net-30" requirement.
+`Authorization: Bearer $CRON_SECRET` — weekly, per the spec's "weekly
+payouts, not net-30" requirement.

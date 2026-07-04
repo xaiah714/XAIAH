@@ -29,8 +29,8 @@ const HOLD_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 const REMINDER_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Weekly payout run. Trigger via GET /api/cron/weekly-payouts on a weekly
- * schedule (Vercel Cron, GitHub Actions cron, etc) — see BUILD_PLAN.md.
+ * Weekly payout run. In deployment, scripts/cron-worker.ts calls this on
+ * Mondays 12:00 UTC; GET /api/cron/weekly-payouts triggers it manually.
  */
 export async function runWeeklyPayouts() {
   const lastRun = await prisma.payout.aggregate({ _max: { periodEnd: true } });

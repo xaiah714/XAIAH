@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { sweepUnansweredQuestions } from "@/lib/question-sweep";
 
-// Meant to run every few minutes (Vercel Cron sends CRON_SECRET as the
-// bearer token automatically when the env var is set).
+// Manual trigger for the sweep (the deployed cron-worker service runs it
+// every 5 minutes on its own — see scripts/cron-worker.ts).
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
