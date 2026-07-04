@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth-helpers";
@@ -38,11 +39,26 @@ export default async function ChatSessionPage({
         <div>
           <span className="badge-community">{subjectLabel(chatSession.subject)}</span>
           <p className="mt-1 text-sm text-brand-muted">
-            {chatSession.status === "WAITING"
-              ? "Waiting for a tutor to join..."
-              : chatSession.status === "ACTIVE"
-                ? `Chatting with ${otherPartyName ?? "..."}`
-                : "Session ended"}
+            {chatSession.status === "WAITING" ? (
+              "Waiting for a tutor to join..."
+            ) : chatSession.status === "ACTIVE" ? (
+              <>
+                Chatting with{" "}
+                {user.id === chatSession.studentId && chatSession.tutor ? (
+                  <Link
+                    href={`/tutors/${chatSession.tutor.id}`}
+                    className="text-brand-teal-dark underline"
+                    target="_blank"
+                  >
+                    {chatSession.tutor.name}
+                  </Link>
+                ) : (
+                  (otherPartyName ?? "...")
+                )}
+              </>
+            ) : (
+              "Session ended"
+            )}
           </p>
         </div>
       </div>

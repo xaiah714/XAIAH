@@ -137,6 +137,15 @@ model User {
   // Tutor-only fields
   tutorStatus        TutorStatus?
   tutorBio           String?
+  // Self-reported public-profile fields — displayed on /tutors/[id] in a
+  // section explicitly labeled as the tutor's own words, never mixed with
+  // platform-verified stats. Deliberately NO contact-info fields here: the
+  // no-direct-contact architecture means profiles are viewable but can
+  // never become a contact channel.
+  tutorSchool      String?
+  tutorDegree      String?
+  tutorGradYear    Int?
+  tutorCredentials String?
   tutorSubjects      Subject[]    @default([])
   tutorVerified      Boolean      @default(false)
   tutorAvailable     Boolean      @default(false)

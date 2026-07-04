@@ -17,9 +17,20 @@ const SUBJECT_VALUES = [
   "OTHER",
 ] as const;
 
+const currentYear = new Date().getFullYear();
+
 const tutorProfileSchema = z.object({
   bio: z.string().max(2000).optional(),
   subjects: z.array(z.enum(SUBJECT_VALUES)).min(1, "Pick at least one subject"),
+  school: z.string().max(200).optional(),
+  degree: z.string().max(200).optional(),
+  gradYear: z.coerce
+    .number()
+    .int()
+    .min(1950, "Enter a real graduation year")
+    .max(currentYear + 10, "Enter a real graduation year")
+    .optional(),
+  credentials: z.string().max(2000).optional(),
 });
 
 export type TutorProfileState = { error?: string; success?: boolean };
@@ -33,6 +44,10 @@ export async function updateTutorProfileAction(
   const parsed = tutorProfileSchema.safeParse({
     bio: formData.get("bio") || undefined,
     subjects: formData.getAll("subjects"),
+    school: formData.get("school") || undefined,
+    degree: formData.get("degree") || undefined,
+    gradYear: formData.get("gradYear") || undefined,
+    credentials: formData.get("credentials") || undefined,
   });
 
   if (!parsed.success) {
@@ -42,12 +57,17 @@ export async function updateTutorProfileAction(
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      tutorBio: parsed.data.bio,
+      tutorBio: parsed.data.bio ?? null,
       tutorSubjects: parsed.data.subjects,
+      tutorSchool: parsed.data.school ?? null,
+      tutorDegree: parsed.data.degree ?? null,
+      tutorGradYear: parsed.data.gradYear ?? null,
+      tutorCredentials: parsed.data.credentials ?? null,
     },
   });
 
   revalidatePath("/tutor");
+  revalidatePath(`/tutors/${user.id}`);
   return { success: true };
 }
 

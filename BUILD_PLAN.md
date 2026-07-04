@@ -199,7 +199,26 @@ a phase-2 `B2BLicense` table.
       answer," and the badge appears with the winning side's count.
     - Student-facing copy says "verified tutor," never "expert" — these
       are vetted, skilled tutors and that's the accurate trust label.
-17. **New-student signup notifications** — students can optionally pick
+17. **Public tutor profiles with split trust signals** — `/tutors/[id]`
+    (only for vetted TRIAL/ACTIVE tutors; anything else 404s), linked
+    from every place a student encounters a tutor: verified answers on
+    question pages (which is also the review-board path) and the live
+    chat header. The page enforces a hard visual separation between the
+    two kinds of trust signals:
+    - **"✓ Verified by TutorApp"** (teal-marked, check markers, "the
+      tutor can't edit these"): vetting status, live sessions completed,
+      rating average/count, verified-answer count, join date — all
+      computed from platform records.
+    - **"In their own words"** (plain card, no check marks, explicitly
+      labeled "Self-reported by the tutor — not checked or verified"):
+      education (school/degree/grad year), background & credentials,
+      bio — all optional fields on the existing `/tutor` profile form.
+    - **No new contact channel**: no contact-info fields exist in the
+      schema, the page shows no email/links/handles and no message
+      button, and a footer note tells students the only way to talk to a
+      tutor is a platform session — the no-direct-contact architecture is
+      untouched.
+18. **New-student signup notifications** — students can optionally pick
     the subjects they need help with at signup (`User.studentSubjects`);
     every ACTIVE tutor tagged in one of them gets a `NEW_STUDENT_SIGNUP`
     notification (one per tutor, not per subject). Delivery is instant

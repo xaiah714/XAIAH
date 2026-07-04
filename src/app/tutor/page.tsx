@@ -155,12 +155,25 @@ export default async function TutorHubPage() {
       )}
 
       <div className="card mt-8">
-        <h2 className="font-semibold">Your subjects &amp; bio</h2>
+        <h2 className="font-semibold">Your subjects &amp; public profile</h2>
         <p className="mt-1 text-sm text-brand-muted">
-          Batch mode below only shows questions in subjects you pick here.
+          Batch mode below only shows questions in subjects you pick here. Students can view
+          your{" "}
+          <Link href={`/tutors/${user.id}`} className="underline">
+            public profile
+          </Link>{" "}
+          from your answers and live chats.
         </p>
         <div className="mt-3">
-          <TutorProfileForm bio={user.tutorBio ?? ""} subjects={user.tutorSubjects} />
+          <TutorProfileForm
+            tutorId={user.id}
+            bio={user.tutorBio ?? ""}
+            subjects={user.tutorSubjects}
+            school={user.tutorSchool ?? ""}
+            degree={user.tutorDegree ?? ""}
+            gradYear={user.tutorGradYear}
+            credentials={user.tutorCredentials ?? ""}
+          />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { subjectLabel } from "@/lib/subjects";
@@ -177,7 +178,16 @@ export default async function QuestionPage({
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-brand-muted">{a.author.name}</span>
+                {a.isVerifiedTutorAnswer ? (
+                  <Link
+                    href={`/tutors/${a.authorId}`}
+                    className="text-xs text-brand-teal-dark underline"
+                  >
+                    {a.author.name}
+                  </Link>
+                ) : (
+                  <span className="text-xs text-brand-muted">{a.author.name}</span>
+                )}
               </div>
               <div className="mt-3">
                 <p className="text-xs font-medium text-brand-muted">Reasoning</p>
