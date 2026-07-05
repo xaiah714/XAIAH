@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { subjectLabel } from "@/lib/subjects";
 import { gradeLevelLabel } from "@/lib/grade-levels";
 import { TutorProfileForm } from "./tutor-profile-form";
+import { claimSeedQuestionAction, releaseSeedQuestionAction } from "@/actions/tutor";
 import { AvailabilityToggle } from "./availability-toggle";
 import { MarkAllReadButton } from "./mark-all-read-button";
 
@@ -19,7 +20,7 @@ export default async function TutorHubPage() {
   const sessionUser = await requireRole("TUTOR");
   const user = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser.id } });
 
-  const [notifications, openQuestions, disputedQuestions] = await Promise.all([
+  const [notifications, openQuestions, disputedQuestions, seedQueue] = await Promise.all([
     prisma.notification.findMany({
       where: {
         userId: user.id,
@@ -34,7 +35,11 @@ export default async function TutorHubPage() {
     }),
     user.tutorSubjects.length
       ? prisma.question.findMany({
-          where: { subject: { in: user.tutorSubjects }, status: { in: ["OPEN", "ANSWERED"] } },
+          where: {
+            subject: { in: user.tutorSubjects },
+            status: { in: ["OPEN", "ANSWERED"] },
+            NOT: { isSeeded: true, status: "OPEN" },
+          },
           orderBy: { createdAt: "asc" },
           take: 20,
           include: { _count: { select: { answers: true } } },
@@ -50,6 +55,26 @@ export default async function TutorHubPage() {
           orderBy: { disputedAt: "asc" },
           take: 20,
           include: { _count: { select: { answers: true } } },
+        })
+      : Promise.resolve([]),
+    user.tutorSubjects.length
+      ? prisma.question.findMany({
+          where: {
+            isSeeded: true,
+            status: "OPEN",
+            subject: { in: user.tutorSubjects },
+            OR: [{ seedClaimedById: null }, { seedClaimedById: user.id }],
+          },
+          orderBy: { createdAt: "asc" },
+          take: 25,
+          select: {
+            id: true,
+            title: true,
+            subject: true,
+            textbookName: true,
+            courseName: true,
+            seedClaimedById: true,
+          },
         })
       : Promise.resolve([]),
   ]);
@@ -148,6 +173,55 @@ export default async function TutorHubPage() {
                     {q._count.answers} answers to review
                   </p>
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {seedQueue.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">Library building: seed questions</h2>
+          <p className="mt-1 text-sm text-brand-muted">
+            Pre-loaded questions to grow the public answer bank. Claim one, answer it like any
+            question (reasoning required, verification badges apply) — same quality bar, no
+            student waiting on the other end.
+          </p>
+          <ul className="mt-4 flex flex-col gap-3">
+            {seedQueue.map((q) => (
+              <li key={q.id} className="card">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="badge-community">{subjectLabel(q.subject)}</span>
+                    {[q.courseName, q.textbookName].filter(Boolean).length > 0 && (
+                      <span className="text-xs text-brand-muted">
+                        {[q.courseName, q.textbookName].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </div>
+                  {q.seedClaimedById === user.id ? (
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/questions/${q.id}`}
+                        className="btn-primary !px-3 !py-1.5 !text-xs"
+                      >
+                        Answer it
+                      </Link>
+                      <form action={releaseSeedQuestionAction.bind(null, q.id)}>
+                        <button type="submit" className="text-xs text-brand-muted underline">
+                          Release
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <form action={claimSeedQuestionAction.bind(null, q.id)}>
+                      <button type="submit" className="btn-secondary !px-3 !py-1.5 !text-xs">
+                        Claim
+                      </button>
+                    </form>
+                  )}
+                </div>
+                <h3 className="mt-2 font-semibold">{q.title}</h3>
               </li>
             ))}
           </ul>

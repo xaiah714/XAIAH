@@ -163,6 +163,7 @@ model User {
 
   // Relations
   questionsAsked        Question[]            @relation("QuestionAuthor")
+  seedClaims            Question[]            @relation("SeedClaimer")
   answers               Answer[]              @relation("AnswerAuthor")
   answerFlagsGiven      AnswerFlag[]          @relation("AnswerFlagAuthor")
   answerEndorsements    AnswerEndorsement[]   @relation("AnswerEndorsementTutor")
@@ -263,11 +264,21 @@ model Question {
   disputedAt        DateTime?
   disputeResolvedAt DateTime?
 
+  // Library Builder: admin-loaded seed questions build answer inventory
+  // before organic traffic exists. Hidden from students until answered;
+  // tutors claim them from a dedicated queue on /tutor. Indistinguishable
+  // from organic questions once answered (isSeeded is analytics-only).
+  isSeeded        Boolean   @default(false)
+  seedClaimedById String?
+  seedClaimedBy   User?     @relation("SeedClaimer", fields: [seedClaimedById], references: [id])
+  seedClaimedAt   DateTime?
+
   answers       Answer[]
   notifications Notification[]
 
   @@index([subject, status])
   @@index([authorId])
+  @@index([isSeeded, status])
 }
 
 model Answer {
@@ -285,6 +296,11 @@ model Answer {
   markedHelpful         Boolean  @default(false)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  // Step-by-step solution: when present, the answer renders as a sequential
+  // one-step-at-a-time reveal. `reasoning` always mirrors the joined steps
+  // for backward compatibility (search, older answers, parked AI synthesis).
+  steps String[] @default([])
 
   // Stance a verified tutor declares when answering a question that already
   // has verified answer(s): true = agrees with them, false = disagrees

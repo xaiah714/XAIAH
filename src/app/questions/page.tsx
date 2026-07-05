@@ -18,6 +18,9 @@ export default async function QuestionsPage({
   const questions = await prisma.question.findMany({
     where: {
       subject: validSubject,
+      // Unanswered seed questions live in the tutors' Library Building
+      // queue, not the public list; they appear here once answered.
+      NOT: { isSeeded: true, status: "OPEN" },
       ...(query
         ? {
             OR: [

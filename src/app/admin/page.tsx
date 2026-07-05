@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth-helpers";
 import { getAdminMetrics } from "@/lib/metrics";
 import { prisma } from "@/lib/prisma";
 import { subjectLabel } from "@/lib/subjects";
+import { UnverifiedUsers } from "./unverified-users";
 
 function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -34,11 +35,18 @@ export default async function AdminDashboardPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Admin dashboard</h1>
-        <Link href="/admin/tutors" className="btn-primary !px-4 !py-2 text-sm">
-          Tutor vetting queue
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/library" className="btn-secondary !px-4 !py-2 text-sm">
+            Library Builder
+          </Link>
+          <Link href="/admin/tutors" className="btn-primary !px-4 !py-2 text-sm">
+            Tutor vetting queue
+          </Link>
+        </div>
       </div>
       <p className="mt-1 text-sm text-brand-muted">Last 30 days unless noted.</p>
+
+      <UnverifiedUsers />
 
       {openDisputes.length > 0 && (
         <div className="card mt-6 border-brand-purple">

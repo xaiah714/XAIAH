@@ -189,10 +189,28 @@ export default async function QuestionPage({
                   <span className="text-xs text-brand-muted">{a.author.name}</span>
                 )}
               </div>
-              <div className="mt-3">
-                <p className="text-xs font-medium text-brand-muted">Reasoning</p>
-                <p className="whitespace-pre-wrap text-sm">{a.reasoning}</p>
-              </div>
+              {a.steps.length > 0 ? (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-brand-muted">
+                    Solution — open one step at a time
+                  </p>
+                  <div className="mt-1 flex flex-col gap-1">
+                    {a.steps.map((step, i) => (
+                      <details key={i} className="rounded-lg border border-brand-border">
+                        <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold marker:content-none">
+                          Step {i + 1}
+                        </summary>
+                        <p className="whitespace-pre-wrap px-3 pb-2 text-sm">{step}</p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-brand-muted">Reasoning</p>
+                  <p className="whitespace-pre-wrap text-sm">{a.reasoning}</p>
+                </div>
+              )}
               <div className="mt-3">
                 <p className="text-xs font-medium text-brand-muted">Final answer</p>
                 <p className="whitespace-pre-wrap font-medium">{a.body}</p>
