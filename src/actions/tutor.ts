@@ -82,3 +82,23 @@ export async function toggleAvailabilityAction() {
 
   revalidatePath("/tutor");
 }
+
+/** Tutor claims a seed question from the Library Building queue on /tutor. */
+export async function claimSeedQuestionAction(questionId: string) {
+  const user = await requireRole("TUTOR");
+  await prisma.question.updateMany({
+    where: { id: questionId, isSeeded: true, seedClaimedById: null, status: "OPEN" },
+    data: { seedClaimedById: user.id, seedClaimedAt: new Date() },
+  });
+  revalidatePath("/tutor");
+}
+
+/** Release a claim so someone else can take it. */
+export async function releaseSeedQuestionAction(questionId: string) {
+  const user = await requireRole("TUTOR");
+  await prisma.question.updateMany({
+    where: { id: questionId, isSeeded: true, seedClaimedById: user.id, status: "OPEN" },
+    data: { seedClaimedById: null, seedClaimedAt: null },
+  });
+  revalidatePath("/tutor");
+}

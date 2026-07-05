@@ -270,7 +270,39 @@ a phase-2 `B2BLicense` table.
     form that emails ADMIN_ALERT_EMAIL (console-logged when unset).
     Rule enforced throughout: viewing answers is always free, no unlock
     gates anywhere; the only paid product is live chat.
-23. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+23. **Owner self-service + inventory tooling (final round)** —
+    - **Manual verification console**: /admin lists every unverified
+      account with one-click Verify now, Resend email, and the user's
+      actual pending verification link (copyable) — the owner can
+      onboard testers from a phone with no email provider, no logs, no
+      terminal. The Resend path stays fully wired: adding
+      RESEND_API_KEY on Railway turns on real email with zero code
+      changes.
+    - **Library Builder** (/admin/library): bulk seed-question intake
+      (one per line, pipe-separated, 500/batch, malformed lines
+      reported), a per-subject progress table (loaded / claimed /
+      answered / verified), a claim-and-answer queue on /tutor, and
+      full pipeline integration: seeds skip tutor notifications and the
+      delay sweep, stay hidden from students while unanswered, and
+      enter the public answer bank exactly like organic questions once
+      answered (isSeeded is analytics-only).
+    - **Step-by-step solution builder**: answers are authored as
+      sequential steps + a final answer (Answer.steps[]), rendered to
+      students as a one-step-at-a-time reveal; `reasoning` mirrors the
+      joined steps so search and legacy single-field answers keep
+      working unchanged.
+    - **Photo-to-search**: /api/ocr accepts a problem photo the moment
+      it's selected on the ask form and surfaces "might already be
+      answered" matches from the bank. The OCR extraction itself is a
+      documented stub (src/lib/ocr.ts — drop in tesseract.js or a
+      vision API later); all surrounding plumbing (route, form wiring,
+      term-based matching) is live.
+    - **Self-sustaining deploys**: PR #2 merged; both Railway services
+      are now connected to the repo's main branch and auto-deploy on
+      every merge — no CLI needed for future updates. README ends with
+      an OWNER'S MANUAL covering the six operational tasks in plain
+      English.
+24. **Searchable answer bank** — `/questions` has a search box (`?q=`)
     that matches against title/body/course/textbook and, when a query is
     present, surfaces questions with more answers first. The "ask a
     question" form also does a debounced (400ms) live lookup against

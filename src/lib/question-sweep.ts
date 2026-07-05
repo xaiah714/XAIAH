@@ -19,7 +19,7 @@ export async function sweepUnansweredQuestions(now: Date = new Date()) {
   const escalateCutoff = new Date(now.getTime() - AUTO_ESCALATE_AFTER_MS);
 
   const needingNotice = await prisma.question.findMany({
-    where: { status: "OPEN", createdAt: { lte: delayCutoff }, delayNoticeSentAt: null },
+    where: { status: "OPEN", isSeeded: false, createdAt: { lte: delayCutoff }, delayNoticeSentAt: null },
     select: { id: true, authorId: true },
   });
 
@@ -33,7 +33,7 @@ export async function sweepUnansweredQuestions(now: Date = new Date()) {
   }
 
   const needingEscalation = await prisma.question.findMany({
-    where: { status: "OPEN", createdAt: { lte: escalateCutoff }, autoEscalatedAt: null },
+    where: { status: "OPEN", isSeeded: false, createdAt: { lte: escalateCutoff }, autoEscalatedAt: null },
     select: { id: true, authorId: true, secondOpinionRequested: true },
   });
 

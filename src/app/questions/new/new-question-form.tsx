@@ -15,6 +15,27 @@ export function NewQuestionForm() {
   const [showClassDetails, setShowClassDetails] = useState(false);
   const [titleQuery, setTitleQuery] = useState("");
   const [similar, setSimilar] = useState<SimilarQuestion[]>([]);
+  const [photoMatches, setPhotoMatches] = useState<SimilarQuestion[]>([]);
+  const [photoChecking, setPhotoChecking] = useState(false);
+
+  // Photo-to-search: when a photo is picked, ask the server whether the
+  // problem is already answered (OCR seam — see src/lib/ocr.ts).
+  const checkPhoto = async (file: File | undefined) => {
+    setPhotoMatches([]);
+    if (!file || file.size === 0) return;
+    setPhotoChecking(true);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await fetch("/api/ocr", { method: "POST", body: fd });
+      const data = await res.json();
+      setPhotoMatches(data.questions ?? []);
+    } catch {
+      // best-effort — never block asking
+    } finally {
+      setPhotoChecking(false);
+    }
+  };
 
   useEffect(() => {
     if (titleQuery.trim().length < 3) return;
@@ -121,7 +142,39 @@ export function NewQuestionForm() {
         <label htmlFor="photo" className="text-sm font-medium">
           Photo (optional)
         </label>
-        <input id="photo" name="photo" type="file" accept="image/*" className="input mt-1" />
+        <input
+          id="photo"
+          name="photo"
+          type="file"
+          accept="image/*"
+          className="input mt-1"
+          onChange={(e) => void checkPhoto(e.target.files?.[0])}
+        />
+        {photoChecking && (
+          <p className="mt-1 text-xs text-brand-muted">
+            Checking if this problem is already answered...
+          </p>
+        )}
+        {photoMatches.length > 0 && (
+          <div className="mt-2 rounded-lg border border-brand-border bg-brand-surface p-3">
+            <p className="text-xs font-medium text-brand-muted">
+              Your photo might already be answered — check these first:
+            </p>
+            <ul className="mt-1 flex flex-col gap-1">
+              {photoMatches.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={`/questions/${s.id}`}
+                    target="_blank"
+                    className="text-sm text-brand-purple-dark underline"
+                  >
+                    [{subjectLabel(s.subject)}] {s.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-brand-border pt-4">

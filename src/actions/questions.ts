@@ -108,7 +108,10 @@ export async function createQuestionAction(
 
 const answerSchema = z.object({
   questionId: z.string().min(1),
-  reasoning: z.string().min(1, "Show your reasoning/steps before the final answer"),
+  steps: z
+    .array(z.string().trim())
+    .transform((arr) => arr.filter((s) => s.length > 0))
+    .pipe(z.array(z.string().max(4000)).min(1, "Show at least one solution step")),
   body: z.string().min(1, "Write a final answer before submitting"),
   stance: z.enum(["agree", "disagree"]).optional(),
 });
@@ -123,7 +126,7 @@ export async function createAnswerAction(
 
   const parsed = answerSchema.safeParse({
     questionId: formData.get("questionId"),
-    reasoning: formData.get("reasoning"),
+    steps: formData.getAll("steps").map(String),
     body: formData.get("body"),
     stance: formData.get("stance") || undefined,
   });
@@ -172,7 +175,11 @@ export async function createAnswerAction(
       data: {
         questionId: question.id,
         authorId: user.id,
-        reasoning: parsed.data.reasoning,
+        steps: parsed.data.steps,
+        // reasoning mirrors the joined steps for search and older readers
+        reasoning: parsed.data.steps
+          .map((s, i) => `Step ${i + 1}: ${s}`)
+          .join("\n\n"),
         body: parsed.data.body,
         isVerifiedTutorAnswer: isTutor,
         agreesWithPrior,
