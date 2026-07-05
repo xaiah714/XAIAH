@@ -225,7 +225,29 @@ a phase-2 `B2BLicense` table.
     per-signup for now (pre-launch volume); `notifyTutorsOfNewStudent` in
     `src/lib/notify.ts` is the single delivery seam, with a mode constant
     documenting the switch to a daily-digest cron later.
-18. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+18. **Layered signup email validation** — strict format, typo-TLD/typo-
+    domain rejection (.con, gmial.com, ...), a disposable-provider
+    blocklist, and a DNS MX check that fails open on infrastructure
+    errors but closed on "domain doesn't exist" (`src/lib/
+    email-validation.ts`), all behind a clear "Please use a real email
+    address" message. No live inbox-existence checking (mail servers
+    don't reveal it) — the backstop is the verification gate: posting,
+    answering, and chat pages and their actions all require a verified
+    email, so an account on a fake inbox can't do anything anyway.
+19. **Product-first homepage** — search-first hero ("Find your
+    question") wired to the answer bank, subject navigation chips,
+    action cards, a live "Recently answered" strip with verification
+    badges, condensed how-it-works, and pricing kept but moved below the
+    fold. One primary action, ADHD-friendly.
+20. **Persistent live-chat launcher** — floating bottom-right button on
+    every page (hidden only inside an active chat room so it can't cover
+    the composer): signed-out → sign-in, student → straight into the
+    live-chat request flow, tutor → the queue.
+21. **"Other" subject at signup** — free-text subject requests flow into
+    `SubjectRequest` and surface on the admin dashboard as a "Requested
+    subjects (demand signal)" list alongside the ones captured from
+    question posting.
+22. **Searchable answer bank** — `/questions` has a search box (`?q=`)
     that matches against title/body/course/textbook and, when a query is
     present, surfaces questions with more answers first. The "ask a
     question" form also does a debounced (400ms) live lookup against

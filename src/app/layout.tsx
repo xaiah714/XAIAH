@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+import { ChatLauncher } from "@/components/chat-launcher";
 
 export const metadata: Metadata = {
   title: "TutorApp — Live tutoring, no gatekeeping",
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
+        <ChatLauncher />
       </body>
     </html>
   );

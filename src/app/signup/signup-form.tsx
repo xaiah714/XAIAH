@@ -10,6 +10,17 @@ const initialState: SignupState = {};
 export function SignupForm() {
   const [state, formAction, pending] = useActionState(signupAction, initialState);
   const [role, setRole] = useState<"STUDENT" | "TUTOR">("STUDENT");
+  const [otherSubject, setOtherSubject] = useState(false);
+  // Controlled inputs: React 19 resets uncontrolled fields after a server
+  // action returns (e.g. a rejected email), which would silently wipe the
+  // rest of the form on a validation error.
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("");
+  const [subjectOther, setSubjectOther] = useState("");
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [timezone, setTimezone] = useState("");
 
   const timezones = useMemo(() => {
     try {
@@ -33,7 +44,15 @@ export function SignupForm() {
         <label htmlFor="name" className="text-sm font-medium">
           Name
         </label>
-        <input id="name" name="name" required className="input mt-1" autoComplete="name" />
+        <input
+          id="name"
+          name="name"
+          required
+          className="input mt-1"
+          autoComplete="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
       </div>
 
       <div>
@@ -47,6 +66,8 @@ export function SignupForm() {
           required
           className="input mt-1"
           autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </div>
 
@@ -62,6 +83,8 @@ export function SignupForm() {
           minLength={8}
           className="input mt-1"
           autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
 
@@ -96,7 +119,14 @@ export function SignupForm() {
           <label htmlFor="gradeLevel" className="text-sm font-medium">
             Grade level
           </label>
-          <select id="gradeLevel" name="gradeLevel" required className="input mt-1" defaultValue="">
+          <select
+            id="gradeLevel"
+            name="gradeLevel"
+            required
+            className="input mt-1"
+            value={gradeLevel}
+            onChange={(e) => setGradeLevel(e.target.value)}
+          >
             <option value="" disabled>
               Choose one
             </option>
@@ -118,11 +148,42 @@ export function SignupForm() {
           <div className="mt-1 grid grid-cols-2 gap-1">
             {SUBJECTS.filter((s) => s.value !== "OTHER").map((s) => (
               <label key={s.value} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="studentSubjects" value={s.value} />
+                <input
+                  type="checkbox"
+                  name="studentSubjects"
+                  value={s.value}
+                  checked={subjects.includes(s.value)}
+                  onChange={(e) =>
+                    setSubjects((prev) =>
+                      e.target.checked ? [...prev, s.value] : prev.filter((v) => v !== s.value)
+                    )
+                  }
+                />
                 {s.label}
               </label>
             ))}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="studentSubjects"
+                value="OTHER"
+                checked={otherSubject}
+                onChange={(e) => setOtherSubject(e.target.checked)}
+              />
+              Other
+            </label>
           </div>
+          {otherSubject && (
+            <input
+              name="studentSubjectOther"
+              required
+              maxLength={100}
+              placeholder="What subject? (e.g. Statistics, Spanish, Economics)"
+              className="input mt-2"
+              value={subjectOther}
+              onChange={(e) => setSubjectOther(e.target.value)}
+            />
+          )}
           <p className="mt-1 text-xs text-brand-muted">
             Verified tutors in these subjects get a heads-up that you&apos;ve joined.
           </p>
@@ -136,8 +197,9 @@ export function SignupForm() {
         <select
           id="timezone"
           name="timezone"
-          defaultValue={defaultTimezone}
           className="input mt-1"
+          value={timezone || defaultTimezone}
+          onChange={(e) => setTimezone(e.target.value)}
         >
           {timezones.map((tz) => (
             <option key={tz} value={tz}>

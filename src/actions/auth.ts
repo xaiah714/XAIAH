@@ -7,6 +7,7 @@ import { signIn, TwoFactorRequiredError, TwoFactorInvalidError } from "@/auth";
 import { AuthError } from "next-auth";
 import { issueEmailVerification } from "@/lib/verification";
 import { notifyTutorsOfNewStudent } from "@/lib/notify";
+import { checkSignupEmail } from "@/lib/email-validation";
 
 const GRADE_LEVEL_VALUES = ["MIDDLE_SCHOOL", "HIGH_SCHOOL", "COLLEGE", "GRAD", "OTHER"] as const;
 const SUBJECT_VALUES = [
@@ -30,11 +31,18 @@ const signupSchema = z
     timezone: z.string().min(1),
     gradeLevel: z.enum(GRADE_LEVEL_VALUES).optional(),
     studentSubjects: z.array(z.enum(SUBJECT_VALUES)).max(SUBJECT_VALUES.length).optional(),
+    studentSubjectOther: z.string().max(100).optional(),
   })
   .refine((data) => data.role !== "STUDENT" || Boolean(data.gradeLevel), {
     message: "Pick a grade level",
     path: ["gradeLevel"],
-  });
+  })
+  .refine(
+    (data) =>
+      !data.studentSubjects?.includes("OTHER") ||
+      (data.studentSubjectOther?.trim().length ?? 0) > 0,
+    { message: "Tell us what subject you need", path: ["studentSubjectOther"] }
+  );
 
 export type SignupState = {
   error?: string;
@@ -52,6 +60,7 @@ export async function signupAction(
     timezone: formData.get("timezone"),
     gradeLevel: formData.get("gradeLevel") || undefined,
     studentSubjects: formData.getAll("studentSubjects"),
+    studentSubjectOther: formData.get("studentSubjectOther") || undefined,
   });
 
   if (!parsed.success) {
@@ -59,6 +68,11 @@ export async function signupAction(
   }
 
   const { name, email, password, role, timezone, gradeLevel, studentSubjects } = parsed.data;
+
+  const emailCheck = await checkSignupEmail(email);
+  if (!emailCheck.ok) {
+    return { error: emailCheck.reason };
+  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -81,6 +95,18 @@ export async function signupAction(
   });
 
   await issueEmailVerification(user.id, user.email);
+
+  // "Other" free-text subjects are future demand data — surfaced to the
+  // admin on /admin alongside the ones captured from questions.
+  if (role === "STUDENT" && parsed.data.studentSubjectOther?.trim()) {
+    await prisma.subjectRequest.create({
+      data: {
+        requesterEmail: email,
+        subjectName: parsed.data.studentSubjectOther.trim(),
+        notes: "From student signup",
+      },
+    });
+  }
 
   if (role === "STUDENT" && studentSubjects && studentSubjects.length > 0) {
     await notifyTutorsOfNewStudent(studentSubjects);

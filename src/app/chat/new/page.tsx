@@ -1,8 +1,9 @@
-import { requireRole } from "@/lib/auth-helpers";
+import { requireRole, requireVerifiedUser } from "@/lib/auth-helpers";
 import { StartChatForm } from "./start-chat-form";
 
 export default async function NewChatPage() {
   await requireRole("STUDENT");
+  await requireVerifiedUser();
 
   return (
     <div className="mx-auto max-w-md px-4 py-10">

@@ -1,8 +1,8 @@
-import { requireUser } from "@/lib/auth-helpers";
+import { requireVerifiedUser } from "@/lib/auth-helpers";
 import { NewQuestionForm } from "./new-question-form";
 
 export default async function NewQuestionPage() {
-  await requireUser();
+  await requireVerifiedUser();
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10">

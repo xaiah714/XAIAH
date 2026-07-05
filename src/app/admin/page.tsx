@@ -16,13 +16,17 @@ function StatTile({ label, value, sub }: { label: string; value: string; sub?: s
 
 export default async function AdminDashboardPage() {
   await requireRole("ADMIN");
-  const [m, openDisputes] = await Promise.all([
+  const [m, openDisputes, subjectRequests] = await Promise.all([
     getAdminMetrics(),
     prisma.question.findMany({
       where: { disputedAt: { not: null }, disputeResolvedAt: null },
       orderBy: { disputedAt: "asc" },
       take: 20,
       select: { id: true, title: true, subject: true, disputedAt: true },
+    }),
+    prisma.subjectRequest.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 25,
     }),
   ]);
 
@@ -86,6 +90,26 @@ export default async function AdminDashboardPage() {
           sub={`${m.tipCount} tips, avg $${(m.avgTipCents / 100).toFixed(2)}`}
         />
       </div>
+
+      {subjectRequests.length > 0 && (
+        <div className="card mt-6">
+          <h2 className="font-semibold">Requested subjects (demand signal)</h2>
+          <p className="mt-1 text-xs text-brand-muted">
+            Free-text subjects people asked for at signup or when posting a question — use
+            this to decide what to add next.
+          </p>
+          <ul className="mt-3 flex flex-col gap-1 text-sm">
+            {subjectRequests.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-2">
+                <span className="font-medium">{r.subjectName}</span>
+                <span className="text-xs text-brand-muted">
+                  {r.notes ?? ""} · {r.createdAt.toLocaleDateString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <div>
