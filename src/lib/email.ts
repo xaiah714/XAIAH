@@ -74,3 +74,25 @@ export async function sendAdminDisputeAlert(
     html: `<p>Two verified tutors disagree on: &ldquo;${questionTitle}&rdquo; (${subjectName}).</p><p>It's been posted to the ${subjectName} review board and all ${subjectName} tutors were notified — no action needed from you unless you want to look.</p><p><a href="${link}">${link}</a></p>`,
   });
 }
+
+/**
+ * Contact-form submissions (from /help) go to the platform owner via
+ * ADMIN_ALERT_EMAIL — console-logged when unset, like everything else.
+ */
+export async function sendContactEmail(fromEmail: string, message: string) {
+  const to = process.env.ADMIN_ALERT_EMAIL;
+  if (!to) {
+    console.log(
+      `[email:dev-fallback] ADMIN_ALERT_EMAIL not set — contact form message from ${fromEmail}:\n${message}\n`
+    );
+    return;
+  }
+  await sendEmail({
+    to,
+    subject: `TutorApp contact form: message from ${fromEmail}`,
+    text: `From: ${fromEmail}\n\n${message}`,
+    html: `<p><strong>From:</strong> ${fromEmail}</p><p style="white-space:pre-wrap">${message
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")}</p>`,
+  });
+}

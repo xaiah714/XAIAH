@@ -33,10 +33,11 @@ export default async function SubscriptionPage({
 
       <div className="card mt-6">
         <h2 className="font-semibold">
-          {isActive ? "You're subscribed" : "Unlimited membership — $5-$10/mo"}
+          {isActive ? "You're subscribed" : "Unlimited live tutoring"}
         </h2>
         <p className="mt-1 text-sm text-brand-muted">
-          Unlimited live chat and async tutor answers, no time caps.
+          Unlimited 24/7 live tutor chat, no time caps. $5/month, or $50/year (2
+          months free). Reading answers stays free without any of this.
           {subscription?.currentPeriodEnd &&
             ` Renews ${subscription.currentPeriodEnd.toLocaleDateString()}.`}
         </p>
@@ -49,11 +50,20 @@ export default async function SubscriptionPage({
               </button>
             </form>
           ) : (
-            <form action={createSubscriptionCheckoutAction}>
-              <button type="submit" className="btn-primary">
-                Subscribe
-              </button>
-            </form>
+            <div className="flex flex-wrap gap-3">
+              <form action={createSubscriptionCheckoutAction}>
+                <input type="hidden" name="plan" value="monthly" />
+                <button type="submit" className="btn-primary">
+                  $5 / month
+                </button>
+              </form>
+              <form action={createSubscriptionCheckoutAction}>
+                <input type="hidden" name="plan" value="yearly" />
+                <button type="submit" className="btn-secondary">
+                  $50 / year
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>

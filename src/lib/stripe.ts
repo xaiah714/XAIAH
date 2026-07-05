@@ -26,6 +26,7 @@ export const stripe: Stripe = new Proxy({} as Stripe, {
 
 // Subscriptions: unlimited live chat + async answers, $5-$10/mo (see BUILD_PLAN.md for price setup).
 export const SUBSCRIPTION_PRICE_ID = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
+export const SUBSCRIPTION_YEARLY_PRICE_ID = process.env.STRIPE_SUBSCRIPTION_YEARLY_PRICE_ID;
 // Pay-per-session: one-off live chat access for non-subscribers, ~$2-3.
 export const PAY_PER_SESSION_PRICE_ID = process.env.STRIPE_PAY_PER_SESSION_PRICE_ID;
 export const PAY_PER_SESSION_FALLBACK_CENTS = 300;

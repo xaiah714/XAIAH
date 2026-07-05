@@ -247,7 +247,30 @@ a phase-2 `B2BLicense` table.
     `SubjectRequest` and surface on the admin dashboard as a "Requested
     subjects (demand signal)" list alongside the ones captured from
     question posting.
-22. **Searchable answer bank** — `/questions` has a search box (`?q=`)
+22. **Chegg-grade site structure** — minimal nav (Homework Answers /
+    Live Tutoring / Pricing, right-aligned Help + auth; per-role states
+    verified, and sign-out busts the layout cache so a signed-out
+    visitor can never see a stale "Sign out"); marketing homepage in
+    Chegg's proven order (search-first hero with a photo-question
+    shortcut in the search bar, three value cards, a trust section
+    around the verification badge + review board, an honest
+    placeholder social-proof section, a 7-item FAQ accordion, the
+    recently-answered feed with "See answer — free" links) shown only
+    to signed-out visitors; signed-in students land on a dashboard
+    (greeting, quick actions, their questions with statuses) and
+    tutors/admins are routed to their hubs; a sitemap footer (Product /
+    Company / Trust / Support columns, social placeholders) on every
+    page; a /pricing page with Free–$0 / Monthly–$5 (~$0.17/day) /
+    Yearly–$50 (2 months free) cards, pay-per-session (~$3) demoted to
+    a footnote, and the checkout action now supporting both plans
+    ($5/mo and $50/yr inline fallbacks, STRIPE_SUBSCRIPTION_YEARLY_
+    PRICE_ID for a real Price); an /honor-code page (help with
+    understanding, not exam cheating — written for future school
+    partnerships); and a /help page with quick links plus a contact
+    form that emails ADMIN_ALERT_EMAIL (console-logged when unset).
+    Rule enforced throughout: viewing answers is always free, no unlock
+    gates anywhere; the only paid product is live chat.
+23. **Searchable answer bank** — `/questions` has a search box (`?q=`)
     that matches against title/body/course/textbook and, when a query is
     present, surfaces questions with more answers first. The "ask a
     question" form also does a debounced (400ms) live lookup against

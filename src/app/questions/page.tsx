@@ -49,13 +49,13 @@ export default async function QuestionsPage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Community Q&amp;A</h1>
+        <h1 className="text-2xl font-bold">Homework Answers</h1>
         <Link href="/questions/new" className="btn-primary !px-4 !py-2 text-sm">
           Ask a question
         </Link>
       </div>
       <p className="mt-1 text-sm text-brand-muted">
-        Free, unlimited, always. Every question gets a place to be answered.
+        Every answer free to read, always — verified by real tutors.
       </p>
 
       <form action="/questions" method="get" className="mt-4 flex gap-2">

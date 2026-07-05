@@ -2,8 +2,8 @@
 
 An affordable, live, global tutoring platform — the Chegg alternative for
 students who get stuck at 3 AM and need a real person, not a paywall.
-Community Q&A is free and uncapped; live tutor chat is unlocked by a
-$5–10/mo subscription or a ~$3 one-off session. See `BUILD_PLAN.md` for the
+Homework answers are free to read and asking is uncapped; live tutor chat
+is unlocked by a $5/mo (or $50/yr) subscription or a ~$3 one-off session. See `BUILD_PLAN.md` for the
 full status of what's built vs. stubbed, and the assumptions behind it.
 
 ## Stack

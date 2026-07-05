@@ -17,13 +17,13 @@ export default async function PayForChatPage({
       <h1 className="text-2xl font-bold">One more step</h1>
       <p className="mt-1 text-sm text-brand-muted">
         Live chat for {subjectName} needs a subscription or a one-time payment.
-        Community Q&amp;A stays free either way.
+        Homework answers stay free to read either way.
       </p>
 
       <div className="card mt-6">
         <h2 className="font-semibold">Unlimited membership</h2>
         <p className="mt-1 text-sm text-brand-muted">
-          $5-$10/mo. Unlimited live chat and async tutor answers, no time caps.
+          $5/mo (or $50/yr). Unlimited 24/7 live tutor chat, no time caps.
         </p>
         <form action={createSubscriptionCheckoutAction} className="mt-3">
           <button type="submit" className="btn-primary">

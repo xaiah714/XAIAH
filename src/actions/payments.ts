@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth-helpers";
 import {
   stripe,
   SUBSCRIPTION_PRICE_ID,
+  SUBSCRIPTION_YEARLY_PRICE_ID,
   PAY_PER_SESSION_PRICE_ID,
   PAY_PER_SESSION_FALLBACK_CENTS,
 } from "@/lib/stripe";
@@ -22,22 +23,28 @@ async function ensureStripeCustomer(userId: string, email: string) {
   return customer.id;
 }
 
-export async function createSubscriptionCheckoutAction() {
+export async function createSubscriptionCheckoutAction(formData?: FormData) {
   const user = await requireUser();
   const customerId = await ensureStripeCustomer(user.id, user.email ?? "");
+
+  // $5/mo, or $50/yr ("2 months free"). Real Stripe Price IDs win when set.
+  const yearly = formData?.get("plan") === "yearly";
+  const priceId = yearly ? SUBSCRIPTION_YEARLY_PRICE_ID : SUBSCRIPTION_PRICE_ID;
+  const fallback = yearly
+    ? { unit_amount: 5000, recurring: { interval: "year" as const } }
+    : { unit_amount: 500, recurring: { interval: "month" as const } };
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: SUBSCRIPTION_PRICE_ID
-      ? [{ price: SUBSCRIPTION_PRICE_ID, quantity: 1 }]
+    line_items: priceId
+      ? [{ price: priceId, quantity: 1 }]
       : [
           {
             price_data: {
               currency: "usd",
-              unit_amount: 700,
-              recurring: { interval: "month" },
-              product_data: { name: "TutorApp unlimited membership" },
+              ...fallback,
+              product_data: { name: "TutorApp unlimited live tutoring" },
             },
             quantity: 1,
           },
