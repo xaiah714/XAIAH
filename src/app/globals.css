@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf8;
+  --foreground: #1d2b2a;
+
+  /* Brand: calm teal + deep purple, distinct from Chegg orange */
+  --brand-teal: #0f766e;
+  --brand-teal-dark: #0b5850;
+  --brand-teal-light: #ccfbf1;
+  --brand-purple: #5b3a9e;
+  --brand-purple-dark: #402875;
+  --brand-purple-light: #ece4fb;
+  --brand-soft-green: #86c9a8;
+  --brand-surface: #ffffff;
+  --brand-border: #e4e0da;
+  --brand-muted: #6b7280;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-teal-light: var(--brand-teal-light);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-purple-dark: var(--brand-purple-dark);
+  --color-brand-purple-light: var(--brand-purple-light);
+  --color-brand-soft-green: var(--brand-soft-green);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-border: var(--brand-border);
+  --color-brand-muted: var(--brand-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1615;
+    --foreground: #eef4f2;
+    --brand-surface: #16201f;
+    --brand-border: #263533;
+    --brand-teal-light: #123632;
+    --brand-purple-light: #241a3c;
+    --brand-muted: #9aa5a3;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-brand-teal px-6 py-3 text-base font-semibold text-white transition hover:bg-brand-teal-dark disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-full border border-brand-border bg-brand-surface px-6 py-3 text-base font-semibold text-foreground transition hover:border-brand-teal disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.card {
+  @apply rounded-2xl border border-brand-border bg-brand-surface p-6 shadow-sm;
+}
+
+.input {
+  @apply w-full rounded-xl border border-brand-border bg-brand-surface px-4 py-3 text-base outline-none transition focus:border-brand-teal;
+}
+
+.badge-verified {
+  @apply inline-flex items-center gap-1 rounded-full bg-brand-teal-light px-3 py-1 text-xs font-semibold text-brand-teal-dark;
+}
+
+.badge-community {
+  @apply inline-flex items-center gap-1 rounded-full bg-brand-purple-light px-3 py-1 text-xs font-semibold text-brand-purple-dark;
+}

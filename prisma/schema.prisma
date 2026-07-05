@@ -1,0 +1,496 @@
+// TutorApp database schema.
+// See /BUILD_PLAN.md for how this maps to the product spec.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NONBINARY
+  UNSPECIFIED
+}
+
+enum Subject {
+  MATH
+  PHYSICS
+  CHEMISTRY
+  BIOLOGY
+  COMPUTER_SCIENCE
+  PSYCHOLOGY
+  PHILOSOPHY
+  NURSING
+  OTHER
+}
+
+enum TutorStatus {
+  APPLIED
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum QuestionStatus {
+  OPEN
+  ANSWERED
+  RESOLVED
+}
+
+enum ChatSessionStatus {
+  WAITING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  PAY_PER_SESSION
+  B2B_LICENSE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  FAILED
+  // Earned but the tutor's Stripe Connect account isn't ready yet — held
+  // for 30 days, then EXPIRED and rolled back into the tutor pool if the
+  // tutor still hasn't connected payouts (see src/lib/payouts.ts).
+  HELD
+  EXPIRED
+}
+
+enum GradeLevel {
+  MIDDLE_SCHOOL
+  HIGH_SCHOOL
+  COLLEGE
+  GRAD
+  OTHER
+}
+
+enum VerificationTokenPurpose {
+  EMAIL_VERIFY
+}
+
+enum NotificationType {
+  NEW_QUESTION
+  NEW_CHAT_REQUEST
+  PAYOUT_HELD
+  PAYOUT_REMINDER
+  PAYOUT_RELEASED
+  PAYOUT_EXPIRED
+  // Student-facing: sent by the unanswered-question sweep (src/lib/question-sweep.ts)
+  QUESTION_DELAY_NOTICE
+  QUESTION_ESCALATED
+  // Tutor-facing: a disputed question in one of their subjects needs review
+  DISPUTE_REVIEW
+  // Tutor-facing: a new student signed up needing one of their subjects
+  NEW_STUDENT_SIGNUP
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Shared profile fields
+  timezone      String    @default("UTC")
+  gender        Gender    @default(UNSPECIFIED)
+  photoUrl      String?
+  emailVerified DateTime?
+
+  // 2FA (TOTP, authenticator app) — available to both roles
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean @default(false)
+
+  // Tutor-only fields
+  tutorStatus        TutorStatus?
+  tutorBio           String?
+  // Self-reported public-profile fields — displayed on /tutors/[id] in a
+  // section explicitly labeled as the tutor's own words, never mixed with
+  // platform-verified stats. Deliberately NO contact-info fields here: the
+  // no-direct-contact architecture means profiles are viewable but can
+  // never become a contact channel.
+  tutorSchool      String?
+  tutorDegree      String?
+  tutorGradYear    Int?
+  tutorCredentials String?
+  tutorSubjects      Subject[]    @default([])
+  tutorVerified      Boolean      @default(false)
+  tutorAvailable     Boolean      @default(false)
+  ratingAverage      Float        @default(0)
+  ratingCount        Int          @default(0)
+  stripeConnectId    String?
+  stripeConnectReady Boolean      @default(false)
+
+  // Student-only fields
+  stripeCustomerId String?
+  gradeLevel       GradeLevel?
+  // Subjects the student says they need help with (optional at signup) —
+  // used to tell subject-tagged tutors a new student is in their lane.
+  studentSubjects  Subject[]   @default([])
+
+  // Relations
+  questionsAsked        Question[]            @relation("QuestionAuthor")
+  answers               Answer[]              @relation("AnswerAuthor")
+  answerFlagsGiven      AnswerFlag[]          @relation("AnswerFlagAuthor")
+  answerEndorsements    AnswerEndorsement[]   @relation("AnswerEndorsementTutor")
+  chatSessionsAsStudent ChatSession[]         @relation("ChatStudent")
+  chatSessionsAsTutor   ChatSession[]         @relation("ChatTutor")
+  messages              Message[]             @relation("MessageSender")
+  subscription          Subscription?
+  payments              Payment[]             @relation("PaymentUser")
+  tipsGiven             Tip[]                 @relation("TipFrom")
+  tipsReceived          Tip[]                 @relation("TipTo")
+  payouts               Payout[]              @relation("PayoutTutor")
+  ratingsGiven          Rating[]              @relation("RatingFrom")
+  ratingsReceived       Rating[]              @relation("RatingTo")
+  notifications         Notification[]        @relation("NotificationRecipient")
+  subscriptionInvoices  SubscriptionInvoice[] @relation("SubscriptionInvoiceUser")
+  verificationTokens    VerificationToken[]   @relation("VerificationTokenUser")
+
+  @@index([role])
+  @@index([tutorStatus])
+}
+
+model VerificationToken {
+  id        String                   @id @default(cuid())
+  userId    String
+  user      User                     @relation("VerificationTokenUser", fields: [userId], references: [id], onDelete: Cascade)
+  token     String                   @unique
+  purpose   VerificationTokenPurpose
+  expiresAt DateTime
+  createdAt DateTime                 @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  // Subject/question/chatSession apply to NEW_QUESTION and NEW_CHAT_REQUEST;
+  // payoutId applies to the PAYOUT_* types. Exactly one context is set.
+  subject       Subject?
+  questionId    String?
+  question      Question?        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  chatSessionId String?
+  chatSession   ChatSession?     @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  payoutId      String?
+  payout        Payout?          @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  read          Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+
+  @@index([userId, read])
+  @@index([questionId])
+  @@index([chatSessionId])
+  @@index([payoutId])
+}
+
+model Question {
+  id         String         @id @default(cuid())
+  authorId   String
+  author     User           @relation("QuestionAuthor", fields: [authorId], references: [id])
+  subject    Subject
+  title      String
+  body       String
+  photoUrls  String[]       @default([])
+  status     QuestionStatus @default(OPEN)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  resolvedAt DateTime?
+
+  // Optional class-specific method/constraint context a student can attach
+  // so a tutor answers the way the student's own class is taught (e.g. "we're
+  // using u-substitution, not trig sub") rather than a technically-correct
+  // but unusable-for-their-class approach.
+  methodNotes     String?
+  methodPhotoUrl  String?
+  textbookName    String?
+  textbookEdition String?
+  courseName      String?
+
+  // When set, the question is routed to 2+ independent tutors instead of
+  // being satisfied by the first answer, and once >=2 verified-tutor answers
+  // exist an AI synthesis step (src/lib/ai.ts) becomes available.
+  secondOpinionRequested Boolean   @default(false)
+  aiSynthesis            String?
+  aiSynthesizedAt        DateTime?
+
+  // Unanswered-question sweep state (src/lib/question-sweep.ts): the 15-min
+  // "still working on it" notice and the 30-min auto second-opinion
+  // escalation each record when they fired so they only ever fire once.
+  delayNoticeSentAt DateTime?
+  autoEscalatedAt   DateTime?
+
+  // Dispute state (src/lib/consensus.ts): set when a verified tutor submits
+  // an answer that disagrees with the existing verified answer(s); cleared
+  // (resolved) when one answer gains consensus backing from the subject's
+  // tutor pool. While disputed+unresolved, the question sits on the subject
+  // review board and shows no verification badge.
+  disputedAt        DateTime?
+  disputeResolvedAt DateTime?
+
+  answers       Answer[]
+  notifications Notification[]
+
+  @@index([subject, status])
+  @@index([authorId])
+}
+
+model Answer {
+  id                    String   @id @default(cuid())
+  questionId            String
+  question              Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorId              String
+  author                User     @relation("AnswerAuthor", fields: [authorId], references: [id])
+  // Step-by-step work shown before the final answer — structurally required
+  // (non-nullable) so an answer can never skip straight to a bare result.
+  reasoning             String   @default("")
+  body                  String
+  videoUrl              String?
+  isVerifiedTutorAnswer Boolean  @default(false)
+  markedHelpful         Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Stance a verified tutor declares when answering a question that already
+  // has verified answer(s): true = agrees with them, false = disagrees
+  // (opens a dispute). Null for the first verified answer, community
+  // answers, and answers posted while a dispute is already open (those back
+  // only themselves).
+  agreesWithPrior Boolean?
+
+  flags        AnswerFlag[]
+  endorsements AnswerEndorsement[]
+
+  @@index([questionId])
+  @@index([authorId])
+}
+
+// A verified tutor backing another tutor's answer ("I reviewed this and
+// it's correct") — the weigh-in mechanism on the dispute review board, and
+// what the "Verified by N tutors" badge counts.
+model AnswerEndorsement {
+  id        String   @id @default(cuid())
+  answerId  String
+  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  tutorId   String
+  tutor     User     @relation("AnswerEndorsementTutor", fields: [tutorId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([answerId, tutorId])
+  @@index([answerId])
+}
+
+// A student (or another tutor) flagging an answer as incomplete/incorrect.
+// Feeds a tutor's standing so repeatedly flagged tutors get routed fewer new
+// requests — see src/lib/tutor-standing.ts.
+model AnswerFlag {
+  id          String   @id @default(cuid())
+  answerId    String
+  answer      Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  flaggedById String
+  flaggedBy   User     @relation("AnswerFlagAuthor", fields: [flaggedById], references: [id])
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@unique([answerId, flaggedById])
+  @@index([answerId])
+}
+
+model ChatSession {
+  id          String            @id @default(cuid())
+  studentId   String
+  student     User              @relation("ChatStudent", fields: [studentId], references: [id])
+  tutorId     String?
+  tutor       User?             @relation("ChatTutor", fields: [tutorId], references: [id])
+  subject     Subject
+  status      ChatSessionStatus @default(WAITING)
+  requestedAt DateTime          @default(now())
+  matchedAt   DateTime?
+  endedAt     DateTime?
+  // How this session was paid for, set when it starts
+  paymentId   String?           @unique
+  payment     Payment?          @relation(fields: [paymentId], references: [id])
+
+  messages      Message[]
+  tip           Tip?
+  rating        Rating?
+  notifications Notification[]
+
+  @@index([status, subject])
+  @@index([tutorId])
+  @@index([studentId])
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  chatSessionId String
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User        @relation("MessageSender", fields: [senderId], references: [id])
+  body          String
+  photoUrl      String?
+  createdAt     DateTime    @default(now())
+
+  @@index([chatSessionId, createdAt])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id])
+  stripeSubscriptionId String?            @unique
+  status               SubscriptionStatus @default(INCOMPLETE)
+  priceCents           Int                @default(700)
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  cancelReason         String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation("PaymentUser", fields: [userId], references: [id])
+  type                  PaymentType
+  status                PaymentStatus @default(PENDING)
+  amountCents           Int
+  stripePaymentIntentId String?       @unique
+  createdAt             DateTime      @default(now())
+
+  chatSession ChatSession?
+
+  @@index([userId, type])
+}
+
+model Tip {
+  id                    String      @id @default(cuid())
+  chatSessionId         String      @unique
+  chatSession           ChatSession @relation(fields: [chatSessionId], references: [id])
+  fromId                String
+  from                  User        @relation("TipFrom", fields: [fromId], references: [id])
+  toId                  String
+  to                    User        @relation("TipTo", fields: [toId], references: [id])
+  amountCents           Int
+  platformCutCents      Int         @default(0)
+  stripePaymentIntentId String?     @unique
+  createdAt             DateTime    @default(now())
+
+  @@index([toId])
+}
+
+model Rating {
+  id            String      @id @default(cuid())
+  chatSessionId String      @unique
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id])
+  fromId        String
+  from          User        @relation("RatingFrom", fields: [fromId], references: [id])
+  toId          String
+  to            User        @relation("RatingTo", fields: [toId], references: [id])
+  stars         Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+
+  @@index([toId])
+}
+
+model Payout {
+  id               String       @id @default(cuid())
+  tutorId          String
+  tutor            User         @relation("PayoutTutor", fields: [tutorId], references: [id])
+  periodStart      DateTime
+  periodEnd        DateTime
+  amountCents      Int
+  // Breakdown of amountCents by source, for tutor-facing transparency.
+  poolCents        Int          @default(0) // pooled 50% subscription-revenue share
+  directCents      Int          @default(0) // 75% direct share of pay-per-session payments
+  tipCents         Int          @default(0) // 100% of tips (0% platform cut by default)
+  status           PayoutStatus @default(PENDING)
+  stripeTransferId String?
+  createdAt        DateTime     @default(now())
+  paidAt           DateTime?
+
+  // HELD-lifecycle fields: set when a tutor without a ready Connect account
+  // earns a share that can't be transferred yet.
+  holdExpiresAt  DateTime? // 30 days after the hold started
+  reminderSentAt DateTime? // when the "expiring soon" notification went out
+  expiredAt      DateTime? // when it rolled back into the pool, unclaimed
+
+  notifications Notification[]
+
+  @@index([tutorId, status])
+  @@index([status, holdExpiresAt])
+}
+
+// Actual collected Stripe invoice revenue per subscriber period — the base
+// for the pooled 50% tutor-pool payout calculation (see src/lib/payouts.ts).
+model SubscriptionInvoice {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("SubscriptionInvoiceUser", fields: [userId], references: [id])
+  stripeInvoiceId String   @unique
+  amountCents     Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([periodStart, periodEnd])
+}
+
+// Phase 2 scaffold: bulk licenses for schools / tutoring centers / scholarship programs.
+model B2BLicense {
+  id               String   @id @default(cuid())
+  organizationName String
+  contactEmail     String
+  seatCount        Int
+  priceCents       Int
+  startsAt         DateTime
+  endsAt           DateTime
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+}
+
+// Free-text intake for subjects not yet officially supported.
+model SubjectRequest {
+  id             String   @id @default(cuid())
+  requesterEmail String
+  subjectName    String
+  notes          String?
+  createdAt      DateTime @default(now())
+}
