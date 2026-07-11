@@ -1,5 +1,9 @@
 # TutorApp
 
+> **Also in this repo:** [`hairiq/`](./hairiq/README.md) — a standalone
+> quiz-based hair-care routine app (working title "HairIQ"). It has its own
+> `package.json` and runs independently of TutorApp.
+
 An affordable, live, global tutoring platform — the Chegg alternative for
 students who get stuck at 3 AM and need a real person, not a paywall.
 Homework answers are free to read and asking is uncapped; live tutor chat

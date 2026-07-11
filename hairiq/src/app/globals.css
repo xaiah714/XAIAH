@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/*
+ * HairIQ theme — pastel pink & orange (spec §3).
+ * Core UI stays pink + orange; yellow/green appear only as small badges.
+ */
+:root {
+  --cream: #fff9f4;
+  --coral: #ffab91;
+  --coral-deep: #ee8a6b; /* hover/pressed state for coral CTAs */
+  --blush: #ffd1dc;
+  --blush-soft: #ffe7ee; /* washed-out blush for selected states */
+  --butter: #ffe9a8;
+  --mint: #c8e6c9;
+  --cocoa: #5a3e36;
+  --cocoa-soft: #93766c; /* secondary text */
+  --card: #ffffff;
+  --line: #f5e2d8;
+
+  color-scheme: light; /* warm pastel brand — deliberately no dark theme in v1 */
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --color-blush: var(--blush);
+  --color-blush-soft: var(--blush-soft);
+  --color-butter: var(--butter);
+  --color-mint: var(--mint);
+  --color-cocoa: var(--cocoa);
+  --color-cocoa-soft: var(--cocoa-soft);
+  --color-card: var(--card);
+  --color-line: var(--line);
+
+  --font-heading: var(--font-quicksand), "Trebuchet MS", ui-rounded, system-ui, sans-serif;
+  --font-body: var(--font-nunito), "Segoe UI", system-ui, sans-serif;
+
+  --shadow-soft: 0 8px 24px -12px rgba(90, 62, 54, 0.28);
+  --shadow-pop: 0 14px 30px -12px rgba(238, 138, 107, 0.55);
+
+  --radius-bubble: 1.5rem;
+}
+
+body {
+  background: var(--cream);
+  color: var(--cocoa);
+  font-family: var(--font-body), "Segoe UI", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading), "Trebuchet MS", ui-rounded, system-ui, sans-serif;
+}
+
+/* Pill CTA — large tap target, soft shadow (spec §3). */
+.btn-primary {
+  @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-coral px-8 text-lg font-bold text-white shadow-pop transition select-none hover:bg-coral-deep active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+}
+
+.btn-secondary {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-blush bg-card px-6 text-base font-bold text-cocoa shadow-soft transition select-none hover:border-coral active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none;
+}
+
+/* Focus visibility for keyboard users, in brand. */
+:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
