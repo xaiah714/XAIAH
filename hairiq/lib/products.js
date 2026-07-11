@@ -1372,6 +1372,28 @@ export const PRODUCTS = [
     categories: ["tool-detangle"],
     blurb: "The only thing that should detangle wet hair.",
   },
+  // Brushes (spec §11.2) — texture-dependent; exact brand/model picks are a
+  // starting point for Crystal to confirm, so these stay brand-agnostic.
+  {
+    id: "wet-detangling-brush",
+    brand: "Any brand",
+    name: "Wet Detangling Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush", "tool-detangle"],
+    blurb: "Flexible bristles built for wet, tangled hair — works through knots without snapping curls.",
+  },
+  {
+    id: "boar-bristle-brush",
+    brand: "Any brand",
+    name: "Boar Bristle Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush"],
+    blurb: "Carries your scalp's natural oils down the length for shine — something a detangling brush isn't designed to do.",
+  },
 ];
 
 export function getProduct(id) {

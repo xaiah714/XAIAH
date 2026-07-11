@@ -1,7 +1,8 @@
 // ---------------------------------------------------------------------------
 // HairIQ — Quiz questions (spec section 5)
-// 10 questions, one per screen. Q6 is multi-select, everything else single.
-// Edit copy freely — the quiz UI renders whatever is in this file.
+// 11 questions, one per screen. Q7 (chemical treatments) is multi-select,
+// everything else single. Edit copy freely — the quiz UI renders whatever
+// is in this file.
 // ---------------------------------------------------------------------------
 
 export const QUESTIONS = [
@@ -25,6 +26,17 @@ export const QUESTIONS = [
       { value: "medium", label: "Medium", emoji: "🌾" },
       { value: "thick", label: "Thick", emoji: "🦁" },
       { value: "unsure", label: "Not sure", sublabel: "New to this — totally fine", emoji: "🤷" },
+    ],
+  },
+  {
+    id: "length",
+    title: "How long is your hair?",
+    subtitle: "Some steps only earn their keep past a certain length.",
+    options: [
+      { value: "short", label: "Short", sublabel: "Above the shoulders", emoji: "✂️" },
+      { value: "medium", label: "Medium", sublabel: "Shoulder to mid-back", emoji: "💁‍♀️" },
+      { value: "long", label: "Long", sublabel: "Mid-back to waist", emoji: "🧜‍♀️" },
+      { value: "extraLong", label: "Extra long", sublabel: "Past the waist", emoji: "👸" },
     ],
   },
   {

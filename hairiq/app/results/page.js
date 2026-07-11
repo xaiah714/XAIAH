@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isQuizComplete } from "@/lib/questions";
 import { buildRoutine } from "@/lib/recommendations";
+import { PREMIUM } from "@/lib/config";
 import { useQuiz } from "@/components/QuizProvider";
 import TierTabs from "@/components/TierTabs";
 import StepCard from "@/components/StepCard";
 import NoteCard from "@/components/NoteCard";
+import EmailSignup from "@/components/EmailSignup";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -110,22 +112,26 @@ export default function ResultsPage() {
         </section>
       ) : null}
 
-      {/* actions */}
+      {/* actions — explicit paywall per spec §13.1: lock + price, not vague copy */}
       <div className="mt-12 flex flex-col items-center gap-3">
         <div className="relative w-full max-w-sm">
           <button
             type="button"
             disabled
             aria-disabled="true"
-            title="Coming soon"
+            title={PREMIUM.unlockLabel}
             className="w-full cursor-not-allowed rounded-full bg-blush/50 px-8 py-4 font-display text-lg font-bold text-cocoa-soft/70"
           >
+            <span aria-hidden="true" className="mr-2">🔒</span>
             Save My Routine
           </button>
-          <span className="absolute -top-2 right-4 rounded-full bg-butter px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-cocoa">
-            Coming soon
+          <span className="absolute -top-2.5 right-4 rounded-full bg-butter px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-cocoa shadow-card">
+            🔒 {PREMIUM.unlockLabel}
           </span>
         </div>
+        <p className="max-w-sm text-center text-xs font-semibold text-cocoa-soft">
+          Saving routines, retake history, and more are part of premium — payments aren't live yet.
+        </p>
         <button
           type="button"
           onClick={retake}
@@ -133,6 +139,12 @@ export default function ResultsPage() {
         >
           Retake Quiz
         </button>
+      </div>
+
+      {/* free email signup (spec §12) — below the paywall, visually separate
+          so it never reads as "pay to get emails" */}
+      <div className="mt-12">
+        <EmailSignup />
       </div>
 
       {/* disclaimer */}

@@ -141,6 +141,7 @@ export function buildRoutine(answers) {
   const chem = Array.isArray(answers.chemical) ? answers.chemical : [];
   const fine = answers.density === "fine" || answers.density === "unsure";
   const thick = answers.density === "thick";
+  const shortHair = answers.length === "short";
   const curlyTexture = answers.hairType === "curly" || answers.hairType === "coily";
   const colorTreated = chem.includes("salonColor") || chem.includes("boxDye") || chem.includes("bleach");
   const highPorosity = chem.includes("bleach") || chem.includes("relaxer");
@@ -153,7 +154,10 @@ export function buildRoutine(answers) {
 
   // ------------------------------------------------------------- WASH DAY --
   // Pre-poo (6.1 / 8.1) — core for thinning & dryness, full-depth for others.
-  if (depth >= 3 || c === "thinning" || c === "dryness") {
+  // Gated by hair length (spec §11.1): the step exists to protect lengths of
+  // ends from friction, so short hair skips it entirely — recommending it
+  // anyway is exactly the irrelevant-recommendation problem the spec calls out.
+  if (!shortHair && (depth >= 3 || c === "thinning" || c === "dryness")) {
     steps.push({
       id: "pre-poo",
       phase: "washDay",
@@ -644,7 +648,32 @@ export function buildRoutine(answers) {
     emptyText: "No luxury UV pick in the library yet — Pantene Sunkiss Glow (Drugstore tab) is the one to grab.",
   });
 
-  // Between-wash heat protection (8.9) — driven by Q7.
+  // The right brush for the texture (spec §11.2) — simple Q1 lookup.
+  if (answers.hairType === "straight") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush with boar bristle",
+      frequency: "Daily-ish",
+      how: "For straight hair, a boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      categories: ["tool-brush"],
+      prefer: { drugstore: ["boar-bristle-brush"], luxury: ["boar-bristle-brush"], crueltyFree: ["boar-bristle-brush"] },
+      limit: 1,
+    });
+  } else {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Use the right brush (a wet one)",
+      frequency: "Wash day only",
+      how: "Textured hair gets a wet detangling brush — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      categories: ["tool-brush"],
+      prefer: { drugstore: ["wet-detangling-brush"], luxury: ["wet-detangling-brush"], crueltyFree: ["wet-detangling-brush"] },
+      limit: 1,
+    });
+  }
+
+  // Between-wash heat protection (8.9) — driven by the heat question.
   if (answers.heat === "daily" || (answers.heat === "weekly" && depth >= 2)) {
     steps.push({
       id: "heat-protect",
@@ -753,14 +782,23 @@ export function buildRoutine(answers) {
   }
 
   // Protective style for sleep (6.4) — texture-aware, for everyone.
+  // De-emphasized for short hair (spec §11.1): less length = less to protect,
+  // so the pillowcase alone covers it.
   steps.push({
     id: "protect-style",
     phase: "nightly",
-    title: curlyTexture ? "Pineapple + silk or satin" : "Loose braid + silk or satin",
+    title: shortHair
+      ? "Silk or satin pillowcase"
+      : curlyTexture
+        ? "Pineapple + silk or satin"
+        : "Loose braid + silk or satin",
     frequency: "Nightly",
-    how: curlyTexture
-      ? "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet)."
-      : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
+    optional: shortHair,
+    how: shortHair
+      ? "Short hair gets off easy here — no braiding or pineapple needed. A silk/satin pillowcase (or bonnet) alone cuts the overnight friction that causes breakage and frizz."
+      : curlyTexture
+        ? "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet)."
+        : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
     categories: ["tool-night"],
     principleId: "nightProtection",
     limit: 1,
@@ -916,6 +954,7 @@ export function buildRoutine(answers) {
       concernLabel: concern.label,
       chips: [
         optionLabel("hairType", answers.hairType),
+        `${optionLabel("length", answers.length)} length`,
         optionLabel("density", answers.density) === "Not sure"
           ? "Density TBD"
           : `${optionLabel("density", answers.density)} density`,

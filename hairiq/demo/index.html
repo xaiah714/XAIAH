@@ -190,19 +190,54 @@
   .actions { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; margin-top: 3rem; }
   .save-wrap { position: relative; width: 100%; max-width: 22rem; }
   .save-wrap .pill { width: 100%; }
-  .soon { position: absolute; top: -0.6rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+  .soon { position: absolute; top: -0.7rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: var(--shadow-card); }
+  .paywall-note { max-width: 22rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
   .actions .retake { width: 100%; max-width: 22rem; }
+  .signup { margin-top: 3rem; background: rgb(255 209 220 / 0.3); border-radius: 1.5rem; padding: 1.5rem; }
+  .signup h2 { font-size: 1.25rem; }
+  .tier-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .tier-chip { border: 2px solid rgb(242 163 184 / 0.4); background: #fff; color: var(--cocoa-soft); border-radius: 999px; padding: 0.5rem 1rem; font-family: var(--display); font-weight: 700; font-size: 0.85rem; transition: all 0.15s ease; }
+  .tier-chip:hover { border-color: var(--coral); }
+  .tier-chip.on { border-color: var(--coral-deep); background: var(--coral); color: var(--cocoa); }
+  .signup-fields { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+  .signup-fields input { flex: 1 1 12rem; border: 2px solid rgb(242 163 184 / 0.4); border-radius: 999px; background: #fff; padding: 0.75rem 1.25rem; font: inherit; font-size: 0.9rem; color: var(--cocoa); }
+  .signup-fields input:focus { border-color: var(--coral-deep); outline: none; }
+  .signup-error { margin-top: 0.5rem; font-size: 0.88rem; font-weight: 800; color: var(--coral-deep); }
+  .signup-btn { margin-top: 1rem; padding: 0.85rem 2rem; font-size: 1rem; }
   footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 209 220 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
 <div id="app"></div>
 
 <script>
+// ===== lib/config.js =====
+// ---------------------------------------------------------------------------
+// HairIQ — app configuration
+// ---------------------------------------------------------------------------
+
+// Premium price + paywall copy (spec §13.1). The price/model is still an
+// open decision ($1.99 one-time vs. subscription vs. free) — change it HERE
+// and nowhere else. If it becomes a subscription, make the label read
+// "$X/month" so the copy always matches the model.
+const PREMIUM = {
+  priceLabel: "$1.99",
+  unlockLabel: "Unlock for $1.99",
+};
+
+// Newsletter tier topics (spec §12) — keys match the results-tab tiers.
+const NEWSLETTER_TIERS = [
+  { value: "drugstore", label: "Drugstore deals" },
+  { value: "luxury", label: "Luxury picks" },
+  { value: "crueltyFree", label: "Cruelty-free finds" },
+];
+
+
 // ===== lib/questions.js =====
 // ---------------------------------------------------------------------------
 // HairIQ — Quiz questions (spec section 5)
-// 10 questions, one per screen. Q6 is multi-select, everything else single.
-// Edit copy freely — the quiz UI renders whatever is in this file.
+// 11 questions, one per screen. Q7 (chemical treatments) is multi-select,
+// everything else single. Edit copy freely — the quiz UI renders whatever
+// is in this file.
 // ---------------------------------------------------------------------------
 
 const QUESTIONS = [
@@ -226,6 +261,17 @@ const QUESTIONS = [
       { value: "medium", label: "Medium", emoji: "🌾" },
       { value: "thick", label: "Thick", emoji: "🦁" },
       { value: "unsure", label: "Not sure", sublabel: "New to this — totally fine", emoji: "🤷" },
+    ],
+  },
+  {
+    id: "length",
+    title: "How long is your hair?",
+    subtitle: "Some steps only earn their keep past a certain length.",
+    options: [
+      { value: "short", label: "Short", sublabel: "Above the shoulders", emoji: "✂️" },
+      { value: "medium", label: "Medium", sublabel: "Shoulder to mid-back", emoji: "💁‍♀️" },
+      { value: "long", label: "Long", sublabel: "Mid-back to waist", emoji: "🧜‍♀️" },
+      { value: "extraLong", label: "Extra long", sublabel: "Past the waist", emoji: "👸" },
     ],
   },
   {
@@ -1874,6 +1920,28 @@ const PRODUCTS = [
     categories: ["tool-detangle"],
     blurb: "The only thing that should detangle wet hair.",
   },
+  // Brushes (spec §11.2) — texture-dependent; exact brand/model picks are a
+  // starting point for Crystal to confirm, so these stay brand-agnostic.
+  {
+    id: "wet-detangling-brush",
+    brand: "Any brand",
+    name: "Wet Detangling Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush", "tool-detangle"],
+    blurb: "Flexible bristles built for wet, tangled hair — works through knots without snapping curls.",
+  },
+  {
+    id: "boar-bristle-brush",
+    brand: "Any brand",
+    name: "Boar Bristle Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush"],
+    blurb: "Carries your scalp's natural oils down the length for shine — something a detangling brush isn't designed to do.",
+  },
 ];
 
 function getProduct(id) {
@@ -2035,6 +2103,7 @@ function buildRoutine(answers) {
   const chem = Array.isArray(answers.chemical) ? answers.chemical : [];
   const fine = answers.density === "fine" || answers.density === "unsure";
   const thick = answers.density === "thick";
+  const shortHair = answers.length === "short";
   const curlyTexture = answers.hairType === "curly" || answers.hairType === "coily";
   const colorTreated = chem.includes("salonColor") || chem.includes("boxDye") || chem.includes("bleach");
   const highPorosity = chem.includes("bleach") || chem.includes("relaxer");
@@ -2047,7 +2116,10 @@ function buildRoutine(answers) {
 
   // ------------------------------------------------------------- WASH DAY --
   // Pre-poo (6.1 / 8.1) — core for thinning & dryness, full-depth for others.
-  if (depth >= 3 || c === "thinning" || c === "dryness") {
+  // Gated by hair length (spec §11.1): the step exists to protect lengths of
+  // ends from friction, so short hair skips it entirely — recommending it
+  // anyway is exactly the irrelevant-recommendation problem the spec calls out.
+  if (!shortHair && (depth >= 3 || c === "thinning" || c === "dryness")) {
     steps.push({
       id: "pre-poo",
       phase: "washDay",
@@ -2538,7 +2610,32 @@ function buildRoutine(answers) {
     emptyText: "No luxury UV pick in the library yet — Pantene Sunkiss Glow (Drugstore tab) is the one to grab.",
   });
 
-  // Between-wash heat protection (8.9) — driven by Q7.
+  // The right brush for the texture (spec §11.2) — simple Q1 lookup.
+  if (answers.hairType === "straight") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush with boar bristle",
+      frequency: "Daily-ish",
+      how: "For straight hair, a boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      categories: ["tool-brush"],
+      prefer: { drugstore: ["boar-bristle-brush"], luxury: ["boar-bristle-brush"], crueltyFree: ["boar-bristle-brush"] },
+      limit: 1,
+    });
+  } else {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Use the right brush (a wet one)",
+      frequency: "Wash day only",
+      how: "Textured hair gets a wet detangling brush — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      categories: ["tool-brush"],
+      prefer: { drugstore: ["wet-detangling-brush"], luxury: ["wet-detangling-brush"], crueltyFree: ["wet-detangling-brush"] },
+      limit: 1,
+    });
+  }
+
+  // Between-wash heat protection (8.9) — driven by the heat question.
   if (answers.heat === "daily" || (answers.heat === "weekly" && depth >= 2)) {
     steps.push({
       id: "heat-protect",
@@ -2647,14 +2744,23 @@ function buildRoutine(answers) {
   }
 
   // Protective style for sleep (6.4) — texture-aware, for everyone.
+  // De-emphasized for short hair (spec §11.1): less length = less to protect,
+  // so the pillowcase alone covers it.
   steps.push({
     id: "protect-style",
     phase: "nightly",
-    title: curlyTexture ? "Pineapple + silk or satin" : "Loose braid + silk or satin",
+    title: shortHair
+      ? "Silk or satin pillowcase"
+      : curlyTexture
+        ? "Pineapple + silk or satin"
+        : "Loose braid + silk or satin",
     frequency: "Nightly",
-    how: curlyTexture
-      ? "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet)."
-      : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
+    optional: shortHair,
+    how: shortHair
+      ? "Short hair gets off easy here — no braiding or pineapple needed. A silk/satin pillowcase (or bonnet) alone cuts the overnight friction that causes breakage and frizz."
+      : curlyTexture
+        ? "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet)."
+        : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
     categories: ["tool-night"],
     principleId: "nightProtection",
     limit: 1,
@@ -2810,6 +2916,7 @@ function buildRoutine(answers) {
       concernLabel: concern.label,
       chips: [
         optionLabel("hairType", answers.hairType),
+        `${optionLabel("length", answers.length)} length`,
         optionLabel("density", answers.density) === "Not sure"
           ? "Density TBD"
           : `${optionLabel("density", answers.density)} density`,
@@ -2830,7 +2937,10 @@ function buildRoutine(answers) {
 // Demo shell — same screens & flow as the Next.js app (landing → quiz → results)
 // ---------------------------------------------------------------------------
 const app = document.getElementById("app");
-const state = { screen: "landing", idx: 0, answers: {}, tier: null, routine: null };
+const state = {
+  screen: "landing", idx: 0, answers: {}, tier: null, routine: null,
+  signupTiers: [], signupEmail: "", signupZip: "", signupError: "", signedUp: false,
+};
 
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -3010,11 +3120,13 @@ function renderResults() {
       <section class="notes"><h2>💡 Good to know</h2>${notes}</section>
       <div class="actions">
         <div class="save-wrap">
-          <button class="pill" disabled aria-disabled="true" title="Coming soon">Save My Routine</button>
-          <span class="soon">Coming soon</span>
+          <button class="pill" disabled aria-disabled="true" title="${esc(PREMIUM.unlockLabel)}">🔒 Save My Routine</button>
+          <span class="soon">🔒 ${esc(PREMIUM.unlockLabel)}</span>
         </div>
+        <p class="paywall-note">Saving routines, retake history, and more are part of premium — payments aren't live yet.</p>
         <button class="pill retake" data-action="retake">Retake Quiz</button>
       </div>
+      ${renderSignup()}
       <footer>
         HairIQ gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
         spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
@@ -3026,6 +3138,45 @@ function renderResults() {
 }
 
 let lastViewKey = null;
+// Free segmented email signup (spec §12) — demo build: validates and shows
+// the success state but doesn't store anything (no backend in the demo).
+function renderSignup() {
+  if (state.signedUp) {
+    return `
+    <section class="signup">
+      <h2>You're in! 💌</h2>
+      <p class="how">We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime.
+      <em>(Demo build — signups aren't stored yet.)</em></p>
+    </section>`;
+  }
+  const chips = NEWSLETTER_TIERS.map(
+    (t) => `<button type="button" class="tier-chip${state.signupTiers.includes(t.value) ? " on" : ""}" aria-pressed="${state.signupTiers.includes(t.value)}" data-action="signup-tier" data-value="${t.value}">${esc(t.label)}</button>`
+  ).join("");
+  const allOn = state.signupTiers.length === NEWSLETTER_TIERS.length;
+  return `
+  <section class="signup" aria-label="Email signup">
+    <h2>Get new products, treatments, and deals sent to you 💌</h2>
+    <p class="how">Free, and segmented to what you actually care about — pick one, two, or all three.</p>
+    <div class="tier-chips">${chips}
+      <button type="button" class="tier-chip${allOn ? " on" : ""}" aria-pressed="${allOn}" data-action="signup-all">All three ✨</button>
+    </div>
+    <div class="signup-fields">
+      <input id="signup-email" type="email" placeholder="you@example.com" aria-label="Email address" value="${esc(state.signupEmail || "")}" />
+      <input id="signup-zip" type="text" inputmode="numeric" placeholder="ZIP (optional)" aria-label="ZIP code (optional)" value="${esc(state.signupZip || "")}" />
+    </div>
+    <p class="how" style="font-size:.78rem">ZIP just helps us point you to options in your area — no location tracking.</p>
+    ${state.signupError ? `<p class="signup-error">${esc(state.signupError)}</p>` : ""}
+    <button type="button" class="pill signup-btn" data-action="signup-submit">Sign me up</button>
+  </section>`;
+}
+
+function readSignupFields() {
+  const emailEl = document.getElementById("signup-email");
+  const zipEl = document.getElementById("signup-zip");
+  if (emailEl) state.signupEmail = emailEl.value;
+  if (zipEl) state.signupZip = zipEl.value;
+}
+
 function render() {
   app.innerHTML =
     state.screen === "landing" ? renderLanding() : state.screen === "quiz" ? renderQuiz() : renderResults();
@@ -3081,7 +3232,32 @@ app.addEventListener("click", (e) => {
     }
     render();
   } else if (action === "tier") {
+    readSignupFields();
     state.tier = el.dataset.value;
+    render();
+  } else if (action === "signup-tier") {
+    readSignupFields();
+    const v = el.dataset.value;
+    state.signupTiers = state.signupTiers.includes(v)
+      ? state.signupTiers.filter((t) => t !== v)
+      : [...state.signupTiers, v];
+    render();
+  } else if (action === "signup-all") {
+    readSignupFields();
+    state.signupTiers =
+      state.signupTiers.length === NEWSLETTER_TIERS.length ? [] : NEWSLETTER_TIERS.map((t) => t.value);
+    render();
+  } else if (action === "signup-submit") {
+    readSignupFields();
+    const email = state.signupEmail.trim();
+    const zip = state.signupZip.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) state.signupError = "That email doesn't look quite right.";
+    else if (state.signupTiers.length === 0) state.signupError = "Pick at least one topic — or grab all three.";
+    else if (zip && !/^\d{5}(-\d{4})?$/.test(zip)) state.signupError = "ZIP should be 5 digits (or leave it blank).";
+    else {
+      state.signupError = "";
+      state.signedUp = true;
+    }
     render();
   } else if (action === "retake") {
     state.answers = {};

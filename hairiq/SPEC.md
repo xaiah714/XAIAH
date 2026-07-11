@@ -3,10 +3,10 @@
 > App name: TBD — using placeholder "HairIQ" throughout. Find/replace once you pick one.
 >
 > **Repo note:** this is the spec the app in this directory was built from
-> (latest revision received July 11, 2026, including the Section 8
-> bond-treatment "pick one timing" callout). Sections 1–10 are v1 and are
-> implemented; Section 12 is the v2 roadmap and is intentionally NOT built —
-> it needs its own planning session.
+> (latest revision received July 11, 2026 — adds Q3 hair length, §11 brushes,
+> §12 free email capture, and the §13.1 explicit-paywall copy rule).
+> Sections 1–12 are v1 and are implemented; Section 13 is the v2 roadmap and
+> is intentionally NOT built — it needs its own planning session.
 
 ## 1. What This App Does
 A quiz-based tool that takes someone's hair type, scalp condition, and goals, then generates
@@ -49,36 +49,45 @@ room to bolt on accounts/saved routines later (v2).
    cards (not tiny radio buttons), Back + Next nav
 3. **Results** — routine card(s) broken into Wash Day / Daily / Nightly steps, a
    3-way tab: **Drugstore | Luxury | Cruelty-Free** (always live, all three
-   are pre-calculated), "Retake Quiz" button, and a disabled "Save My Routine"
-   button labeled "Coming soon" (placeholder for v2 accounts)
+   are pre-calculated), "Retake Quiz" button, a locked "Save My Routine"
+   button (see 13.1 — this replaces the old vague "Coming soon" copy with an
+   explicit paywall: lock icon + "Unlock for $X" wording), and — at the very
+   bottom of the screen — the free email signup (see Section 12, new)
 
-## 5. Quiz Questions (10 — single-select unless noted, one per screen)
+## 5. Quiz Questions (11 — single-select unless noted, one per screen)
 1. Hair type: Straight / Wavy / Curly / Coily
 2. Hair density: Fine / Medium / Thick / **Not sure — new to this**
-3. Scalp type: Oily / Dry & flaky / Sensitive or irritated / Balanced
-4. **Main concern** (primary driver of results): Thinning or density loss /
+3. **Hair length** (new): Short (above shoulders) / Medium (shoulder to
+   mid-back) / Long (mid-back to waist) / Extra long (past waist) — drives
+   whether pre-shower oil treatment even applies, see 6.1 and 11.1
+4. Scalp type: Oily / Dry & flaky / Sensitive or irritated / Balanced
+5. **Main concern** (primary driver of results): Thinning or density loss /
    Dryness or damage / Frizz / Breakage & split ends / Dandruff or flaking /
    Slow growth / **New to curly or wavy — need a styling routine**
-5. Main goal: Grow it longer / Increase density / Repair damage / Reduce
+6. Main goal: Grow it longer / Increase density / Repair damage / Reduce
    frizz / Improve scalp health / Just maintain
-6. Chemical treatments (**multi-select**): Salon color, no bleach / Bleached /
+7. Chemical treatments (**multi-select**): Salon color, no bleach / Bleached /
    Box dye at home, no bleach / Relaxed or permed / Keratin or smoothing
    treatment / None
-7. Heat styling frequency: Daily / A few times a week / Rarely or never
-8. Wash frequency: Daily / Every other day / Twice a week / Weekly or less
-9. Time available for a routine: 5 min or less / 10–15 min / 20+ min
-10. What matters most in product picks: Budget-friendly (drugstore) / Luxury /
+8. Heat styling frequency: Daily / A few times a week / Rarely or never
+9. Wash frequency: Daily / Every other day / Twice a week / Weekly or less
+10. Time available for a routine: 5 min or less / 10–15 min / 20+ min
+11. What matters most in product picks: Budget-friendly (drugstore) / Luxury /
     Cruelty-free — (note: this only sets the *default* results tab; all
     three tiers are always calculated and viewable)
 
 ## 6. General Routine Principles (cross-cutting logic)
 
-### 6.1 Pre-Wash Oil Treatment ("Pre-Poo") — recommend for ALL hair types
+### 6.1 Pre-Wash Oil Treatment ("Pre-Poo") — recommend for most hair lengths
 - Apply oil to mid-lengths and ends 10–20+ min before shampooing on wash day —
   reduces friction and breakage during washing. Everyone can benefit, though fine
   or low-porosity hair should use a lighter hand so it doesn't get weighed down.
+- **Length matters here — see the new Q3 (hair length):** this step exists to
+  protect ends from friction/dryness, so it barely applies to **short** hair
+  (there's not much length of ends to treat) — skip or de-emphasize it for
+  that answer. Show it normally for medium, long, and extra-long.
 - **Why coconut oil specifically:** its fatty-acid structure lets it actually
-  penetrate into the hair shaft rather than just sitting on the surface — the
+  penetrate the hair shaft rather than just sitting on the surface — the
   main reason it's the most-recommended pre-poo oil in the hair-science world.
   Other oils like argan work more on the surface (great for shine/smoothness)
   but don't penetrate the same way.
@@ -94,10 +103,10 @@ room to bolt on accounts/saved routines later (v2).
 ### 6.2 Scalp-Aware Washing & the Sweat Rule
 - There's no fixed "wash schedule" — let people wash whenever works for them.
 - One firm rule: **if you sweat that day (workout, hot day, etc.), wash your
-  hair after, don't just let it air dry.** Sweat, sebum, and salt sitting on the
+  hair after; don't just let it air dry.** Sweat, sebum, and salt sitting on the
   scalp for hours can lead to buildup, odor, and irritation.
 - Dry shampoo is fine between washes, but it is **not a substitute** for washing
-  after sweating — it only absorbs surface oil, it doesn't actually remove sweat,
+  after sweating — it only absorbs surface oil; it doesn't actually remove sweat,
   salt, or bacteria from the scalp.
 - **Double-washing:** if scalp feels heavy with product/sweat/buildup, shampoo
   twice — the first wash breaks down surface buildup, the second actually
@@ -131,7 +140,7 @@ option. Correct usage (a lot of people use it wrong and waste product):
 3. Rub 1–3 pumps between your palms first so it distributes evenly before
    touching your hair (helps avoid over-applying and wasting product)
 4. Apply from mid-lengths to ends, working upward — avoid the scalp
-5. Leave 4 minutes
+5. Leave for 4 minutes
 6. Now you've got two good options — call this out clearly in the app so
    people don't skip it out of confusion:
    - **Leave it in:** go straight to your leave-in conditioner and styling
@@ -150,10 +159,10 @@ option. Correct usage (a lot of people use it wrong and waste product):
 - Recommend a leave-in UV protection spray — e.g., Pantene Sunkiss Glow
   (2026 launch), which targets UV, salt, and chlorine exposure specifically.
 
-### 6.7 Chemical Processing Caution (box dye / bleach)
+### 6.7 Chemical Processing Caution (box dye/bleach)
 - At-home box dye contains metallic salts that can build up in hair and react
   unpredictably with future bleach or bond-repair services (sometimes causing
-  gumminess or breakage). If Q6 flags box dye use, show a note recommending a
+  gumminess or breakage). If Q7 flags box dye use, show a note recommending a
   clarifying/chelating shampoo before any future bleach or salon color, and
   mentioning the box dye history to a stylist.
 
@@ -174,7 +183,7 @@ These are common, non-proprietary hair-care practices — safe to build directly
 into the app's logic.
 
 ## 7. Recommendation Engine — Starter Content
-Primary lookup key = answer to Q4 (Main Concern). Each concern lists a routine
+Primary lookup key = answer to Q5 (Main Concern). Each concern lists a routine
 plus three product lenses — Drugstore, Luxury, and Cruelty-Free (this tab no
 longer requires "vegan" too, which opens it up to a much wider pool of
 brands — see 8.10 and Section 10). These are starter picks — review for
@@ -417,7 +426,7 @@ Shampoo, Not Your Mother's Clean Freak Refreshing Dry Shampoo
   tab; verify certifications per Section 7's note before launch.
 
 ## 9. Time-Based Routine Depth
-Use Q9 (time available) to decide how many steps from Section 8 show on the
+Use Q10 (time available) to decide how many steps from Section 8 show on the
 results page, layered on top of the concern-specific routine from Section 7:
 
 - **5 min or less → Core:** non-clarifying shampoo + one conditioning pick
@@ -461,13 +470,13 @@ affordable), Giovanni (salon-quality, affordable), Ethique (shampoo bars,
 zero-waste), Paul Mitchell (cruelty-free since 1980, Leaping Bunny + PETA
 certified)
 
-*Medicated / dandruff shampoo:* Derma E Scalp Relief Shampoo, JASON
+*Medicated/dandruff shampoo:* Derma E Scalp Relief Shampoo, JASON
 Dandruff Relief Shampoo (alternative to Head & Shoulders), Oribe Serene
 Scalp Anti-Dandruff Shampoo (see Oribe/Kao note above)
 
-*Bond repair / treatment:* K18, Olaplex
+*Bond repair/treatment:* K18, Olaplex
 
-*Styling / serum / oil:* JVN — Jonathan Van Ness's line (Leaping Bunny
+*Styling/serum/oil:* JVN — Jonathan Van Ness's line (Leaping Bunny
 certified), Playa Ritual Hair Oil (natural coconut/apricot/sunflower oil
 blend)
 
@@ -485,7 +494,69 @@ Noughty Haircare and Cake Beauty (mentioned as cruelty-free drugstore
 options, not yet checked against our category needs); Verb and CurlSmith
 bond-repair or mask options if they exist.
 
-## 12. v2 Roadmap — Monetization & Feature Expansion
+## 11. Additional Personalization Signals
+
+### 11.1 Hair Length (new — see Q3)
+- Short (above shoulders), Medium (shoulder to mid-back), Long (mid-back to
+  waist), Extra long (past waist)
+- Primary effect: gates whether pre-shower oil treatment (6.1, 8.1) shows at
+  all. Short hair doesn't have much length of ends to protect, so skip or
+  de-emphasize that step for that answer — showing it anyway is the kind of
+  irrelevant-recommendation problem that makes an app feel generic instead
+  of actually personalized.
+- Secondary effect worth considering later: nighttime protective styling
+  (6.4) matters more the longer the hair is — a short cut has much less to
+  protect from friction than extra-long hair does. Not a hard requirement
+  for v1, but reasonable to de-emphasize for short hair the same way.
+
+### 11.2 Recommended Brushes (new content area, tied to Q1 hair type)
+Brush choice is texture-dependent and worth a dedicated content block
+rather than folding into an existing product list — confirm exact
+brand/model picks with Crystal; the specifics below are a starting point:
+- **Curly/wavy/coily hair:** a wet detangling brush (flexible bristles
+  designed for wet, tangled hair without snapping curls) is the standard
+  recommendation
+- **Straight hair:** a boar bristle brush is commonly preferred instead —
+  it distributes natural scalp oils down the length of the hair for shine,
+  which a detangling brush isn't designed to do
+- Tie this to Q1 (hair type) the same way Section 7 ties concern to
+  routine — it's a simple lookup, not a new quiz question
+
+## 12. Free Email Capture & Segmented Newsletter
+This reverses the original v1 decision to skip email entirely (Section 1
+said "skip email for now") — email capture is back in, but framed as a
+free value-add, not tied to payment at all.
+
+- **Placement:** bottom of the Results screen, below the Save/paywall
+  button from 13.1 (next section) — visually separate from the paywall so
+  it doesn't read as "pay to get emails"
+- **Framing:** something like "Get new products, treatments, and deals sent
+  to you" — not a signup wall, just an optional extra
+- **Segmented by preference, not one-size-fits-all:** ask which tier(s)
+  they want content about — Cruelty-Free, Luxury, Drugstore (multi-select,
+  can pick more than one). Someone who only cares about cruelty-free
+  shouldn't get emails pushing drugstore-only products they'd never buy —
+  that's the fastest way to get someone to unsubscribe or never open the
+  email again
+- **Also capture ZIP/area code**, framed as "so we can point you to
+  relevant options in your area" — this is about general regional
+  relevance in email content, not a live store-inventory lookup (that's
+  the separate, bigger "Where to Buy" feature in 13.3)
+- **Implementation:** use an existing email marketing service (Mailchimp,
+  Klaviyo, or ConvertKit are all reasonable defaults) rather than building
+  email infrastructure from scratch — tag each subscriber by their tier
+  preference(s) and ZIP so campaigns can be filtered/segmented on the
+  provider's side
+- This is a free-tier, v1-appropriate feature — much lighter than the
+  accounts/database lift the rest of Section 13 (v2) needs, since it's
+  just a signup form feeding a third-party service, no login required
+
+> **Owner note (July 11):** if they want all 3 included in their newsletter
+> (cruelty-free, luxury, drugstore), definitely have that as an option as
+> well — make sure we can gather every prospect we possibly can grab for
+> attention. (Implemented as the "All three ✨" chip in the signup form.)
+
+## 13. v2 Roadmap — Monetization & Feature Expansion
 
 **Heads up on scope:** v1 (already built) intentionally has no login, no
 database, no backend — see Sections 1–2. Almost everything below requires
@@ -493,11 +564,21 @@ that foundation to exist first. This is a real step up in complexity from
 v1, not a small add-on. Suggested phasing is at the bottom of this section
 so Claude Code doesn't try to build all of it at once.
 
-### 12.1 Tier Breakdown
+### 13.1 Tier Breakdown
 
 > **Copy note:** never call the free tier a "trial" anywhere in the UI —
-> it's not time-limited, it's a permanent free feature set. Word it as
+> it's not time-limited; it's a permanent free feature set. Word it as
 > "free" / "included," not "trial."
+
+> **"Save My Routine" button — make the paywall obvious, not vague:**
+> real v1 feedback was that a disabled button just labeled "Coming soon"
+> is confusing — it doesn't explain *why* it's disabled or what unlocks it.
+> Replace it with an explicit paywall treatment: a lock icon plus
+> "Unlock for $X" (or "$X/month" if it ends up being a subscription —
+> keep the wording in the same config value as the price itself, since
+> the copy needs to match whichever model gets picked). This is a
+> low-lift v1 UI/copy change Claude Code can make now — it doesn't require
+> the actual payment backend to exist yet, just the honest messaging.
 
 **Free tier:**
 - Take the quiz, get the personalized routine + recommendations across all
@@ -505,6 +586,8 @@ so Claude Code doesn't try to build all of it at once.
 - Can retake the quiz anytime, but results aren't saved — each retake
   replaces the last one, no history (assumption — flagged as an open
   decision below, confirm or adjust)
+- The free segmented email signup (Section 12) — not paid-tier, available
+  to everyone regardless of purchase
 
 **Paid tier** (price/model TBD — $1.99 one-time vs. subscription vs. free
 is still undecided; don't hardcode a number, keep it in one config value):
@@ -512,13 +595,13 @@ is still undecided; don't hardcode a number, keep it in one config value):
    just the 1–2 starter picks in Section 7
 2. Unlimited quiz retakes **with saved history** — track how concerns
    change over time instead of overwriting the last result
-3. Hair Care Tracker (see 12.2)
-4. Where to Buy (see 12.3)
-5. Price Drop Notifications (see 12.4)
-6. Haircut Recommendations (see 12.5)
-7. Hair Color Section (see 12.6)
+3. Hair Care Tracker (see 13.2)
+4. Where to Buy (see 13.3)
+5. Price Drop Notifications (see 13.4)
+6. Haircut Recommendations (see 13.5)
+7. Hair Color Section (see 13.6)
 
-### 12.2 Hair Care Tracker
+### 13.2 Hair Care Tracker
 - Daily/wash-day logging: which products were used, which steps from
   Sections 6–8 were done
 - Non-wash-day logging: scalp massages, serums, night routine steps,
@@ -528,7 +611,7 @@ is still undecided; don't hardcode a number, keep it in one config value):
   entry), gallery view for side-by-side before/after comparison over time
 - Needs: accounts, a database, and photo storage (e.g., S3 or Cloudinary)
 
-### 12.3 Where to Buy
+### 13.3 Where to Buy
 - **Online:** per product, link out to that product's page/search result on
   major retailers (Amazon, Target.com, Ulta.com, Walmart.com, CVS.com)
 - **In-person:** use device location to point at nearby stores. Start
@@ -541,7 +624,7 @@ is still undecided; don't hardcode a number, keep it in one config value):
 - Needs: device geolocation (browser API, no account required for this
   part specifically)
 
-### 12.4 Price Drop Notifications
+### 13.4 Price Drop Notifications
 This is the most technically complex feature in the whole list — flag it
 as the highest-risk item.
 - Goal: track products the user has used/saved, notify them of price
@@ -558,7 +641,7 @@ as the highest-risk item.
 - Needs: accounts, a scheduled background job, and push or email
   notifications
 
-### 12.5 Haircut Recommendations
+### 13.5 Haircut Recommendations
 - Organized by goal, not just hair type: maximize thickness/density
   retention, add volume, reduce bulk, shape curly hair, encourage growth,
   face-framing, etc.
@@ -575,12 +658,12 @@ as the highest-risk item.
   removal gadgets/machines — flag these as generally not recommended by
   hair professionals rather than a real substitute for dusting/trimming
 - Inspiration photos per style
-- Lower technical complexity than 12.2–12.4 — this is mostly a content
+- Lower technical complexity than 13.2–13.4 — this is mostly a content
   library like Section 8, no new backend infrastructure needed beyond
   image hosting. Could realistically ship earlier/in parallel with other
   v2 work
 
-### 12.6 Hair Color Section
+### 13.6 Hair Color Section
 - Categories: Going Blonde, Going Darker, Bleaching, Vivid/Fashion Colors,
   Color Maintenance
 - Each category: tips, step-by-step transition guides, inspiration photos,
@@ -588,20 +671,20 @@ as the highest-risk item.
 - Cross-link to what's already in the app — the UV protection note (6.6)
   and clarifying/color-care shampoos (8.2) are directly relevant to color
   maintenance and shouldn't be duplicated, just referenced
-- Same low-complexity content-library pattern as 12.5
+- Same low-complexity content-library pattern as 13.5
 
-### 12.7 Suggested Build Order
+### 13.7 Suggested Build Order
 1. **Foundation:** accounts + database + payment gate (Stripe is the
    default recommendation) — nothing else works without this
-2. **Content-only features first:** 12.5 (Haircuts) and 12.6 (Color) —
+2. **Content-only features first:** 13.5 (Haircuts) and 13.6 (Color) —
    no new infrastructure beyond image hosting, can ship early
-3. **Tracker + photos** (12.2) — now that accounts/DB/storage exist
-4. **Where to Buy** (12.3) — start with the simple store-locator-link
+3. **Tracker + photos** (13.2) — now that accounts/DB/storage exist
+4. **Where to Buy** (13.3) — start with the simple store-locator-link
    version, no live inventory
-5. **Price Drop Notifications** (12.4) last — highest complexity, do the
+5. **Price Drop Notifications** (13.4) last — highest complexity, do the
    API/service research before writing any code for this one
 
-### 12.8 Open Decisions
+### 13.8 Open Decisions
 - [ ] Price point and model: $1.99 one-time, subscription, or free —
       undecided, keep configurable rather than hardcoded
 - [ ] Free tier quiz-retake behavior: proposing "retake anytime, no saved
@@ -610,27 +693,33 @@ as the highest-risk item.
 - [ ] Price-tracking data source — needs research before committing to
       an approach
 
-## 13. Open Items (fill in before/during build)
+## 14. Open Items (fill in before/during build)
 - [ ] Keep expanding Section 10 as more cruelty-free research comes in — it's
       intentionally a living list, not a final one
 - [ ] Final app name
-- [ ] Logo / wordmark
+- [ ] Logo/wordmark
 - [ ] Domain
 - [ ] Final product list review (Crystal to confirm/expand picks above)
 - [ ] Verify current cruelty-free certifications before launch
-- [ ] v2 scope: see Section 12 for the full monetization + feature roadmap
+- [ ] v2 scope: see Section 13 for the full monetization + feature roadmap
+- [ ] Sections 11–12 are new: hair length quiz question + brush
+      recommendations (11), and the free segmented email signup (12) —
+      both are v1-appropriate (no accounts needed), unlike Section 13
 
 ---
 **Instructions for Claude Code:** Build this as a Next.js + Tailwind app per
 the stack, colors, screens, and flow above. Start with the landing page,
-then the 10-question quiz component with progress bar (note Q6 is multi-select,
+then the 11-question quiz component with progress bar (note Q7 is multi-select,
 all others single-select), then the results page with the 3-way
 Drugstore/Luxury/Cruelty-Free tab wired to the recommendation engine in sections
 7–9 (concern-based defaults in 7, the fuller product library to draw from
 in 8, and time-based routine depth in 9). Keep the recommendation data in
 its own file (e.g. `lib/recommendations.js`) separate from UI components,
 and keep the general principles (section 6) as reusable copy blocks that
-can be referenced across multiple concern routines. Section 12 is v2 scope
-(accounts, payments, tracker, and more) — don't build it as part of this
-pass unless explicitly asked to; it needs its own planning session given
-the jump in complexity from v1's no-backend design.
+can be referenced across multiple concern routines. Sections 11 (hair
+length + brushes) and 12 (email capture) are new and v1-appropriate — no
+accounts/backend needed, just quiz logic and a signup form wired to a
+third-party email service. Section 13 is v2 scope (accounts, payments,
+tracker, and more) — don't build it as part of this pass unless explicitly
+asked to; it needs its own planning session given the jump in complexity
+from v1's no-backend design.

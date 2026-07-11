@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const LIB_ORDER = ["questions.js", "principles.js", "products.js", "recommendations.js"];
+const LIB_ORDER = ["config.js", "questions.js", "principles.js", "products.js", "recommendations.js"];
 
 const data = LIB_ORDER.map((file) => {
   const src = readFileSync(join(root, "lib", file), "utf8");
