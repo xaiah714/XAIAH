@@ -343,7 +343,7 @@ export const PRODUCTS = [
     tier: "luxury",
     crueltyFree: true,
     cfNote: "Brand states cruelty-free; approved by Cruelty-Free Kitty. No official Leaping Bunny/PETA certification.",
-    categories: ["bond-treatment", "mask"],
+    categories: ["bond-treatment", "pre-wash-bond", "mask"],
     blurb: "The at-home bond rebuilder that started it all — 15+ minutes before shampooing.",
   },
   {

@@ -3,7 +3,8 @@
 > App name: TBD — using placeholder "HairIQ" throughout. Find/replace once you pick one.
 >
 > **Repo note:** this is the spec the app in this directory was built from
-> (latest revision received July 11, 2026). Sections 1–10 are v1 and are
+> (latest revision received July 11, 2026, including the Section 8
+> bond-treatment "pick one timing" callout). Sections 1–10 are v1 and are
 > implemented; Section 12 is the v2 roadmap and is intentionally NOT built —
 > it needs its own planning session.
 
@@ -272,6 +273,23 @@ This follows the same four-phase structure as Section 6: Pre-Shower →
 In-Shower → Post-Shower → Between-Wash. Steps marked *optional* can be
 skipped entirely; core steps (shampoo, conditioning, leave-in) should
 always be present in some form.
+
+> **Which bond treatment do I actually need?** Bond treatments show up at
+> three different points — pre-shower (8.1), in-shower (8.3), and
+> post-shower (8.5) — and if the app just lists them one after another it
+> reads like three separate mandatory steps. It isn't. **Pick one timing,
+> not all three:**
+> - **In-shower (8.3)** is the standard starting point for most people —
+>   applied right after shampoo, before conditioner (e.g., K18).
+> - **Pre-shower (8.1)** and **post-shower (8.5)** are alternatives to the
+>   in-shower step, not additions on top of it. Use one of these instead if
+>   a mid-shower step doesn't fit someone's routine, or as an occasional
+>   extra boost layered on top for people who want more.
+> This must be explicit in the UI wherever more than one bond-treatment
+> option appears together (especially at the 20+ min "Full" depth from
+> Section 9) — label it "pick one" rather than presenting them as a
+> checklist. This was confusing in the v1 build; fix it there, not just in
+> future spec content.
 
 ### 8.1 Pre-Shower (optional)
 **Pre-shampoo bond repair treatment** (1–2x/week) — apply ≥10 min before

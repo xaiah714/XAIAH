@@ -164,6 +164,13 @@
   .prod-blurb { margin-top: 0.35rem; font-size: 0.85rem; color: var(--cocoa-soft); }
   .prod-cf { margin-top: 0.5rem; font-size: 0.76rem; font-style: italic; color: var(--mint-deep); }
   .empty { margin-top: 1rem; border: 2px dashed rgb(242 163 184 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  .variants { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+  .variant { border: 2px solid rgb(255 209 220 / 0.8); border-radius: 1rem; padding: 1rem; }
+  .variant.primary { border-color: rgb(240 136 95 / 0.8); }
+  .variant-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .variant-head b { font-family: var(--display); font-size: 0.92rem; }
+  .vtag { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(255 209 220 / 0.6); color: var(--cocoa-soft); }
+  .vtag.hot { background: var(--coral); color: var(--cocoa); }
   details.principle { margin-top: 1rem; background: rgb(255 209 220 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
   details.principle summary { cursor: pointer; list-style: none; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
   details.principle summary::-webkit-details-marker { display: none; }
@@ -294,7 +301,27 @@ function principleBlock(id) {
 function stepCard(step, index, tier) {
   const products = step.products[tier] || [];
   let productHtml = "";
-  if (!step.noProducts) {
+  if (step.variants) {
+    // mutually exclusive options within one step — "pick one", not a checklist
+    productHtml =
+      `<div class="variants">` +
+      step.variants
+        .map((v) => {
+          const vp = v.products[tier] || [];
+          const primary = v.tag === "Start here";
+          const inner = vp.length
+            ? `<div class="prods">${vp.map((p) => productCard(p, tier)).join("")}</div>`
+            : v.emptyText
+              ? `<div class="empty">${esc(v.emptyText)}</div>`
+              : "";
+          return `<div class="variant${primary ? " primary" : ""}">
+            <div class="variant-head"><b>${esc(v.label)}</b>${v.tag ? `<span class="vtag${primary ? " hot" : ""}">${esc(v.tag)}</span>` : ""}</div>
+            ${v.note ? `<p class="how">${esc(v.note)}</p>` : ""}
+            ${inner}</div>`;
+        })
+        .join("") +
+      `</div>`;
+  } else if (!step.noProducts) {
     productHtml = products.length
       ? `<div class="prods">${products.map((p) => productCard(p, tier)).join("")}</div>`
       : step.emptyText

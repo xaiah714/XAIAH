@@ -91,10 +91,34 @@ function pickProducts(tierKey, categories, prefer = [], limit = 3) {
 function makeStep(def) {
   const products = {};
   for (const tierKey of TIER_KEYS) {
-    products[tierKey] = def.noProducts
-      ? []
-      : pickProducts(tierKey, def.categories || [], (def.prefer && def.prefer[tierKey]) || [], def.limit || 3);
+    products[tierKey] =
+      def.noProducts || def.variants
+        ? []
+        : pickProducts(tierKey, def.categories || [], (def.prefer && def.prefer[tierKey]) || [], def.limit || 3);
   }
+  // Variants: mutually exclusive options within ONE step (e.g. bond-repair
+  // timing) — rendered as "pick one", never as a checklist.
+  const variants = def.variants
+    ? def.variants.map((variant) => {
+        const variantProducts = {};
+        for (const tierKey of TIER_KEYS) {
+          variantProducts[tierKey] = pickProducts(
+            tierKey,
+            variant.categories || [],
+            (variant.prefer && variant.prefer[tierKey]) || [],
+            variant.limit || 2
+          );
+        }
+        return {
+          id: variant.id,
+          label: variant.label,
+          tag: variant.tag || null,
+          note: variant.note || null,
+          emptyText: variant.emptyText || null,
+          products: variantProducts,
+        };
+      })
+    : null;
   return {
     id: def.id,
     phase: def.phase,
@@ -106,6 +130,7 @@ function makeStep(def) {
     emptyText: def.emptyText || null,
     noProducts: !!def.noProducts,
     products,
+    variants,
   };
 }
 
@@ -151,25 +176,11 @@ export function buildRoutine(answers) {
     });
   }
 
-  // Pre-shampoo bond treatment (8.1) — full depth only; breakage gets its bond
-  // step in-shower instead.
-  if (depth >= 3 && c !== "breakage") {
-    steps.push({
-      id: "pre-wash-bond",
-      phase: "washDay",
-      title: "Pre-shampoo bond treatment",
-      optional: true,
-      frequency: "1–2×/week",
-      how: "Apply at least 10 minutes before washing. Any bond-repair treatment works used before shampoo instead of after — Olaplex No.3 is literally designed this way.",
-      categories: ["pre-wash-bond", "bond-treatment"],
-      prefer: {
-        drugstore: ["ogx-bond-preshampoo"],
-        luxury: ["olaplex-no3"],
-        crueltyFree: ["olaplex-no3"],
-      },
-      limit: 2,
-    });
-  }
+  // Bond repair (8.1 / 8.3 / 8.5) — ONE treatment with a choice of timing,
+  // never a checklist of three (spec §8 "which bond treatment do I actually
+  // need?" callout). At Full depth all three timings render inside a single
+  // "pick one" step; at Standard depth only the in-shower option shows, so
+  // there's nothing to confuse. Handled below, after the shampoo steps.
 
   // Shampoo (8.2) — always present; flavor depends on concern + scalp.
   if (c === "dandruff") {
@@ -277,22 +288,66 @@ export function buildRoutine(answers) {
     });
   }
 
-  // In-shower bond treatment (8.3) — standard depth+; core for breakage.
-  if (depth >= 2 || c === "breakage") {
+  // Bond repair (8.1 / 8.3 / 8.5) — one step, pick one timing.
+  const bondPrefer = {
+    drugstore: ["loreal-everpure-bond-concentrate", "nym-tough-love-treatment"],
+    luxury: ["k18-mask"],
+    crueltyFree: ["k18-mask", "olaplex-no3"],
+  };
+  if (depth >= 3) {
+    steps.push({
+      id: "bond-repair",
+      phase: "washDay",
+      title: c === "breakage" ? "Bond-repair treatment — pick ONE timing" : "Bond treatment — pick ONE timing",
+      optional: c !== "breakage",
+      frequency: "Weekly · K18 every few weeks",
+      how: "Bond repair is one step with three possible timings — not three separate steps, so don't stack all of them. In-shower is the standard starting point for most people; before- or after-shower are alternatives if a mid-shower step doesn't fit your routine (or an occasional extra boost on top if you want more). If you go with K18, follow the steps below so you don't waste product.",
+      principleId: "k18",
+      variants: [
+        {
+          id: "bond-in-shower",
+          label: "In shower",
+          tag: "Start here",
+          note: "Right after shampoo, before conditioner — the standard starting point.",
+          categories: ["bond-treatment"],
+          prefer: bondPrefer,
+          limit: 2,
+        },
+        {
+          id: "bond-pre-shower",
+          label: "Before shower",
+          tag: "Alternative",
+          note: "Apply at least 10 minutes before washing — same job, earlier timing (Olaplex No.3 is literally designed this way).",
+          categories: ["pre-wash-bond"],
+          prefer: {
+            drugstore: ["ogx-bond-preshampoo"],
+            luxury: ["olaplex-no3"],
+            crueltyFree: ["olaplex-no3"],
+          },
+          limit: 2,
+        },
+        {
+          id: "bond-post-shower",
+          label: "After shower",
+          tag: "Alternative",
+          note: "On damp hair, then wait 10 minutes before any other product.",
+          categories: ["post-bond"],
+          limit: 2,
+          emptyText: "No pick in this tab for this timing — go with the in-shower option.",
+        },
+      ],
+    });
+  } else if (depth >= 2 || c === "breakage") {
     steps.push({
       id: "bond-treatment",
       phase: "washDay",
       title: c === "breakage" ? "Bond-repair treatment" : "Bond treatment",
       optional: c !== "breakage",
       frequency: "Weekly · K18 every few weeks",
-      how: "One in-shower bond builder, weekly or as needed. If you go with K18, use it right — the steps below save you from wasting product (most people do).",
+      how: "One bond builder, weekly or as needed — in the shower, right after shampoo and before conditioner. If you go with K18, use it right — the steps below save you from wasting product (most people do).",
       categories: ["bond-treatment"],
       principleId: "k18",
-      prefer: {
-        drugstore: ["loreal-everpure-bond-concentrate", "nym-tough-love-treatment"],
-        luxury: ["k18-mask"],
-        crueltyFree: ["k18-mask", "olaplex-no3"],
-      },
+      prefer: bondPrefer,
     });
   }
 
@@ -386,20 +441,8 @@ export function buildRoutine(answers) {
     });
   }
 
-  // Post-shower bond repair (8.5) — full depth.
-  if (depth >= 3) {
-    steps.push({
-      id: "post-bond",
-      phase: "washDay",
-      title: "Post-shower bond repair",
-      optional: true,
-      frequency: "1–2×/week",
-      how: "On damp hair, then wait 10 minutes before any other product. Skip it on washes where you already used an in-shower bond treatment.",
-      categories: ["post-bond"],
-      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
-      emptyText: "No pick in this tab for this optional step — your in-shower bond treatment already covers it.",
-    });
-  }
+  // Post-shower bond repair (8.5) renders as the "After shower" timing inside
+  // the bond-repair step above — never as its own extra step (spec §8 callout).
 
   // Leave-in + heat protectant (8.6) — always present.
   steps.push({

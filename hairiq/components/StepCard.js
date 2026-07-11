@@ -68,7 +68,47 @@ export default function StepCard({ step, index, activeTier }) {
         </div>
       </div>
 
-      {!step.noProducts ? (
+      {step.variants ? (
+        <div className="mt-4 space-y-3">
+          {step.variants.map((variant) => {
+            const variantProducts = variant.products[activeTier] || [];
+            const primary = variant.tag === "Start here";
+            return (
+              <div
+                key={variant.id}
+                className={`rounded-2xl border-2 p-4 ${primary ? "border-coral/80" : "border-blush/80"}`}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-display text-sm font-bold">{variant.label}</span>
+                  {variant.tag ? (
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide ${
+                        primary ? "bg-coral text-cocoa" : "bg-blush/60 text-cocoa-soft"
+                      }`}
+                    >
+                      {variant.tag}
+                    </span>
+                  ) : null}
+                </div>
+                {variant.note ? (
+                  <p className="mt-1 text-sm font-semibold leading-relaxed text-cocoa-soft">{variant.note}</p>
+                ) : null}
+                {variantProducts.length > 0 ? (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {variantProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} activeTier={activeTier} />
+                    ))}
+                  </div>
+                ) : variant.emptyText ? (
+                  <p className="mt-3 rounded-xl border-2 border-dashed border-blush-deep/40 p-3 text-sm font-semibold text-cocoa-soft">
+                    {variant.emptyText}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : !step.noProducts ? (
         products.length > 0 ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {products.map((product) => (
