@@ -1,0 +1,443 @@
+<title>HairIQ — live demo</title>
+<style>
+  :root {
+    --cream: #fff9f4;
+    --coral: #ffab91;
+    --coral-deep: #f0885f;
+    --blush: #ffd1dc;
+    --blush-deep: #f2a3b8;
+    --butter: #ffe9a8;
+    --mint: #c8e6c9;
+    --mint-deep: #386641;
+    --cocoa: #5a3e36;
+    --cocoa-soft: #8a6b60;
+    --shadow-soft: 0 10px 26px -10px rgb(240 136 95 / 0.5);
+    --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.16);
+    --display: "Quicksand", "Poppins", ui-rounded, "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+    --body: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--cream); }
+  body {
+    background: var(--cream);
+    color: var(--cocoa);
+    font-family: var(--body);
+    font-weight: 600;
+    line-height: 1.55;
+    min-height: 100dvh;
+  }
+  #app { min-height: 100dvh; }
+  h1, h2, h3, .display { font-family: var(--display); }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; border-radius: 0.5rem; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise 0.35s ease both; }
+  @media (prefers-reduced-motion: reduce) {
+    .rise { animation: none; }
+    * { transition: none !important; }
+  }
+
+  .col { width: 100%; max-width: 42rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* buttons */
+  .pill {
+    display: inline-block;
+    border-radius: 999px;
+    background: var(--coral);
+    color: var(--cocoa);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    padding: 1.1rem 2.5rem;
+    box-shadow: var(--shadow-soft);
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .pill:hover { background: var(--coral-deep); color: var(--cream); }
+  .pill:active { transform: scale(0.96); }
+  .pill[disabled] { background: rgb(255 209 220 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
+  .ghost {
+    border-radius: 999px;
+    padding: 1rem 1.5rem;
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--cocoa-soft);
+  }
+  .ghost:hover { background: rgb(255 209 220 / 0.4); }
+
+  /* landing */
+  .landing {
+    min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; position: relative; overflow: hidden; padding: 1.5rem;
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(64px); pointer-events: none; }
+  .logo {
+    width: 6rem; height: 6rem; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blush), var(--coral));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem; box-shadow: var(--shadow-soft); margin: 0 auto 1.5rem;
+  }
+  .landing h1 { font-size: 3rem; letter-spacing: -0.02em; }
+  .landing h1 span { color: var(--coral-deep); }
+  .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
+  .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(138 107 96 / 0.8); }
+
+  /* quiz */
+  .quiz { display: flex; flex-direction: column; min-height: 100dvh; padding-top: 2rem; padding-bottom: 2.5rem; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+  .progress-meta .label { font-family: var(--display); font-weight: 700; font-size: 0.85rem; color: var(--cocoa-soft); }
+  .progress-meta .pct { font-size: 0.75rem; font-weight: 700; color: rgb(138 107 96 / 0.7); }
+  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 209 220 / 0.5); overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blush-deep), var(--coral-deep)); transition: width 0.4s ease; }
+  .quiz h1 { font-size: 1.9rem; line-height: 1.2; margin-top: 2rem; }
+  .subtitle { margin-top: 0.5rem; color: var(--cocoa-soft); }
+  .answers { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; flex: 1; }
+  .answer {
+    display: flex; align-items: center; gap: 1rem; text-align: left; width: 100%;
+    background: rgb(255 255 255 / 0.9); border: 2px solid transparent; border-radius: 1.5rem;
+    padding: 1.15rem 1.25rem; box-shadow: var(--shadow-card);
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  }
+  .answer:hover { border-color: rgb(242 163 184 / 0.6); }
+  .answer:active { transform: scale(0.98); }
+  .answer.selected { border-color: var(--coral-deep); background: rgb(255 209 220 / 0.4); }
+  .answer .emoji { font-size: 1.5rem; }
+  .answer .lab { flex: 1; }
+  .answer .lab b { display: block; font-family: var(--display); font-size: 1.05rem; }
+  .answer .lab small { display: block; color: var(--cocoa-soft); font-size: 0.85rem; }
+  .answer .tick {
+    width: 1.7rem; height: 1.7rem; flex: none; display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgb(242 163 184 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
+  }
+  .answer .tick.round { border-radius: 50%; }
+  .answer .tick.square { border-radius: 0.5rem; }
+  .answer.selected .tick { border-color: var(--coral-deep); background: var(--coral); }
+  .quiz nav { display: flex; gap: 0.75rem; align-items: center; margin-top: 2rem; }
+  .quiz nav .pill { flex: 1; padding: 1rem 2rem; }
+
+  /* results */
+  .results { padding-top: 2.5rem; padding-bottom: 4rem; }
+  .eyebrow { text-align: center; font-family: var(--display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--coral-deep); }
+  .results > .col > h1, .results h1 { text-align: center; font-size: 2.3rem; line-height: 1.15; margin-top: 0.5rem; text-wrap: balance; }
+  .results .blurb { text-align: center; color: var(--cocoa-soft); max-width: 32rem; margin: 0.8rem auto 0; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.25rem; list-style: none; }
+  .chips li { background: rgb(255 209 220 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
+  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(255 249 244 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
+  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(242 163 184 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
+  .tab {
+    flex: 1; border-radius: 999px; padding: 0.6rem 0.5rem; text-align: center;
+    font-family: var(--display); font-weight: 700; font-size: 0.95rem; color: var(--cocoa-soft);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tab:hover { background: rgb(255 209 220 / 0.4); }
+  .tab.active { background: var(--coral); color: var(--cocoa); box-shadow: var(--shadow-soft); }
+  .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
+  .phase { margin-top: 2.5rem; }
+  .phase h2 { font-size: 1.6rem; }
+  .phase .intro { margin-top: 0.4rem; font-size: 0.92rem; color: var(--cocoa-soft); }
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+  .step { background: rgb(255 255 255 / 0.7); border-radius: 1.5rem; padding: 1.35rem; box-shadow: var(--shadow-card); }
+  .step-head { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-num {
+    width: 2.2rem; height: 2.2rem; flex: none; border-radius: 50%; background: var(--blush);
+    display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700;
+  }
+  .step h3 { font-size: 1.12rem; line-height: 1.3; display: inline; }
+  .optional { font-size: 0.85rem; color: rgb(138 107 96 / 0.8); font-weight: 700; }
+  .freq {
+    display: inline-block; vertical-align: middle; margin-left: 0.6rem; padding: 0.1rem 0.6rem;
+    border: 1px solid rgb(242 163 184 / 0.4); background: #fff; border-radius: 999px;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cocoa-soft);
+  }
+  .how { margin-top: 0.5rem; font-size: 0.94rem; color: var(--cocoa-soft); }
+  .prods { display: grid; gap: 0.75rem; margin-top: 1rem; }
+  @media (min-width: 600px) { .prods { grid-template-columns: 1fr 1fr; } }
+  .prod { background: rgb(255 255 255 / 0.95); border-radius: 1rem; padding: 1rem; box-shadow: var(--shadow-card); }
+  .prod-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .brand { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cocoa-soft); }
+  .badges { display: flex; gap: 0.35rem; flex: none; }
+  .badge { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge.mint { background: var(--mint); color: var(--mint-deep); }
+  .badge.butter { background: var(--butter); color: var(--cocoa); }
+  .prod-name { font-family: var(--display); font-weight: 700; margin-top: 0.25rem; line-height: 1.3; }
+  .prod-blurb { margin-top: 0.35rem; font-size: 0.85rem; color: var(--cocoa-soft); }
+  .prod-cf { margin-top: 0.5rem; font-size: 0.76rem; font-style: italic; color: var(--mint-deep); }
+  .empty { margin-top: 1rem; border: 2px dashed rgb(242 163 184 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  details.principle { margin-top: 1rem; background: rgb(255 209 220 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
+  details.principle summary { cursor: pointer; list-style: none; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
+  details.principle summary::-webkit-details-marker { display: none; }
+  details.principle summary::after { content: "▾"; display: inline-block; margin-left: 0.35rem; transition: transform 0.2s ease; }
+  details.principle[open] summary::after { transform: rotate(180deg); }
+  .principle-body { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.88rem; }
+  .principle-body ol { padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .choices { display: grid; gap: 0.5rem; }
+  @media (min-width: 600px) { .choices { grid-template-columns: 1fr 1fr; } }
+  .choice { background: rgb(255 255 255 / 0.8); border-radius: 0.8rem; padding: 0.8rem; }
+  .choice b { font-family: var(--display); color: var(--coral-deep); }
+  .notes { margin-top: 3rem; }
+  .notes h2 { font-size: 1.6rem; }
+  .note { border-left: 4px solid var(--coral); background: rgb(255 255 255 / 0.7); border-radius: 1.5rem; padding: 1.25rem; box-shadow: var(--shadow-card); margin-top: 1rem; }
+  .note h3 { font-size: 1rem; }
+  .note p { margin-top: 0.5rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  .actions { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; margin-top: 3rem; }
+  .save-wrap { position: relative; width: 100%; max-width: 22rem; }
+  .save-wrap .pill { width: 100%; }
+  .soon { position: absolute; top: -0.6rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+  .actions .retake { width: 100%; max-width: 22rem; }
+  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 209 220 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
+</style>
+
+<div id="app"></div>
+
+<script>
+/*__HAIRIQ_DATA__*/
+
+// ---------------------------------------------------------------------------
+// Demo shell — same screens & flow as the Next.js app (landing → quiz → results)
+// ---------------------------------------------------------------------------
+const app = document.getElementById("app");
+const state = { screen: "landing", idx: 0, answers: {}, tier: null, routine: null };
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderLanding() {
+  return `
+  <main class="landing">
+    <div class="blob" style="width:18rem;height:18rem;top:-6rem;left:-6rem;background:var(--blush);opacity:.6"></div>
+    <div class="blob" style="width:20rem;height:20rem;top:33%;right:-7rem;background:var(--coral);opacity:.3"></div>
+    <div class="blob" style="width:18rem;height:18rem;bottom:-8rem;left:25%;background:var(--blush);opacity:.5"></div>
+    <div class="rise" style="position:relative;max-width:28rem">
+      <div class="logo" aria-hidden="true">💆‍♀️</div>
+      <h1>Hair<span>IQ</span></h1>
+      <p class="tagline">Ten quick questions. One personalized hair routine — with picks for every budget.</p>
+      <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
+      <p class="fineprint">≈ 2 minutes · no account needed</p>
+    </div>
+  </main>`;
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[state.idx];
+  const value = state.answers[q.id];
+  const answered = isAnswered(state.answers, q);
+  const isLast = state.idx === QUESTIONS.length - 1;
+  const pct = Math.round(((state.idx + 1) / QUESTIONS.length) * 100);
+
+  const cards = q.options
+    .map((o) => {
+      const selected = q.multiSelect ? Array.isArray(value) && value.includes(o.value) : value === o.value;
+      return `
+      <button class="answer${selected ? " selected" : ""}" aria-pressed="${selected}" data-action="pick" data-value="${esc(o.value)}">
+        <span class="emoji" aria-hidden="true">${o.emoji || ""}</span>
+        <span class="lab"><b>${esc(o.label)}</b>${o.sublabel ? `<small>${esc(o.sublabel)}</small>` : ""}</span>
+        <span class="tick ${q.multiSelect ? "square" : "round"}" aria-hidden="true">${selected ? "✓" : ""}</span>
+      </button>`;
+    })
+    .join("");
+
+  return `
+  <main class="quiz col">
+    <div>
+      <div class="progress-meta">
+        <span class="label">Question ${state.idx + 1} of ${QUESTIONS.length}</span>
+        <span class="pct">${pct}%</span>
+      </div>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="${QUESTIONS.length}" aria-valuenow="${state.idx + 1}">
+        <div class="fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div class="rise" style="flex:1;display:flex;flex-direction:column">
+      <h1>${esc(q.title)}</h1>
+      ${q.subtitle ? `<p class="subtitle">${esc(q.subtitle)}</p>` : ""}
+      <div class="answers" role="group" aria-label="${esc(q.title)}">${cards}</div>
+    </div>
+    <nav>
+      <button class="ghost" data-action="back">← Back</button>
+      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${isLast ? "See my results ✨" : "Next"}</button>
+    </nav>
+  </main>`;
+}
+
+function productCard(p, tier) {
+  const badges =
+    (p.tags && p.tags.includes("new") ? `<span class="badge butter">New</span>` : "") +
+    (p.crueltyFree ? `<span class="badge mint">Cruelty-Free</span>` : "");
+  return `
+  <div class="prod">
+    <div class="prod-top"><span class="brand">${esc(p.brand)}</span><span class="badges">${badges}</span></div>
+    <div class="prod-name">${esc(p.name)}</div>
+    ${p.blurb ? `<div class="prod-blurb">${esc(p.blurb)}</div>` : ""}
+    ${tier === "crueltyFree" && p.cfNote ? `<div class="prod-cf">${esc(p.cfNote)}</div>` : ""}
+  </div>`;
+}
+
+function principleBlock(id) {
+  const pr = getPrinciple(id);
+  if (!pr) return "";
+  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "";
+  const options = pr.options
+    ? `<p>${esc(pr.options.intro)}</p><div class="choices">${pr.options.choices
+        .map((ch) => `<div class="choice"><b>${esc(ch.label)}</b><p>${esc(ch.text)}</p></div>`)
+        .join("")}</div>`
+    : "";
+  const body = pr.body.map((p) => `<p>${esc(p)}</p>`).join("");
+  return `
+  <details class="principle">
+    <summary>Why this works</summary>
+    <div class="principle-body"><p>${esc(pr.summary)}</p>${steps}${options}${body}</div>
+  </details>`;
+}
+
+function stepCard(step, index, tier) {
+  const products = step.products[tier] || [];
+  let productHtml = "";
+  if (!step.noProducts) {
+    productHtml = products.length
+      ? `<div class="prods">${products.map((p) => productCard(p, tier)).join("")}</div>`
+      : step.emptyText
+        ? `<div class="empty">${esc(step.emptyText)}</div>`
+        : "";
+  }
+  return `
+  <li class="step">
+    <div class="step-head">
+      <span class="step-num" aria-hidden="true">${index}</span>
+      <div>
+        <h3>${esc(step.title)}</h3>
+        ${step.optional ? `<span class="optional">(optional)</span>` : ""}
+        ${step.frequency ? `<span class="freq">${esc(step.frequency)}</span>` : ""}
+        <p class="how">${esc(step.how)}</p>
+      </div>
+    </div>
+    ${productHtml}
+    ${step.principleId ? principleBlock(step.principleId) : ""}
+  </li>`;
+}
+
+function renderResults() {
+  const r = state.routine;
+  const tier = state.tier;
+  const tabs = TIER_KEYS.map((key) => {
+    const meta = TIER_META[key];
+    return `<button class="tab${key === tier ? " active" : ""}" role="tab" aria-selected="${key === tier}" data-action="tier" data-value="${key}">
+      <span aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
+  }).join("");
+
+  const phases = r.phases
+    .filter((ph) => ph.steps.length)
+    .map(
+      (ph) => `
+      <section class="phase rise">
+        <h2><span aria-hidden="true">${ph.emoji}</span> ${esc(ph.title)}</h2>
+        ${ph.intro ? `<p class="intro">${esc(ph.intro)}</p>` : ""}
+        <ol class="steps">${ph.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
+      </section>`
+    )
+    .join("");
+
+  const notes = r.notes
+    .map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`)
+    .join("");
+
+  return `
+  <main class="results">
+    <div class="col">
+      <header class="rise">
+        <p class="eyebrow">Your routine is ready ✨</p>
+        <h1>${esc(r.summary.headline)}</h1>
+        <p class="blurb">${esc(r.summary.blurb)}</p>
+        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
+      </header>
+      <div class="tabs-wrap"><div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div></div>
+      ${tier === "crueltyFree" ? `<p class="cf-note">🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.</p>` : ""}
+      ${phases}
+      <section class="notes"><h2>💡 Good to know</h2>${notes}</section>
+      <div class="actions">
+        <div class="save-wrap">
+          <button class="pill" disabled aria-disabled="true" title="Coming soon">Save My Routine</button>
+          <span class="soon">Coming soon</span>
+        </div>
+        <button class="pill retake" data-action="retake">Retake Quiz</button>
+      </div>
+      <footer>
+        HairIQ gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
+        spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
+        <br /><br />
+        Live demo — same quiz data &amp; recommendation engine as the HairIQ app (v1).
+      </footer>
+    </div>
+  </main>`;
+}
+
+let lastViewKey = null;
+function render() {
+  app.innerHTML =
+    state.screen === "landing" ? renderLanding() : state.screen === "quiz" ? renderQuiz() : renderResults();
+  // Scroll to top only when the view changes (new screen / next question) —
+  // answer taps and tier switches keep the reader's place.
+  const viewKey = `${state.screen}:${state.screen === "quiz" ? state.idx : ""}`;
+  if (viewKey !== lastViewKey) window.scrollTo(0, 0);
+  lastViewKey = viewKey;
+}
+
+app.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  const action = el.dataset.action;
+
+  if (action === "start") {
+    state.screen = "quiz";
+    state.idx = 0;
+    render();
+  } else if (action === "pick") {
+    const q = QUESTIONS[state.idx];
+    const v = el.dataset.value;
+    if (q.multiSelect) {
+      const current = Array.isArray(state.answers[q.id]) ? state.answers[q.id] : [];
+      const opt = q.options.find((o) => o.value === v);
+      let next;
+      if (opt.exclusive) {
+        next = current.includes(v) ? [] : [v];
+      } else if (current.includes(v)) {
+        next = current.filter((x) => x !== v);
+      } else {
+        const exclusives = q.options.filter((o) => o.exclusive).map((o) => o.value);
+        next = [...current.filter((x) => !exclusives.includes(x)), v];
+      }
+      state.answers[q.id] = next;
+    } else {
+      state.answers[q.id] = v;
+    }
+    render();
+  } else if (action === "back") {
+    if (state.idx === 0) state.screen = "landing";
+    else state.idx -= 1;
+    render();
+  } else if (action === "next") {
+    const q = QUESTIONS[state.idx];
+    if (!isAnswered(state.answers, q)) return;
+    if (state.idx === QUESTIONS.length - 1) {
+      state.routine = buildRoutine(state.answers);
+      state.tier = state.routine.defaultTier;
+      state.screen = "results";
+    } else {
+      state.idx += 1;
+    }
+    render();
+  } else if (action === "tier") {
+    state.tier = el.dataset.value;
+    render();
+  } else if (action === "retake") {
+    state.answers = {};
+    state.routine = null;
+    state.idx = 0;
+    state.screen = "quiz";
+    render();
+  }
+});
+
+render();
+</script>

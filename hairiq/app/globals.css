@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* HairIQ pastel pink & orange theme (spec section 3) */
+@theme {
+  --color-cream: #fff9f4;
+  --color-coral: #ffab91;
+  --color-coral-deep: #f0885f;
+  --color-blush: #ffd1dc;
+  --color-blush-deep: #f2a3b8;
+  --color-butter: #ffe9a8;
+  --color-mint: #c8e6c9;
+  --color-mint-deep: #386641;
+  --color-cocoa: #5a3e36;
+  --color-cocoa-soft: #8a6b60;
+
+  --font-display: var(--font-quicksand), "Quicksand", "Poppins", ui-rounded, system-ui, sans-serif;
+  --font-body: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
+
+  --shadow-soft: 0 10px 26px -10px rgb(240 136 95 / 0.5);
+  --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.16);
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-cocoa);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/* gentle entrance for quiz question changes and results sections */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.35s ease both;
+}
+
+/* expandable "why this works" details */
+details.principle summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.principle summary::-webkit-details-marker {
+  display: none;
+}
+details.principle summary::after {
+  content: "▾";
+  display: inline-block;
+  margin-left: 0.35rem;
+  transition: transform 0.2s ease;
+}
+details.principle[open] summary::after {
+  transform: rotate(180deg);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-coral);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}

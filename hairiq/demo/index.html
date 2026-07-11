@@ -1,0 +1,3026 @@
+<title>HairIQ — live demo</title>
+<style>
+  :root {
+    --cream: #fff9f4;
+    --coral: #ffab91;
+    --coral-deep: #f0885f;
+    --blush: #ffd1dc;
+    --blush-deep: #f2a3b8;
+    --butter: #ffe9a8;
+    --mint: #c8e6c9;
+    --mint-deep: #386641;
+    --cocoa: #5a3e36;
+    --cocoa-soft: #8a6b60;
+    --shadow-soft: 0 10px 26px -10px rgb(240 136 95 / 0.5);
+    --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.16);
+    --display: "Quicksand", "Poppins", ui-rounded, "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+    --body: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--cream); }
+  body {
+    background: var(--cream);
+    color: var(--cocoa);
+    font-family: var(--body);
+    font-weight: 600;
+    line-height: 1.55;
+    min-height: 100dvh;
+  }
+  #app { min-height: 100dvh; }
+  h1, h2, h3, .display { font-family: var(--display); }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; border-radius: 0.5rem; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise 0.35s ease both; }
+  @media (prefers-reduced-motion: reduce) {
+    .rise { animation: none; }
+    * { transition: none !important; }
+  }
+
+  .col { width: 100%; max-width: 42rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* buttons */
+  .pill {
+    display: inline-block;
+    border-radius: 999px;
+    background: var(--coral);
+    color: var(--cocoa);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    padding: 1.1rem 2.5rem;
+    box-shadow: var(--shadow-soft);
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .pill:hover { background: var(--coral-deep); color: var(--cream); }
+  .pill:active { transform: scale(0.96); }
+  .pill[disabled] { background: rgb(255 209 220 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
+  .ghost {
+    border-radius: 999px;
+    padding: 1rem 1.5rem;
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--cocoa-soft);
+  }
+  .ghost:hover { background: rgb(255 209 220 / 0.4); }
+
+  /* landing */
+  .landing {
+    min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; position: relative; overflow: hidden; padding: 1.5rem;
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(64px); pointer-events: none; }
+  .logo {
+    width: 6rem; height: 6rem; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blush), var(--coral));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.8rem; box-shadow: var(--shadow-soft); margin: 0 auto 1.5rem;
+  }
+  .landing h1 { font-size: 3rem; letter-spacing: -0.02em; }
+  .landing h1 span { color: var(--coral-deep); }
+  .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
+  .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(138 107 96 / 0.8); }
+
+  /* quiz */
+  .quiz { display: flex; flex-direction: column; min-height: 100dvh; padding-top: 2rem; padding-bottom: 2.5rem; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+  .progress-meta .label { font-family: var(--display); font-weight: 700; font-size: 0.85rem; color: var(--cocoa-soft); }
+  .progress-meta .pct { font-size: 0.75rem; font-weight: 700; color: rgb(138 107 96 / 0.7); }
+  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 209 220 / 0.5); overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blush-deep), var(--coral-deep)); transition: width 0.4s ease; }
+  .quiz h1 { font-size: 1.9rem; line-height: 1.2; margin-top: 2rem; }
+  .subtitle { margin-top: 0.5rem; color: var(--cocoa-soft); }
+  .answers { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; flex: 1; }
+  .answer {
+    display: flex; align-items: center; gap: 1rem; text-align: left; width: 100%;
+    background: rgb(255 255 255 / 0.9); border: 2px solid transparent; border-radius: 1.5rem;
+    padding: 1.15rem 1.25rem; box-shadow: var(--shadow-card);
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  }
+  .answer:hover { border-color: rgb(242 163 184 / 0.6); }
+  .answer:active { transform: scale(0.98); }
+  .answer.selected { border-color: var(--coral-deep); background: rgb(255 209 220 / 0.4); }
+  .answer .emoji { font-size: 1.5rem; }
+  .answer .lab { flex: 1; }
+  .answer .lab b { display: block; font-family: var(--display); font-size: 1.05rem; }
+  .answer .lab small { display: block; color: var(--cocoa-soft); font-size: 0.85rem; }
+  .answer .tick {
+    width: 1.7rem; height: 1.7rem; flex: none; display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgb(242 163 184 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
+  }
+  .answer .tick.round { border-radius: 50%; }
+  .answer .tick.square { border-radius: 0.5rem; }
+  .answer.selected .tick { border-color: var(--coral-deep); background: var(--coral); }
+  .quiz nav { display: flex; gap: 0.75rem; align-items: center; margin-top: 2rem; }
+  .quiz nav .pill { flex: 1; padding: 1rem 2rem; }
+
+  /* results */
+  .results { padding-top: 2.5rem; padding-bottom: 4rem; }
+  .eyebrow { text-align: center; font-family: var(--display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--coral-deep); }
+  .results > .col > h1, .results h1 { text-align: center; font-size: 2.3rem; line-height: 1.15; margin-top: 0.5rem; text-wrap: balance; }
+  .results .blurb { text-align: center; color: var(--cocoa-soft); max-width: 32rem; margin: 0.8rem auto 0; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.25rem; list-style: none; }
+  .chips li { background: rgb(255 209 220 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
+  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(255 249 244 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
+  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(242 163 184 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
+  .tab {
+    flex: 1; border-radius: 999px; padding: 0.6rem 0.5rem; text-align: center;
+    font-family: var(--display); font-weight: 700; font-size: 0.95rem; color: var(--cocoa-soft);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .tab:hover { background: rgb(255 209 220 / 0.4); }
+  .tab.active { background: var(--coral); color: var(--cocoa); box-shadow: var(--shadow-soft); }
+  .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
+  .phase { margin-top: 2.5rem; }
+  .phase h2 { font-size: 1.6rem; }
+  .phase .intro { margin-top: 0.4rem; font-size: 0.92rem; color: var(--cocoa-soft); }
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+  .step { background: rgb(255 255 255 / 0.7); border-radius: 1.5rem; padding: 1.35rem; box-shadow: var(--shadow-card); }
+  .step-head { display: flex; gap: 1rem; align-items: flex-start; }
+  .step-num {
+    width: 2.2rem; height: 2.2rem; flex: none; border-radius: 50%; background: var(--blush);
+    display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700;
+  }
+  .step h3 { font-size: 1.12rem; line-height: 1.3; display: inline; }
+  .optional { font-size: 0.85rem; color: rgb(138 107 96 / 0.8); font-weight: 700; }
+  .freq {
+    display: inline-block; vertical-align: middle; margin-left: 0.6rem; padding: 0.1rem 0.6rem;
+    border: 1px solid rgb(242 163 184 / 0.4); background: #fff; border-radius: 999px;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cocoa-soft);
+  }
+  .how { margin-top: 0.5rem; font-size: 0.94rem; color: var(--cocoa-soft); }
+  .prods { display: grid; gap: 0.75rem; margin-top: 1rem; }
+  @media (min-width: 600px) { .prods { grid-template-columns: 1fr 1fr; } }
+  .prod { background: rgb(255 255 255 / 0.95); border-radius: 1rem; padding: 1rem; box-shadow: var(--shadow-card); }
+  .prod-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .brand { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cocoa-soft); }
+  .badges { display: flex; gap: 0.35rem; flex: none; }
+  .badge { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge.mint { background: var(--mint); color: var(--mint-deep); }
+  .badge.butter { background: var(--butter); color: var(--cocoa); }
+  .prod-name { font-family: var(--display); font-weight: 700; margin-top: 0.25rem; line-height: 1.3; }
+  .prod-blurb { margin-top: 0.35rem; font-size: 0.85rem; color: var(--cocoa-soft); }
+  .prod-cf { margin-top: 0.5rem; font-size: 0.76rem; font-style: italic; color: var(--mint-deep); }
+  .empty { margin-top: 1rem; border: 2px dashed rgb(242 163 184 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  details.principle { margin-top: 1rem; background: rgb(255 209 220 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
+  details.principle summary { cursor: pointer; list-style: none; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
+  details.principle summary::-webkit-details-marker { display: none; }
+  details.principle summary::after { content: "▾"; display: inline-block; margin-left: 0.35rem; transition: transform 0.2s ease; }
+  details.principle[open] summary::after { transform: rotate(180deg); }
+  .principle-body { margin-top: 0.7rem; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.88rem; }
+  .principle-body ol { padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .choices { display: grid; gap: 0.5rem; }
+  @media (min-width: 600px) { .choices { grid-template-columns: 1fr 1fr; } }
+  .choice { background: rgb(255 255 255 / 0.8); border-radius: 0.8rem; padding: 0.8rem; }
+  .choice b { font-family: var(--display); color: var(--coral-deep); }
+  .notes { margin-top: 3rem; }
+  .notes h2 { font-size: 1.6rem; }
+  .note { border-left: 4px solid var(--coral); background: rgb(255 255 255 / 0.7); border-radius: 1.5rem; padding: 1.25rem; box-shadow: var(--shadow-card); margin-top: 1rem; }
+  .note h3 { font-size: 1rem; }
+  .note p { margin-top: 0.5rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  .actions { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; margin-top: 3rem; }
+  .save-wrap { position: relative; width: 100%; max-width: 22rem; }
+  .save-wrap .pill { width: 100%; }
+  .soon { position: absolute; top: -0.6rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.15rem 0.65rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+  .actions .retake { width: 100%; max-width: 22rem; }
+  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 209 220 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
+</style>
+
+<div id="app"></div>
+
+<script>
+// ===== lib/questions.js =====
+// ---------------------------------------------------------------------------
+// HairIQ — Quiz questions (spec section 5)
+// 10 questions, one per screen. Q6 is multi-select, everything else single.
+// Edit copy freely — the quiz UI renders whatever is in this file.
+// ---------------------------------------------------------------------------
+
+const QUESTIONS = [
+  {
+    id: "hairType",
+    title: "What's your hair type?",
+    subtitle: "Go with how it dries naturally, no products.",
+    options: [
+      { value: "straight", label: "Straight", emoji: "📏" },
+      { value: "wavy", label: "Wavy", emoji: "🌊" },
+      { value: "curly", label: "Curly", emoji: "➰" },
+      { value: "coily", label: "Coily", emoji: "🌀" },
+    ],
+  },
+  {
+    id: "density",
+    title: "How dense is your hair?",
+    subtitle: "Think about how much hair you have overall, not the width of each strand.",
+    options: [
+      { value: "fine", label: "Fine", emoji: "🪶" },
+      { value: "medium", label: "Medium", emoji: "🌾" },
+      { value: "thick", label: "Thick", emoji: "🦁" },
+      { value: "unsure", label: "Not sure", sublabel: "New to this — totally fine", emoji: "🤷" },
+    ],
+  },
+  {
+    id: "scalp",
+    title: "How would you describe your scalp?",
+    options: [
+      { value: "oily", label: "Oily", sublabel: "Greasy by the end of the day", emoji: "💧" },
+      { value: "dry", label: "Dry & flaky", emoji: "🏜️" },
+      { value: "sensitive", label: "Sensitive or irritated", emoji: "🩹" },
+      { value: "balanced", label: "Balanced", sublabel: "No complaints", emoji: "⚖️" },
+    ],
+  },
+  {
+    id: "concern",
+    title: "What's your main hair concern?",
+    subtitle: "Pick the one that bugs you most — it drives your whole routine.",
+    options: [
+      { value: "thinning", label: "Thinning or density loss", emoji: "🍂" },
+      { value: "dryness", label: "Dryness or damage", emoji: "🥀" },
+      { value: "frizz", label: "Frizz", emoji: "⚡" },
+      { value: "breakage", label: "Breakage & split ends", emoji: "💔" },
+      { value: "dandruff", label: "Dandruff or flaking", emoji: "❄️" },
+      { value: "slowGrowth", label: "Slow growth", emoji: "🐌" },
+      {
+        value: "curlyNew",
+        label: "New to curly or wavy hair",
+        sublabel: "I need a styling routine",
+        emoji: "✨",
+      },
+    ],
+  },
+  {
+    id: "goal",
+    title: "What's your main goal?",
+    options: [
+      { value: "growLonger", label: "Grow it longer", emoji: "🌱" },
+      { value: "density", label: "Increase density", emoji: "🌳" },
+      { value: "repair", label: "Repair damage", emoji: "🛠️" },
+      { value: "frizz", label: "Reduce frizz", emoji: "😌" },
+      { value: "scalpHealth", label: "Improve scalp health", emoji: "💆" },
+      { value: "maintain", label: "Just maintain", emoji: "✅" },
+    ],
+  },
+  {
+    id: "chemical",
+    title: "Any chemical treatments?",
+    subtitle: "Select all that apply.",
+    multiSelect: true,
+    options: [
+      { value: "salonColor", label: "Salon color, no bleach", emoji: "🎨" },
+      { value: "bleach", label: "Bleached", emoji: "🫧" },
+      { value: "boxDye", label: "Box dye at home, no bleach", emoji: "📦" },
+      { value: "relaxer", label: "Relaxed or permed", emoji: "🧪" },
+      { value: "keratin", label: "Keratin or smoothing treatment", emoji: "💫" },
+      { value: "none", label: "None", emoji: "🚫", exclusive: true },
+    ],
+  },
+  {
+    id: "heat",
+    title: "How often do you heat style?",
+    subtitle: "Blow dryer, flat iron, curling iron — any hot tool counts.",
+    options: [
+      { value: "daily", label: "Daily", emoji: "🔥" },
+      { value: "weekly", label: "A few times a week", emoji: "♨️" },
+      { value: "rarely", label: "Rarely or never", emoji: "🙅" },
+    ],
+  },
+  {
+    id: "washFreq",
+    title: "How often do you wash your hair?",
+    options: [
+      { value: "daily", label: "Daily", emoji: "📅" },
+      { value: "everyOther", label: "Every other day", emoji: "🔁" },
+      { value: "twiceWeek", label: "Twice a week", emoji: "✌️" },
+      { value: "weekly", label: "Weekly or less", emoji: "🗓️" },
+    ],
+  },
+  {
+    id: "time",
+    title: "How much time do you have for a routine?",
+    subtitle: "Be honest — a routine you'll actually do beats a perfect one you won't.",
+    options: [
+      { value: "five", label: "5 min or less", emoji: "⚡" },
+      { value: "fifteen", label: "10–15 min", emoji: "⏱️" },
+      { value: "twentyPlus", label: "20+ min", emoji: "🧖" },
+    ],
+  },
+  {
+    id: "priority",
+    title: "What matters most in product picks?",
+    subtitle: "This just sets which tab you land on — you can always flip between all three.",
+    options: [
+      { value: "drugstore", label: "Budget-friendly", sublabel: "Drugstore picks", emoji: "💸" },
+      { value: "luxury", label: "Luxury", sublabel: "Treat-yourself picks", emoji: "✨" },
+      { value: "crueltyFree", label: "Cruelty-free", sublabel: "Certified & verified brands", emoji: "🐰" },
+    ],
+  },
+];
+
+function isAnswered(answers, question) {
+  const value = answers[question.id];
+  if (question.multiSelect) return Array.isArray(value) && value.length > 0;
+  return value != null && value !== "";
+}
+
+function isQuizComplete(answers) {
+  return QUESTIONS.every((q) => isAnswered(answers, q));
+}
+
+
+// ===== lib/principles.js =====
+// ---------------------------------------------------------------------------
+// HairIQ — General routine principles (spec section 6)
+// Reusable copy blocks referenced across multiple concern routines.
+// Each block: { id, title, summary, body: [paragraphs], steps?, options? }
+// Steps/notes in the UI link to these by id and render them as expandable
+// "why this works" details — edit copy here without touching components.
+// ---------------------------------------------------------------------------
+
+const PRINCIPLES = {
+  // 6.1 — Pre-wash oil treatment
+  prePoo: {
+    id: "prePoo",
+    title: "Pre-wash oil treatment (“pre-poo”)",
+    summary:
+      "Oil on your mid-lengths and ends 10–20+ minutes before shampooing cuts friction and breakage during the wash. Every hair type can benefit.",
+    body: [
+      "Why coconut oil specifically: its fatty-acid structure lets it actually penetrate into the hair shaft rather than just sitting on the surface — the main reason it's the most-recommended pre-poo oil in the hair-science world. Oils like argan work more on the surface (great for shine and smoothness) but don't penetrate the same way.",
+      "Buy a hair-specific coconut oil product, not the cooking jar. Hair-formulated versions are processed to be lighter and spread more easily, so they don't leave the waxy buildup that solid, unrefined cooking-grade coconut oil can.",
+      "Fine or low-porosity hair? Use a lighter hand — or start with the weightless mist version — so it doesn't get weighed down. Argan oil is a good lighter alternative if coconut oil ever feels too heavy.",
+    ],
+  },
+
+  // 6.2 — Scalp-aware washing
+  sweatRule: {
+    id: "sweatRule",
+    title: "The sweat rule",
+    summary:
+      "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, wash tonight.",
+    body: [
+      "If you sweat that day (workout, hot day, anything), wash your hair after — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
+      "Dry shampoo is fine between washes, but it is not a substitute for washing after sweating — it only absorbs surface oil. It doesn't actually remove sweat, salt, or bacteria from the scalp.",
+    ],
+  },
+  doubleWash: {
+    id: "doubleWash",
+    title: "Double-washing, explained",
+    summary:
+      "If your scalp feels heavy with product, sweat, or buildup — shampoo twice.",
+    body: [
+      "The first wash breaks down surface buildup. The second is the one that actually cleanses the scalp — and it's when a medicated or treatment shampoo does its real work, so always use those as the second wash.",
+    ],
+  },
+
+  // 6.3 — Scalp massage
+  scalpMassage: {
+    id: "scalpMassage",
+    title: "Scalp massage, done right",
+    summary: "Fingertips, never nails — about 10 minutes a day.",
+    body: [
+      "Fingertip massage (never nails) is the default technique: small circles across the whole scalp for about 10 minutes.",
+      "A cheap wood or bamboo-style scalp massage brush (about $10 for a multi-pack on Amazon) is a nice upgrade — it helps distribute product, gently exfoliates buildup, and the added stimulation may support scalp circulation.",
+    ],
+  },
+
+  // 6.4 — Nighttime protection
+  nightProtection: {
+    id: "nightProtection",
+    title: "Why a night routine matters",
+    summary:
+      "Friction and movement while you sleep cause mechanical breakage, dryness, and frizz over time — worth a dedicated night step, especially for long hair.",
+    body: [
+      "Protective styling for sleep: a loose braid plus a silk/satin bonnet or pillowcase works for straight and wavy hair. For curly or coily hair, a loose, high “pineapple” pony protects the curl pattern overnight.",
+      "This works for any hair type — just adjust the styling step to your texture.",
+    ],
+  },
+
+  // 6.5 — K18 correct usage
+  k18: {
+    id: "k18",
+    title: "How to use K18 correctly",
+    summary:
+      "K18 Leave-In Molecular Repair Hair Mask is the staple bond-repair pick — but a lot of people use it wrong and waste product. Here's the right way.",
+    steps: [
+      "Shampoo — and skip your regular rinse-out conditioner this wash (it can block the treatment from working).",
+      "Towel-dry until damp, not dripping.",
+      "Rub 1–3 pumps between your palms first so it distributes evenly before touching your hair — this avoids over-applying and wasting product.",
+      "Apply from mid-lengths to ends, working upward. Avoid the scalp.",
+      "Leave it for 4 minutes.",
+    ],
+    options: {
+      intro:
+        "After the 4 minutes you've got two good options — don't skip this part out of confusion:",
+      choices: [
+        {
+          label: "Leave it in",
+          text: "Go straight to your leave-in conditioner and styling products. This is K18's official “leave-in treatment” use.",
+        },
+        {
+          label: "Rinse + condition",
+          text: "Rinse the K18 out, then apply your regular conditioner, wait however long that conditioner calls for, and rinse it out too. A lot of people find this gives noticeably softer hair and get more out of the K18 than skipping conditioner entirely — which is what most people accidentally do. The “no conditioner” rule in step 1 is only about before the treatment, not after.",
+        },
+      ],
+    },
+    body: [],
+  },
+
+  // 6.6 — UV protection
+  uvProtection: {
+    id: "uvProtection",
+    title: "Summer sun & your hair",
+    summary:
+      "UV exposure can visibly change the color and texture of your ends over a single summer — especially on color-treated hair.",
+    body: [
+      "A leave-in UV protection spray is the fix — spray it on before time outside, the way you'd apply sunscreen before the beach. Look for sprays that also cover salt and chlorine if you swim.",
+    ],
+  },
+
+  // 6.7 — Box dye caution
+  boxDye: {
+    id: "boxDye",
+    title: "A heads-up about box dye",
+    summary:
+      "At-home box dye contains metallic salts that can build up in hair and react unpredictably with future bleach or bond-repair services — sometimes causing gumminess or breakage.",
+    body: [
+      "Before any future bleach or salon color: use a clarifying/chelating shampoo (e.g., L'Oréal Metal Detox) for a few washes first, and always mention your box dye history to your stylist so they can strand-test.",
+    ],
+  },
+
+  // 6.8 — LOC / LCO
+  loc: {
+    id: "loc",
+    title: "The LOC / LCO method",
+    summary:
+      "A three-layer system for locking in moisture — especially useful for curly, coily, or dry hair.",
+    body: [
+      "L — Liquid: water or a water-based leave-in, to actually hydrate the hair.",
+      "O — Oil: a lightweight oil applied next, to seal that moisture in.",
+      "C — Cream: a heavier cream or butter on top, to lock everything in and add definition.",
+      "LOC order (oil before cream) tends to work better for low-porosity hair — the cuticle lies flatter, so a lighter oil layer first prevents product from just sitting on top.",
+      "LCO order (cream before oil) tends to work better for high-porosity hair — bleached, damaged, or rough-feeling hair is usually higher porosity, and the heavier cream needs an oil layer on top to actually hold.",
+    ],
+  },
+
+  // Section 7 — thinning lifestyle & root-cause note
+  thinningLifestyle: {
+    id: "thinningLifestyle",
+    title: "If you're doing everything right and still thinning",
+    summary:
+      "Sometimes the cause isn't the routine at all — the basics below matter more than any product.",
+    body: [
+      "Aim for 7+ hours of sleep, stay hydrated, and find a stress outlet that actually works for you — all three show up again and again in hair-shedding research.",
+      "If shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork: iron/ferritin, vitamin D, B12, zinc, and thyroid are the usual suspects. Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.",
+    ],
+  },
+
+  // Section 7 footer — dermatologist disclaimer
+  dermDisclaimer: {
+    id: "dermDisclaimer",
+    title: "A note on scalp health",
+    summary:
+      "HairIQ gives cosmetic styling guidance, not medical treatment.",
+    body: [
+      "Persistent scalp issues — anything painful, spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit, not just a routine change.",
+    ],
+  },
+};
+
+function getPrinciple(id) {
+  return PRINCIPLES[id] || null;
+}
+
+
+// ===== lib/products.js =====
+// ---------------------------------------------------------------------------
+// HairIQ — Product library (spec sections 6, 7, 8, 10)
+//
+// Every product from the spec lives here. Fields:
+//   tier         "drugstore" | "luxury" | null (tools/brand-agnostic)
+//   crueltyFree  true → appears in the Cruelty-Free tab + gets the green badge
+//   cfNote       certification detail shown in the Cruelty-Free tab
+//   cfOnly       Section 10 additions — shown ONLY in the Cruelty-Free tab so
+//                they don't dilute the curated Drugstore/Luxury lists
+//   universal    tools (brushes, pillowcases…) — shown in every tab
+//   categories   which routine steps can pick this product
+//   tags         "new" → yellow badge
+//
+// ⚠️ Ethics note (spec §7): cruelty-free status can change with company
+// ownership or regional laws. Verify current certification via Leaping Bunny
+// or PETA's Beauty Without Bunnies list before finalizing these picks.
+// ---------------------------------------------------------------------------
+
+const TIER_KEYS = ["drugstore", "luxury", "crueltyFree"];
+
+const TIER_META = {
+  drugstore: { label: "Drugstore", emoji: "💸", blurb: "Budget-friendly picks that pull their weight." },
+  luxury: { label: "Luxury", emoji: "✨", blurb: "Treat-yourself picks worth the splurge." },
+  crueltyFree: { label: "Cruelty-Free", emoji: "🐰", blurb: "Certified or independently tracked cruelty-free brands — across every price point." },
+};
+
+const PRODUCTS = [
+  // ---- 6.1 / 8.1 — Pre-poo oils --------------------------------------------
+  {
+    id: "ogx-coconut-penetrating-oil",
+    brand: "OGX",
+    name: "Coconut Miracle Oil Penetrating Oil",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["pre-poo", "sealer-oil", "between-wash-oil"],
+    blurb: "The original, more intense treatment — coconut oil that actually penetrates the hair shaft instead of sitting on top.",
+  },
+  {
+    id: "ogx-coconut-weightless-oil",
+    brand: "OGX",
+    name: "Coconut Oil Weightless Hydrating Oil Mist",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["pre-poo", "sealer-oil", "between-wash-oil"],
+    blurb: "The lighter spray version — good for finer hair or pre-poo first-timers.",
+  },
+  {
+    id: "ogx-argan-penetrating-oil",
+    brand: "OGX",
+    name: "Argan Oil of Morocco Penetrating Oil",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["pre-poo", "sealer-oil", "between-wash-oil"],
+    blurb: "Lighter, surface-smoothing alternative if coconut oil feels too heavy — great for shine.",
+  },
+
+  // ---- 8.2 — Clarifying shampoo --------------------------------------------
+  {
+    id: "loreal-everpure-clarify",
+    brand: "L'Oréal",
+    name: "EverPure Sulfate-Free Clarifying Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo", "sulfate-free"],
+    blurb: "Weekly reset wash that's still sulfate-free and color-safe.",
+  },
+  {
+    id: "garnier-pure-clean",
+    brand: "Garnier Fructis",
+    name: "Pure Clean Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo"],
+    blurb: "Simple, cheap buildup-buster.",
+  },
+  {
+    id: "dove-scalp-clarifying",
+    brand: "Dove",
+    name: "Scalp+Hair Therapy Clarifying Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo"],
+    blurb: "Scalp-focused clarifying wash.",
+  },
+  {
+    id: "pantene-volume-body",
+    brand: "Pantene",
+    name: "Pro-V Volume & Body Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo"],
+    blurb: "Clarifies while adding lift — handy for fine hair.",
+  },
+  {
+    id: "loreal-metal-detox",
+    brand: "L'Oréal",
+    name: "Metal Detox Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo", "chelating"],
+    blurb: "Chelating formula that pulls out mineral and metal buildup — the pick before any future color service.",
+  },
+  {
+    id: "livingproof-clarifying-detox",
+    brand: "Living Proof",
+    name: "Clarifying Detox Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo"],
+    blurb: "Deep clean without stripping.",
+  },
+  {
+    id: "k18-peptide-prep",
+    brand: "K18",
+    name: "Peptide Prep Detox Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Independently certified cruelty-free · vegan.",
+    categories: ["clarifying-shampoo", "chelating"],
+    blurb: "Clarifies and preps hair so bond treatments absorb better.",
+  },
+  {
+    id: "ouai-detox",
+    brand: "OUAI",
+    name: "Detox Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["clarifying-shampoo"],
+    blurb: "Apple-cider-vinegar deep clean.",
+  },
+
+  // ---- 8.2 — Non-clarifying / strengthening shampoo ------------------------
+  {
+    id: "garnier-hair-filler-shampoo",
+    brand: "Garnier Fructis",
+    name: "Hair Filler + Vitamin Cg Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "Everyday strengthening wash.",
+  },
+  {
+    id: "nym-tough-love-shampoo",
+    brand: "Not Your Mother's",
+    name: "Tough Love Bonding Shampoo",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers (Ethical Elephant, Cruelty-Free Kitty); not officially certified.",
+    categories: ["strengthening-shampoo"],
+    blurb: "Bond-building wash at a drugstore price.",
+  },
+  {
+    id: "dove-intensive-repair-shampoo",
+    brand: "Dove",
+    name: "Intensive Repair Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "Gentle daily driver for damaged hair.",
+  },
+  {
+    id: "dove-bond-strength-shampoo",
+    brand: "Dove",
+    name: "Bond Strength Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "Dove's bond-care line, wash step.",
+  },
+  {
+    id: "loreal-everpure-bond-shampoo",
+    brand: "L'Oréal",
+    name: "EverPure Bond Repair Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo", "sulfate-free"],
+    blurb: "Sulfate-free bond-strengthening wash — also a solid pick for color-treated hair.",
+  },
+  {
+    id: "pureology-strength-cure-shampoo",
+    brand: "Pureology",
+    name: "Strength Cure Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo", "sulfate-free"],
+    blurb: "Salon staple for damaged, color-treated hair.",
+  },
+  {
+    id: "amika-kure-shampoo",
+    brand: "amika",
+    name: "The Kure Bond Repair Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified (mostly vegan; a few formulas contain keratin, honey, or lanolin).",
+    categories: ["strengthening-shampoo"],
+    blurb: "Bond repair wash that smells like dessert.",
+  },
+  {
+    id: "redken-abc-shampoo",
+    brand: "Redken",
+    name: "Acidic Bonding Concentrate Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "The stylist-favorite bonding wash.",
+  },
+  {
+    id: "ogx-thick-full-shampoo",
+    brand: "OGX",
+    name: "Thick & Full Biotin & Collagen Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["growth-shampoo", "strengthening-shampoo"],
+    blurb: "Growth-supporting wash that plumps fine or thinning hair.",
+  },
+  {
+    id: "ogx-bond-shampoo",
+    brand: "OGX",
+    name: "Bond Protein Repair Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "Protein bond repair for breakage-prone hair.",
+  },
+
+  // ---- 8.2 — Medicated shampoo ----------------------------------------------
+  {
+    id: "neutrogena-scalp-therapy",
+    brand: "Neutrogena",
+    name: "Scalp Therapy Anti-Dandruff Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "Gentle pyrithione-zinc option for flaking and itch.",
+  },
+  {
+    id: "nizoral",
+    brand: "Nizoral",
+    name: "Anti-Dandruff Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "The heavy hitter (ketoconazole 1%) — use it as your second wash so it actually reaches the scalp.",
+  },
+  {
+    id: "dove-dryness-itch",
+    brand: "Dove",
+    name: "Dryness & Itch Relief Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "Mild option when the problem is dryness more than dandruff.",
+  },
+  {
+    id: "cerave-anti-dandruff",
+    brand: "CeraVe",
+    name: "Anti-Dandruff Hydrating Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "Treats flaking without drying the scalp out — good for dry-and-flaky scalps.",
+  },
+  {
+    id: "head-shoulders-classic",
+    brand: "Head & Shoulders",
+    name: "Classic Clean Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "Works great as one wash within a double-wash routine — just swap it in for the second wash; it doesn't have to replace your whole system.",
+  },
+
+  // ---- 8.3 — Bond repair treatments -----------------------------------------
+  {
+    id: "garnier-hair-filler-bonding",
+    brand: "Garnier Fructis",
+    name: "Hair Filler + Bonding Treatment",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["bond-treatment"],
+    blurb: "Weekly in-shower bond builder.",
+  },
+  {
+    id: "ogx-bond-preshampoo",
+    brand: "OGX",
+    name: "Bond Protein Repair Pre-Shampoo Treatment",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["bond-treatment", "pre-wash-bond"],
+    blurb: "Pre-shampoo formula — apply at least 10 minutes before washing.",
+  },
+  {
+    id: "nym-tough-love-treatment",
+    brand: "Not Your Mother's",
+    name: "Tough Love Intense Bonding Treatment",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers; not officially certified.",
+    categories: ["bond-treatment"],
+    blurb: "Intense weekly bond repair on a budget.",
+  },
+  {
+    id: "loreal-everpure-bond-concentrate",
+    brand: "L'Oréal",
+    name: "EverPure Bond Repair Concentrate",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["bond-treatment"],
+    blurb: "Concentrated bond serum to layer into wash day.",
+  },
+  {
+    id: "redken-abc-treatment",
+    brand: "Redken",
+    name: "Acidic Bonding Concentrate Treatment",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["bond-treatment"],
+    blurb: "Salon-grade acidic bonding care.",
+  },
+  {
+    id: "pantene-provitamin-essence",
+    brand: "Pantene",
+    name: "Pro-Vitamin Essence Weightless Leave-On Treatment",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["bond-treatment"],
+    blurb: "Weightless leave-on strengthener.",
+  },
+  {
+    id: "k18-mask",
+    brand: "K18",
+    name: "Leave-In Molecular Repair Hair Mask",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Independently certified cruelty-free · vegan.",
+    categories: ["bond-treatment", "protein-treatment"],
+    blurb: "The staple bond-repair pick — a little goes a long way, roughly once every few weeks. Follow the usage steps so you don't waste it.",
+  },
+  {
+    id: "olaplex-no3",
+    brand: "Olaplex",
+    name: "No.3 Hair Perfector",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Brand states cruelty-free; approved by Cruelty-Free Kitty. No official Leaping Bunny/PETA certification.",
+    categories: ["bond-treatment", "mask"],
+    blurb: "The at-home bond rebuilder that started it all — 15+ minutes before shampooing.",
+  },
+  {
+    id: "livingproof-triple-bond",
+    brand: "Living Proof",
+    name: "Triple Bond Complex Hair Strengthener",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["post-bond"],
+    blurb: "Post-wash strengthener — apply to damp hair and wait 10 minutes before any other product.",
+  },
+
+  // ---- 8.4 — Gloss ------------------------------------------------------------
+  {
+    id: "loreal-wonder-water",
+    brand: "L'Oréal",
+    name: "Elvive 8 Second Wonder Water",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["gloss"],
+    blurb: "8-second rinse-out lamination for instant shine.",
+  },
+  {
+    id: "loreal-everpure-lamination",
+    brand: "L'Oréal",
+    name: "EverPure Glossing 5-Min Lamination Mask",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["gloss", "mask"],
+    blurb: "Color-safe glossing mask.",
+  },
+  {
+    id: "amika-flash-shine",
+    brand: "amika",
+    name: "Flash Instant Shine Mask",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["gloss", "mask"],
+    blurb: "One-minute glass-hair gloss.",
+  },
+  {
+    id: "loreal-glycolic-gloss",
+    brand: "L'Oréal",
+    name: "Elvive Glycolic Gloss 5-Min Lamination",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["gloss"],
+    blurb: "Glycolic-acid gloss treatment for mirror shine.",
+  },
+
+  // ---- 8.4 — Conditioner -------------------------------------------------------
+  {
+    id: "garnier-hair-filler-conditioner",
+    brand: "Garnier Fructis",
+    name: "Hair Filler + Vitamin Cg Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Everyday strengthening conditioner.",
+  },
+  {
+    id: "nym-tough-love-conditioner",
+    brand: "Not Your Mother's",
+    name: "Tough Love Bonding Conditioner",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers; not officially certified.",
+    categories: ["conditioner"],
+    blurb: "Bonding conditioner pair to the Tough Love wash.",
+  },
+  {
+    id: "dove-intensive-repair-conditioner",
+    brand: "Dove",
+    name: "Intensive Repair Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Reliable, cheap repair conditioner.",
+  },
+  {
+    id: "dove-bond-strength-conditioner",
+    brand: "Dove",
+    name: "Bond Strength Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Bond-care conditioner step.",
+  },
+  {
+    id: "loreal-everpure-bond-conditioner",
+    brand: "L'Oréal",
+    name: "EverPure Bond Repair Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Sulfate-free line, bond-repair conditioner.",
+  },
+  {
+    id: "pureology-strength-cure-conditioner",
+    brand: "Pureology",
+    name: "Strength Cure Conditioner",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Rich salon conditioner for damaged lengths.",
+  },
+  {
+    id: "amika-kure-conditioner",
+    brand: "amika",
+    name: "The Kure Bond Repair Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["conditioner"],
+    blurb: "Bond-repair conditioner pair to The Kure wash.",
+  },
+  {
+    id: "redken-abc-conditioner",
+    brand: "Redken",
+    name: "Acidic Bonding Concentrate Conditioner",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Acidic pH conditioner that seals the cuticle.",
+  },
+  {
+    id: "ogx-bond-conditioner",
+    brand: "OGX",
+    name: "Bond Protein Repair Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Protein bond-repair conditioner for breakage-prone hair.",
+  },
+  {
+    id: "innersense-hydrating-conditioner",
+    brand: "Innersense",
+    name: "Hydrating Cream Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["conditioner"],
+    blurb: "Deeply hydrating clean-beauty conditioner.",
+  },
+  {
+    id: "devacurl-one-condition",
+    brand: "DevaCurl",
+    name: "One Condition Original",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "PETA certified. (Parent company Henkel isn't cruelty-free; DevaCurl itself is independently certified.)",
+    categories: ["conditioner", "curl-styler"],
+    blurb: "The classic curl conditioner — rich slip for detangling while it's in.",
+  },
+
+  // ---- 8.4 — Masks -------------------------------------------------------------
+  {
+    id: "cer100-protein",
+    brand: "CER-100",
+    name: "Collagen Ceramide Cooling Protein Treatment",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask", "protein-treatment"],
+    blurb: "Cult K-beauty protein treatment for limp, damaged hair.",
+  },
+  {
+    id: "pantene-miracle-rescue-deep",
+    brand: "Pantene",
+    name: "Miracle Rescue Deep Repair Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "Deep repair in a drugstore jar.",
+  },
+  {
+    id: "pantene-miracle-rescue-bond-mask",
+    brand: "Pantene",
+    name: "Miracle Rescue Intensive Bond Repair Mask",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "Intensive weekly bond mask.",
+  },
+  {
+    id: "ogx-bond-3min-mask",
+    brand: "OGX",
+    name: "Bond Protein Repair 3-Minute Treatment Mask",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask", "protein-treatment"],
+    blurb: "Fast protein mask for busy wash days.",
+  },
+  {
+    id: "dove-10in1-intensive",
+    brand: "Dove",
+    name: "10-in-1 Serum Mask Intensive Repair",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "Serum-mask hybrid, repair edition.",
+  },
+  {
+    id: "dove-10in1-bond",
+    brand: "Dove",
+    name: "10-in-1 Serum Mask Bond Strength",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "Serum-mask hybrid, bond edition.",
+  },
+  {
+    id: "amika-kure-mask",
+    brand: "amika",
+    name: "The Kure Intense Repair Mask",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["mask"],
+    blurb: "Intense repair mask for very damaged hair.",
+  },
+  {
+    id: "ogx-coconut-miracle-mask",
+    brand: "OGX",
+    name: "Coconut Miracle Oil Hair Mask",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "Coconut-oil deep conditioner — 15–20 minutes under a shower cap.",
+  },
+  {
+    id: "aussie-3-minute",
+    brand: "Aussie",
+    name: "3 Minute Miracle",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["mask"],
+    blurb: "The $4 deep conditioner that's been saving dry hair for decades.",
+  },
+  {
+    id: "briogeo-dont-despair",
+    brand: "Briogeo",
+    name: "Don't Despair, Repair! Deep Conditioning Mask",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["mask"],
+    blurb: "Weekly rescue mask for dry, damaged hair.",
+  },
+
+  // ---- 8.6 — Leave-in conditioner & heat protectant -----------------------------
+  {
+    id: "pantene-miracle-rescue-spray",
+    brand: "Pantene",
+    name: "Miracle Rescue 10-in-1 Multitasking Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in"],
+    blurb: "Leave-in, detangler, and heat shield in one bottle.",
+  },
+  {
+    id: "tresemme-heat-spray",
+    brand: "TRESemmé",
+    name: "Protecting Heat Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in", "heat-protect"],
+    blurb: "No-frills heat protection.",
+  },
+  {
+    id: "tresemme-keratin-blowout",
+    brand: "TRESemmé",
+    name: "Keratin Smooth Blowout Heat Protect Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in", "heat-protect"],
+    blurb: "Heat shield that smooths for blowouts.",
+  },
+  {
+    id: "nym-tough-love-leave-in",
+    brand: "Not Your Mother's",
+    name: "Tough Love Bonding Leave-In Protector",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers; not officially certified.",
+    categories: ["leave-in", "heat-protect"],
+    blurb: "Bonding leave-in with heat protection built in.",
+  },
+  {
+    id: "ogx-bond-leave-in",
+    brand: "OGX",
+    name: "Bond Protein Repair Leave-In Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in"],
+    blurb: "Protein leave-in for fragile lengths.",
+  },
+  {
+    id: "loreal-everpure-2in1",
+    brand: "L'Oréal",
+    name: "EverPure Moisture 2-in-1 Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in"],
+    blurb: "Moisture leave-in, color-safe.",
+  },
+  {
+    id: "redken-one-united",
+    brand: "Redken",
+    name: "One United Multi-Benefit Spray",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["leave-in", "heat-protect"],
+    blurb: "25 benefits in one spray — the backstage staple.",
+  },
+  {
+    id: "pureology-color-fanatic",
+    brand: "Pureology",
+    name: "Color Fanatic",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["leave-in", "heat-protect"],
+    blurb: "21-benefit leave-in, the color-treated favorite.",
+  },
+  {
+    id: "bb-invisible-oil-primer",
+    brand: "Bumble and bumble",
+    name: "Hairdresser's Invisible Oil Primer",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["leave-in", "heat-protect"],
+    blurb: "Silky leave-in primer with UV and heat protection.",
+  },
+
+  // ---- 8.7 — Styling -------------------------------------------------------------
+  {
+    id: "tresemme-dry-texture",
+    brand: "TRESemmé",
+    name: "Dry Texture Finishing Hairspray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["styling"],
+    blurb: "Gritty, touchable texture on the cheap.",
+  },
+  {
+    id: "livingproof-dry-volume",
+    brand: "Living Proof",
+    name: "Full Dry Volume & Texture Spray",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["styling"],
+    blurb: "Instant big-hair spray.",
+  },
+  {
+    id: "oribe-dry-texturizing",
+    brand: "Oribe",
+    name: "Dry Texturizing Spray",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Oribe is cruelty-free itself; parent company Kao is not.",
+    categories: ["styling"],
+    blurb: "The iconic texture spray.",
+  },
+  {
+    id: "k18-astrolift",
+    brand: "K18",
+    name: "AstroLift Reparative Volume Spray",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Independently certified cruelty-free · vegan.",
+    categories: ["styling"],
+    blurb: "Volume that also repairs.",
+  },
+  {
+    id: "tresemme-volume-mousse",
+    brand: "TRESemmé",
+    name: "Amplified Volume Mousse",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["styling"],
+    blurb: "Classic root-lift mousse.",
+  },
+  {
+    id: "rco-grasp",
+    brand: "R+Co",
+    name: "Grasp Shaping Balm",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny certified · 100% vegan.",
+    categories: ["styling"],
+    blurb: "Flexible shaping balm for piecey definition.",
+  },
+
+  // ---- 8.8 — Style sealers: serum -------------------------------------------------
+  {
+    id: "garnier-strength-serum",
+    brand: "Garnier Fructis",
+    name: "Strength Repair Serum",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-serum"],
+    blurb: "Light strengthening serum for ends.",
+  },
+  {
+    id: "redken-abc-serum",
+    brand: "Redken",
+    name: "Acidic Bonding Concentrate 24/7 Serum",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-serum"],
+    blurb: "All-day bonding serum.",
+  },
+  {
+    id: "pureology-dream-healer",
+    brand: "Pureology",
+    name: "Strength Cure Dream Healer Serum",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-serum"],
+    blurb: "Overnight-friendly repair serum.",
+  },
+  {
+    id: "ogx-antifrizz-argan-serum",
+    brand: "OGX",
+    name: "Anti-Frizz Argan Oil Serum",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-serum", "anti-frizz"],
+    blurb: "Argan serum that smooths flyaways fast.",
+  },
+
+  // ---- 8.8 — Style sealers: lotion/cream -------------------------------------------
+  {
+    id: "pantene-miracle-rescue-3in1",
+    brand: "Pantene",
+    name: "Miracle Rescue 3-in-1 Multitasking Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-cream"],
+    blurb: "Leave-in cream that seals and softens.",
+  },
+  {
+    id: "loreal-protein-recharge",
+    brand: "L'Oréal",
+    name: "Elvive Total Repair 5 Protein Recharge",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-cream", "protein-treatment"],
+    blurb: "Protein leave-in cream for weak lengths.",
+  },
+  {
+    id: "loreal-blowdry-primer",
+    brand: "L'Oréal",
+    name: "EverPure Weightless Blow Dry Primer",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-cream", "heat-protect"],
+    blurb: "Weightless cream primer for heat styling days.",
+  },
+  {
+    id: "redken-abc-leave-in",
+    brand: "Redken",
+    name: "Acidic Bonding Concentrate Leave-In Treatment",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-cream"],
+    blurb: "Leave-in bonding cream.",
+  },
+  {
+    id: "bb-invisible-oil-cream",
+    brand: "Bumble and bumble",
+    name: "Hairdresser's Invisible Oil Long Last Styling Cream",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-cream"],
+    blurb: "Silky styling cream for smooth, sealed ends.",
+  },
+
+  // ---- 8.8 — Style sealers: oil ------------------------------------------------------
+  {
+    id: "ogx-bond-oil-mist",
+    brand: "OGX",
+    name: "Bond Protein Repair Oil Mist",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-oil"],
+    blurb: "Fine mist oil that won't overload fine hair.",
+  },
+  {
+    id: "dove-intensive-repair-oil",
+    brand: "Dove",
+    name: "Intensive Repair Oil",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-oil", "between-wash-oil"],
+    blurb: "Budget finishing oil.",
+  },
+  {
+    id: "dove-bond-shield-oil",
+    brand: "Dove",
+    name: "Bond Shield Oil",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["sealer-oil", "between-wash-oil"],
+    blurb: "Bond-protecting finishing oil.",
+  },
+  {
+    id: "livingproof-vanishing-oil",
+    brand: "Living Proof",
+    name: "Vanishing Oil",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-oil"],
+    blurb: "Disappears into hair — shine without grease.",
+  },
+  {
+    id: "amika-superfruit-star",
+    brand: "amika",
+    name: "Superfruit Star Lightweight Styling Oil",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["sealer-oil", "between-wash-oil"],
+    blurb: "Lightweight styling oil that works between washes too.",
+  },
+  {
+    id: "bb-invisible-oil",
+    brand: "Bumble and bumble",
+    name: "Hairdresser's Invisible Oil",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["sealer-oil", "between-wash-oil"],
+    blurb: "The cult finishing oil.",
+  },
+
+  // ---- 8.9 — Between-wash care ---------------------------------------------------------
+  {
+    id: "amika-midnight-mender",
+    brand: "amika",
+    name: "Midnight Mender Overnight Strength Repair Treatment",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["between-wash-oil", "night-treatment"],
+    blurb: "Overnight repair treatment — wake up with softer hair.",
+  },
+  {
+    id: "dove-bond-shield",
+    brand: "Dove",
+    name: "Bond Shield",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["between-wash-oil"],
+    blurb: "Leave-on bond protection between washes.",
+  },
+  {
+    id: "livingproof-phd-heat",
+    brand: "Living Proof",
+    name: "Perfect Hair Day Heat Styling Spray",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["heat-protect"],
+    blurb: "Heat protection before hot tools between washes.",
+  },
+  {
+    id: "igk-good-behavior",
+    brand: "IGK",
+    name: "Good Behavior Spirulina Protein Smoothing Spray",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["heat-protect"],
+    blurb: "Smoothing blowout spray with protein.",
+  },
+  {
+    id: "moroccanoil-perfect-defense",
+    brand: "Moroccanoil",
+    name: "Perfect Defense",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["heat-protect"],
+    blurb: "Dry-mist thermal protection.",
+  },
+  {
+    id: "oribe-gold-lust-heat",
+    brand: "Oribe",
+    name: "Gold Lust Dry Heat Protection Spray",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Oribe is cruelty-free itself; parent company Kao is not.",
+    categories: ["heat-protect"],
+    blurb: "Luxe dry heat shield.",
+  },
+  {
+    id: "amika-perk-up-plus",
+    brand: "amika",
+    name: "Perk Up Plus Extended Clean Dry Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny + PETA certified.",
+    categories: ["dry-shampoo"],
+    blurb: "Extended-wear dry shampoo that doesn't cake.",
+  },
+  {
+    id: "livingproof-phd-dry-shampoo",
+    brand: "Living Proof",
+    name: "Perfect Hair Day Advanced Clean Dry Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["dry-shampoo"],
+    blurb: "Actually cleans — the gold-standard dry shampoo.",
+  },
+  {
+    id: "dove-volume-dry-shampoo",
+    brand: "Dove",
+    name: "Volume & Fullness Advanced Dry Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["dry-shampoo"],
+    blurb: "Budget refresh with a volume boost.",
+  },
+  {
+    id: "nym-clean-freak",
+    brand: "Not Your Mother's",
+    name: "Clean Freak Refreshing Dry Shampoo",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers; not officially certified.",
+    categories: ["dry-shampoo"],
+    blurb: "The $8 dry shampoo classic.",
+  },
+
+  // ---- Section 7 — Thinning / slow growth -----------------------------------------------
+  {
+    id: "mielle-rosemary-mint",
+    brand: "Mielle",
+    name: "Rosemary Mint Scalp & Strengthening Oil",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["scalp-serum"],
+    blurb: "The viral rosemary scalp oil — massage in at night, 3–4× a week.",
+  },
+  {
+    id: "maple-holistics-biotin",
+    brand: "Maple Holistics",
+    name: "Biotin Hair Growth Serum",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["scalp-serum"],
+    blurb: "Budget biotin scalp serum.",
+  },
+  {
+    id: "actacre-scalp-detox",
+    brand: "Act+Acre",
+    name: "Cold Processed Scalp Detox",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["scalp-serum", "scalp-scrub"],
+    blurb: "Pre-wash scalp detox oil that dissolves buildup around follicles.",
+  },
+  {
+    id: "vegamour-gro",
+    brand: "Vegamour",
+    name: "GRO Hair Serum",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free and vegan brand.",
+    categories: ["scalp-serum"],
+    blurb: "Plant-based daily density serum.",
+  },
+  {
+    id: "briogeo-scalp-revival",
+    brand: "Briogeo",
+    name: "Scalp Revival Charcoal + Coconut Oil Scrub",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["scalp-scrub"],
+    blurb: "Charcoal micro-exfoliating scrub — weekly scalp reset.",
+  },
+  {
+    id: "christophe-robin-scrub",
+    brand: "Christophe Robin",
+    name: "Purifying Scalp Scrub",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["scalp-scrub"],
+    blurb: "Sea-salt purifying scrub, the luxury scalp-facial.",
+  },
+
+  // ---- Section 7 — Frizz --------------------------------------------------------------------
+  {
+    id: "nym-frizz-go-away",
+    brand: "Not Your Mother's",
+    name: "Frizz Go Away",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Widely reported cruelty-free by independent trackers; not officially certified.",
+    categories: ["anti-frizz", "sealer-cream"],
+    blurb: "Does what it says on the bottle.",
+  },
+  {
+    id: "livingproof-no-frizz",
+    brand: "Living Proof",
+    name: "No Frizz Leave-In Conditioner",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["anti-frizz", "leave-in"],
+    blurb: "Humidity-blocking leave-in with patented tech.",
+  },
+  {
+    id: "rahua-frizz-free-cream",
+    brand: "Rahua",
+    name: "Frizz-Free Cream",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["anti-frizz", "sealer-cream"],
+    blurb: "Plant-powered smoothing cream.",
+  },
+  {
+    id: "bread-hair-oil",
+    brand: "Bread Beauty Supply",
+    name: "Hair Oil",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["anti-frizz", "sealer-oil", "between-wash-oil"],
+    blurb: "Everyday gloss oil that calms frizz without weight.",
+  },
+
+  // ---- Section 7 — Breakage (Olaplex wash pair) ----------------------------------------------
+  {
+    id: "olaplex-no4",
+    brand: "Olaplex",
+    name: "No.4 Bond Maintenance Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Brand states cruelty-free; approved by Cruelty-Free Kitty. No official certification.",
+    categories: ["strengthening-shampoo"],
+    blurb: "Bond-maintenance wash.",
+  },
+  {
+    id: "olaplex-no5",
+    brand: "Olaplex",
+    name: "No.5 Bond Maintenance Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Brand states cruelty-free; approved by Cruelty-Free Kitty. No official certification.",
+    categories: ["conditioner"],
+    blurb: "Bond-maintenance conditioner.",
+  },
+
+  // ---- Section 7 — Dandruff (cruelty-free medicated) ------------------------------------------
+  {
+    id: "derma-e-scalp-relief",
+    brand: "Derma E",
+    name: "Scalp Relief Shampoo",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["medicated-shampoo"],
+    blurb: "Cruelty-free relief for flaking and itch.",
+  },
+  {
+    id: "jason-dandruff-relief",
+    brand: "JASON",
+    name: "Dandruff Relief Shampoo",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["medicated-shampoo"],
+    blurb: "Cruelty-free alternative to Head & Shoulders.",
+  },
+  {
+    id: "oribe-serene-scalp",
+    brand: "Oribe",
+    name: "Serene Scalp Anti-Dandruff Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Oribe is cruelty-free itself; parent company Kao is not.",
+    categories: ["medicated-shampoo"],
+    blurb: "Dandruff care that feels like luxury.",
+  },
+
+  // ---- Section 7 — New to curly/wavy ------------------------------------------------------------
+  {
+    id: "cantu-curling-cream",
+    brand: "Cantu",
+    name: "Coconut Curling Cream",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["curl-styler", "sealer-cream"],
+    blurb: "The starter curl cream — rich definition for a few dollars.",
+  },
+  {
+    id: "aussie-miracle-curls",
+    brand: "Aussie",
+    name: "Miracle Curls Air Dry Cream",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["curl-styler"],
+    blurb: "Air-dry cream for soft, non-crunchy waves and curls.",
+  },
+  {
+    id: "ouidad-climate-control",
+    brand: "Ouidad",
+    name: "Climate Control Gel",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["curl-styler"],
+    blurb: "Humidity-proof curl gel from the curl-salon pioneers.",
+  },
+  {
+    id: "innersense-curl-creme",
+    brand: "Innersense",
+    name: "Curl Crème",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["curl-styler"],
+    blurb: "Clean-beauty curl definition.",
+  },
+  {
+    id: "bread-curl-whip",
+    brand: "Bread Beauty Supply",
+    name: "Curl Whip",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["curl-styler"],
+    blurb: "Whipped curl styler for soft hold.",
+  },
+
+  // ---- 6.4 — Night treatments ---------------------------------------------------------------------
+  {
+    id: "kerastase-8h-night",
+    brand: "Kérastase",
+    name: "Nutritive 8H Magic Night Serum Hydrating Treatment",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["night-treatment"],
+    blurb: "The luxury overnight serum — follow with a lightweight hair oil.",
+  },
+  {
+    id: "loreal-midnight-serum",
+    brand: "L'Oréal",
+    name: "Elvive Extraordinary Oil Midnight Serum",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["night-treatment"],
+    blurb: "Commonly cited as the much-cheaper dupe for the Kérastase 8H night serum.",
+  },
+
+  // ---- 6.6 — UV protection ---------------------------------------------------------------------------
+  {
+    id: "pantene-sunkiss-glow",
+    brand: "Pantene",
+    name: "Sunkiss Glow UV Protection Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["uv-protect"],
+    tags: ["new"],
+    blurb: "2026 launch that targets UV, salt, and chlorine exposure specifically.",
+  },
+  {
+    id: "sunbum-heat-protector",
+    brand: "Sun Bum",
+    name: "Heat Protector Spray",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["heat-protect", "uv-protect"],
+    blurb: "Beach-brand spray that shields against heat and sun.",
+  },
+
+  // ---- Section 10 — Expanded cruelty-free library (CF tab only) -----------------------------------------
+  {
+    id: "aveda-range",
+    brand: "Aveda",
+    name: "Shampoo & Conditioner (full range, incl. scalp care)",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Leaping Bunny certified · 100% vegan.",
+    categories: ["strengthening-shampoo", "conditioner", "scalp-serum"],
+    blurb: "Salon icon — the whole range qualifies, including scalp care.",
+  },
+  {
+    id: "pacifica-range",
+    brand: "Pacifica Beauty",
+    name: "Shampoo & Conditioner ranges",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["strengthening-shampoo", "conditioner"],
+    blurb: "Budget/drugstore-friendly — easy to find at Target.",
+  },
+  {
+    id: "verb-range",
+    brand: "Verb",
+    name: "Shampoo & Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["strengthening-shampoo", "conditioner"],
+    blurb: "Especially good for fine hair.",
+  },
+  {
+    id: "curlsmith-range",
+    brand: "CurlSmith",
+    name: "Protein-Free Curl Range",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["curl-styler", "conditioner", "sulfate-free"],
+    blurb: "Protein-free formulas built for curly hair.",
+  },
+  {
+    id: "acure-range",
+    brand: "ACURE",
+    name: "Shampoo & Conditioner",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Leaping Bunny + PETA certified · B Corp.",
+    categories: ["strengthening-shampoo", "conditioner"],
+    blurb: "Affordable, certified, and B Corp to boot.",
+  },
+  {
+    id: "giovanni-range",
+    brand: "Giovanni",
+    name: "Shampoo & Conditioner",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["strengthening-shampoo", "conditioner"],
+    blurb: "Salon-quality formulas at grocery-store prices.",
+  },
+  {
+    id: "ethique-bars",
+    brand: "Ethique",
+    name: "Solid Shampoo Bars",
+    tier: "drugstore",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["strengthening-shampoo"],
+    blurb: "Zero-waste shampoo bars.",
+  },
+  {
+    id: "paul-mitchell-range",
+    brand: "Paul Mitchell",
+    name: "Shampoo & Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free since 1980 · Leaping Bunny + PETA certified.",
+    categories: ["strengthening-shampoo", "conditioner"],
+    blurb: "The original cruelty-free salon brand.",
+  },
+  {
+    id: "jvn-line",
+    brand: "JVN",
+    name: "Styling Serums & Oils",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Leaping Bunny certified.",
+    categories: ["sealer-serum", "sealer-oil", "styling"],
+    blurb: "Jonathan Van Ness's line — styling, serum, and oil picks.",
+  },
+  {
+    id: "playa-ritual-oil",
+    brand: "Playa",
+    name: "Ritual Hair Oil",
+    tier: "luxury",
+    crueltyFree: true,
+    cfOnly: true,
+    cfNote: "Cruelty-free brand.",
+    categories: ["sealer-oil", "pre-poo", "between-wash-oil"],
+    blurb: "Natural coconut, apricot, and sunflower oil blend — doubles as a cruelty-free pre-poo.",
+  },
+
+  // ---- Tools (shown in every tab) --------------------------------------------------------------------------
+  {
+    id: "scalp-massage-brush",
+    brand: "Any brand",
+    name: "Wood or Bamboo Scalp Massage Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-scalp"],
+    blurb: "About $10 for a multi-pack on Amazon — distributes product, gently exfoliates buildup, and the stimulation may support circulation.",
+  },
+  {
+    id: "silk-pillowcase",
+    brand: "Any brand",
+    name: "Silk or Satin Pillowcase (or Bonnet)",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-night"],
+    blurb: "Less friction while you sleep = less breakage, dryness, and frizz.",
+  },
+  {
+    id: "microfiber-towel",
+    brand: "Any brand",
+    name: "Microfiber Hair Towel (or an old cotton t-shirt)",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-dry"],
+    blurb: "Rough terry towels rough up the cuticle — microfiber or a t-shirt dries gently.",
+  },
+  {
+    id: "wide-tooth-comb",
+    brand: "Any brand",
+    name: "Wide-Tooth Comb",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-detangle"],
+    blurb: "The only thing that should detangle wet hair.",
+  },
+];
+
+function getProduct(id) {
+  return PRODUCTS.find((p) => p.id === id) || null;
+}
+
+// Pool of candidate products for one tier tab.
+//   drugstore   → drugstore-tier products (plus universal tools)
+//   luxury      → luxury-tier products (plus universal tools)
+//   crueltyFree → anything cruelty-free, any price point (plus universal tools)
+function productPool(tierKey) {
+  return PRODUCTS.filter((p) => {
+    if (p.universal) return true;
+    if (tierKey === "crueltyFree") return p.crueltyFree === true;
+    return p.tier === tierKey && !p.cfOnly;
+  });
+}
+
+
+// ===== lib/recommendations.js =====
+// ---------------------------------------------------------------------------
+// HairIQ — Recommendation engine (spec sections 7, 8, 9 + section 6 logic)
+//
+// buildRoutine(answers) is the single entry point. It returns the full
+// routine with ALL THREE tiers (drugstore / luxury / crueltyFree)
+// pre-calculated per step, so the results page can switch tabs instantly.
+//
+// Layering model:
+//   1. Concern (Q4) drives the concern-specific steps       → section 7
+//   2. Time available (Q9) gates the framework extras       → sections 8 + 9
+//   3. Cross-cutting principles adjust copy and picks       → section 6
+// ---------------------------------------------------------------------------
+
+
+const DEPTHS = { five: 1, fifteen: 2, twentyPlus: 3 };
+
+const DEPTH_LABELS = {
+  1: "Core routine · 5 min or less",
+  2: "Standard routine · 10–15 min",
+  3: "Full routine · 20+ min",
+};
+
+// Q4 lookup — the primary driver of results (spec section 7).
+const CONCERNS = {
+  thinning: {
+    label: "Thinning or density loss",
+    headline: "Your plan for fuller-feeling hair",
+    blurb: "Scalp-first: daily massage, night serums, and growth-supporting washes — with zero tension on the hairline.",
+  },
+  dryness: {
+    label: "Dryness or damage",
+    headline: "Your plan for softer, healthier hair",
+    blurb: "Moisture in, moisture kept: pre-wash oil, a weekly deep mask, and a leave-in every single wash day.",
+  },
+  frizz: {
+    label: "Frizz",
+    headline: "Your plan for smooth, calm hair",
+    blurb: "Frizz is thirst plus friction — so we hydrate in layers (LOC/LCO), dry gently, and then keep hands off.",
+  },
+  breakage: {
+    label: "Breakage & split ends",
+    headline: "Your plan for stronger hair",
+    blurb: "Bond repair on wash days, silk at night, and gentle detangling — strength is built in the details.",
+  },
+  dandruff: {
+    label: "Dandruff or flaking",
+    headline: "Your plan for a calm, flake-free scalp",
+    blurb: "Medicated washes done the right way (as the second wash), weekly exfoliation, and no hot water on the scalp.",
+  },
+  slowGrowth: {
+    label: "Slow growth",
+    headline: "Your plan for length that sticks around",
+    blurb: "Nightly scalp massage, growth serum, and monthly protein — plus trims so breakage stops erasing your progress.",
+  },
+  curlyNew: {
+    label: "New to curly or wavy hair",
+    headline: "Your starter curl routine",
+    blurb: "The beginner-proof version: sulfate-free washing, styling on soaking-wet hair, plopping, and day-2 refreshes.",
+  },
+};
+
+const WASH_INTROS = {
+  daily: "You wash daily — keep the everyday wash gentle, and save the heavier treatments for one or two designated “full” wash days a week.",
+  everyOther: "You wash every other day — wash days come around often, so rotate the extras across them instead of doing everything every time.",
+  twiceWeek: "You wash about twice a week — treat each wash day as a mini reset and give the treatment steps room to work.",
+  weekly: "You wash weekly (or less) — make that one wash day count, and lean on the Every Day column to keep your scalp happy in between.",
+};
+
+function optionLabel(questionId, value) {
+  const q = QUESTIONS.find((question) => question.id === questionId);
+  const opt = q && q.options.find((o) => o.value === value);
+  return opt ? opt.label : value;
+}
+
+// Pick up to `limit` products for one tier: preferred ids first (spec section 7
+// highlighted defaults), then library order (spec section 8).
+function pickProducts(tierKey, categories, prefer = [], limit = 3) {
+  if (!categories || categories.length === 0) return [];
+  const pool = productPool(tierKey).filter((p) =>
+    p.categories.some((cat) => categories.includes(cat))
+  );
+  const preferred = prefer
+    .map((id) => pool.find((p) => p.id === id))
+    .filter(Boolean);
+  const rest = pool.filter((p) => !prefer.includes(p.id));
+  return [...preferred, ...rest].slice(0, limit);
+}
+
+function makeStep(def) {
+  const products = {};
+  for (const tierKey of TIER_KEYS) {
+    products[tierKey] = def.noProducts
+      ? []
+      : pickProducts(tierKey, def.categories || [], (def.prefer && def.prefer[tierKey]) || [], def.limit || 3);
+  }
+  return {
+    id: def.id,
+    phase: def.phase,
+    title: def.title,
+    how: def.how,
+    frequency: def.frequency || null,
+    principleId: def.principleId || null,
+    optional: !!def.optional,
+    emptyText: def.emptyText || null,
+    noProducts: !!def.noProducts,
+    products,
+  };
+}
+
+function buildRoutine(answers) {
+  const depth = DEPTHS[answers.time] || 2;
+  const concern = CONCERNS[answers.concern] || CONCERNS.dryness;
+  const c = answers.concern;
+  const chem = Array.isArray(answers.chemical) ? answers.chemical : [];
+  const fine = answers.density === "fine" || answers.density === "unsure";
+  const thick = answers.density === "thick";
+  const curlyTexture = answers.hairType === "curly" || answers.hairType === "coily";
+  const colorTreated = chem.includes("salonColor") || chem.includes("boxDye") || chem.includes("bleach");
+  const highPorosity = chem.includes("bleach") || chem.includes("relaxer");
+  const locOrder = highPorosity ? "LCO" : "LOC";
+  const locText = highPorosity
+    ? "LCO order (leave-in → cream → oil) — bleached or chemically treated hair is usually higher porosity, so the oil goes on top to hold everything in"
+    : "LOC order (leave-in → oil → cream) — a light oil layer first works best unless your hair is very porous";
+
+  const steps = [];
+
+  // ------------------------------------------------------------- WASH DAY --
+  // Pre-poo (6.1 / 8.1) — core for thinning & dryness, full-depth for others.
+  if (depth >= 3 || c === "thinning" || c === "dryness") {
+    steps.push({
+      id: "pre-poo",
+      phase: "washDay",
+      title: "Pre-wash oil treatment (“pre-poo”)",
+      frequency: "10–20 min before shampoo",
+      how: fine
+        ? "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down."
+        : "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.",
+      categories: ["pre-poo"],
+      principleId: "prePoo",
+      prefer: {
+        drugstore: fine
+          ? ["ogx-coconut-weightless-oil", "ogx-coconut-penetrating-oil"]
+          : ["ogx-coconut-penetrating-oil", "ogx-coconut-weightless-oil"],
+        crueltyFree: ["playa-ritual-oil"],
+        luxury: [],
+      },
+      emptyText:
+        "No luxury-tier pre-poo in the library yet — the OGX coconut oils (Drugstore tab) are the science-backed pick here regardless of budget.",
+    });
+  }
+
+  // Pre-shampoo bond treatment (8.1) — full depth only; breakage gets its bond
+  // step in-shower instead.
+  if (depth >= 3 && c !== "breakage") {
+    steps.push({
+      id: "pre-wash-bond",
+      phase: "washDay",
+      title: "Pre-shampoo bond treatment",
+      optional: true,
+      frequency: "1–2×/week",
+      how: "Apply at least 10 minutes before washing. Any bond-repair treatment works used before shampoo instead of after — Olaplex No.3 is literally designed this way.",
+      categories: ["pre-wash-bond", "bond-treatment"],
+      prefer: {
+        drugstore: ["ogx-bond-preshampoo"],
+        luxury: ["olaplex-no3"],
+        crueltyFree: ["olaplex-no3"],
+      },
+      limit: 2,
+    });
+  }
+
+  // Shampoo (8.2) — always present; flavor depends on concern + scalp.
+  if (c === "dandruff") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo — gentle daily, medicated 2×/week",
+      frequency: "Every wash",
+      how:
+        "Alternate a gentle shampoo with a medicated one about twice a week. When your scalp feels heavy, double-wash: gentle first to break down buildup, medicated second so it can actually treat the scalp. Keep the water warm — never hot — on an irritated scalp.",
+      categories: ["medicated-shampoo"],
+      principleId: "doubleWash",
+      prefer: {
+        drugstore:
+          answers.scalp === "dry"
+            ? ["cerave-anti-dandruff", "nizoral", "head-shoulders-classic"]
+            : ["nizoral", "head-shoulders-classic"],
+        luxury: ["oribe-serene-scalp"],
+        crueltyFree: ["derma-e-scalp-relief", "jason-dandruff-relief"],
+      },
+    });
+  } else if (c === "thinning") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo — growth support",
+      frequency: "Every wash",
+      how: "A growth-supporting wash on wash days. Massage it into the scalp with fingertips — that's where it earns its keep.",
+      categories: ["growth-shampoo", "strengthening-shampoo"],
+      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      prefer: {
+        drugstore: ["ogx-thick-full-shampoo"],
+        luxury: [],
+        crueltyFree: ["aveda-range"],
+      },
+    });
+  } else if (c === "curlyNew") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Wash — sulfate-free shampoo or co-wash",
+      frequency: "Every wash",
+      how: "Curls dry out fast, so keep the wash gentle: a sulfate-free shampoo (or a co-wash if your scalp isn't oily), focused on the scalp.",
+      categories: ["sulfate-free"],
+      prefer: {
+        drugstore: ["loreal-everpure-bond-shampoo"],
+        luxury: ["pureology-strength-cure-shampoo"],
+        crueltyFree: ["curlsmith-range"],
+      },
+      limit: 2,
+    });
+  } else if (c === "breakage") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo — bond strengthening",
+      frequency: "Every wash",
+      how: "A bond-strengthening wash, and be gentle: lather at the scalp, squeeze (don't scrub) the lengths.",
+      categories: ["strengthening-shampoo"],
+      prefer: {
+        drugstore: ["ogx-bond-shampoo", "loreal-everpure-bond-shampoo"],
+        luxury: ["amika-kure-shampoo"],
+        crueltyFree: ["olaplex-no4"],
+      },
+    });
+  } else {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo",
+      frequency: "Every wash",
+      how:
+        answers.scalp === "oily"
+          ? "Focus shampoo on the scalp, not the lengths — and when it feels heavy with product or sweat, double-wash."
+          : answers.scalp === "dry"
+            ? "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends."
+            : "A strengthening wash, massaged into the scalp with fingertips.",
+      categories: ["strengthening-shampoo"],
+      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      prefer: {
+        drugstore: [],
+        luxury: [],
+        crueltyFree: [],
+      },
+    });
+  }
+
+  // Clarifying rotation (8.2) — standard depth+; dandruff's medicated routine
+  // already handles scalp reset.
+  if (depth >= 2 && c !== "dandruff") {
+    steps.push({
+      id: "clarify",
+      phase: "washDay",
+      title: "Clarifying wash (swap in)",
+      frequency: "1×/week",
+      how: chem.includes("boxDye")
+        ? "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment."
+        : "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better.",
+      categories: ["clarifying-shampoo"],
+      prefer: {
+        drugstore: chem.includes("boxDye") ? ["loreal-metal-detox"] : [],
+        luxury: [],
+        crueltyFree: [],
+      },
+    });
+  }
+
+  // In-shower bond treatment (8.3) — standard depth+; core for breakage.
+  if (depth >= 2 || c === "breakage") {
+    steps.push({
+      id: "bond-treatment",
+      phase: "washDay",
+      title: c === "breakage" ? "Bond-repair treatment" : "Bond treatment",
+      optional: c !== "breakage",
+      frequency: "Weekly · K18 every few weeks",
+      how: "One in-shower bond builder, weekly or as needed. If you go with K18, use it right — the steps below save you from wasting product (most people do).",
+      categories: ["bond-treatment"],
+      principleId: "k18",
+      prefer: {
+        drugstore: ["loreal-everpure-bond-concentrate", "nym-tough-love-treatment"],
+        luxury: ["k18-mask"],
+        crueltyFree: ["k18-mask", "olaplex-no3"],
+      },
+    });
+  }
+
+  // Conditioner (8.4) — always present.
+  steps.push({
+    id: "condition",
+    phase: "washDay",
+    title: "Condition",
+    frequency: "Every wash",
+    how:
+      c === "breakage"
+        ? "Mid-lengths and ends, every wash. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
+        : c === "curlyNew"
+          ? "Condition generously every wash — curls drink it up. This is also your detangling window (next step)."
+          : answers.scalp === "oily"
+            ? "Mid-lengths and ends only — keep conditioner off the roots."
+            : "Mid-lengths and ends, every single wash.",
+    categories: ["conditioner"],
+    prefer: {
+      drugstore:
+        c === "breakage" ? ["ogx-bond-conditioner", "loreal-everpure-bond-conditioner"] : [],
+      luxury:
+        c === "curlyNew"
+          ? ["devacurl-one-condition"]
+          : c === "dryness"
+            ? ["pureology-strength-cure-conditioner"]
+            : [],
+      crueltyFree:
+        c === "curlyNew"
+          ? ["devacurl-one-condition", "innersense-hydrating-conditioner"]
+          : c === "breakage"
+            ? ["olaplex-no5"]
+            : c === "dryness"
+              ? ["innersense-hydrating-conditioner"]
+              : [],
+    },
+  });
+
+  // Detangle rule — its own micro-step for curly beginners (spec section 7).
+  if (c === "curlyNew") {
+    steps.push({
+      id: "detangle",
+      phase: "washDay",
+      title: "Detangle while the conditioner is in",
+      frequency: "Every wash",
+      how: "Fingers or a wide-tooth comb, working from the ends up — never brush curls once they're dry. Rinse when you're through it.",
+      categories: ["tool-detangle"],
+      limit: 1,
+    });
+  }
+
+  // Deep treatment (8.4 mask / concern-specific).
+  if (c === "dryness") {
+    steps.push({
+      id: "mask",
+      phase: "washDay",
+      title: "Deep conditioning mask",
+      frequency: "1×/week",
+      how: "15–20 minutes with a shower cap or warm towel over it — the warmth helps it actually absorb instead of sitting on top.",
+      categories: ["mask"],
+      prefer: {
+        drugstore: ["ogx-coconut-miracle-mask", "aussie-3-minute"],
+        luxury: ["olaplex-no3"],
+        crueltyFree: ["briogeo-dont-despair"],
+      },
+    });
+  } else if (c === "slowGrowth") {
+    steps.push({
+      id: "protein",
+      phase: "washDay",
+      title: "Protein treatment",
+      frequency: "1×/month",
+      how: "A monthly protein treatment keeps strands strong enough to hold onto their length — growth you don't break off is growth you keep.",
+      categories: ["protein-treatment"],
+      prefer: {
+        drugstore: ["cer100-protein"],
+        luxury: ["k18-mask"],
+        crueltyFree: ["k18-mask"],
+      },
+    });
+  } else if (depth >= 3) {
+    steps.push({
+      id: "gloss-mask",
+      phase: "washDay",
+      title: "Gloss or mask add-on",
+      optional: true,
+      frequency: "As needed",
+      how: "Pick 1–2 conditioning layers per wash — gloss + conditioner, gloss + mask, or conditioner + mask all combine fine.",
+      categories: ["gloss", "mask"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+    });
+  }
+
+  // Post-shower bond repair (8.5) — full depth.
+  if (depth >= 3) {
+    steps.push({
+      id: "post-bond",
+      phase: "washDay",
+      title: "Post-shower bond repair",
+      optional: true,
+      frequency: "1–2×/week",
+      how: "On damp hair, then wait 10 minutes before any other product. Skip it on washes where you already used an in-shower bond treatment.",
+      categories: ["post-bond"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+      emptyText: "No pick in this tab for this optional step — your in-shower bond treatment already covers it.",
+    });
+  }
+
+  // Leave-in + heat protectant (8.6) — always present.
+  steps.push({
+    id: "leave-in",
+    phase: "washDay",
+    title: answers.heat === "rarely" ? "Leave-in conditioner" : "Leave-in conditioner + heat protectant",
+    frequency: "Every wash day",
+    how:
+      c === "curlyNew" || c === "frizz"
+        ? `Apply liberally to soaking-wet hair — this is the L (liquid) of your ${locOrder} layers.`
+        : answers.heat === "daily"
+          ? "Apply liberally to damp hair, every wash day — and never let a hot tool touch bare hair."
+          : "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better.",
+    categories: ["leave-in"],
+    prefer: {
+      drugstore: [],
+      luxury: colorTreated ? ["pureology-color-fanatic"] : [],
+      crueltyFree: [],
+    },
+  });
+
+  // Styling (8.7 / concern-specific).
+  if (c === "curlyNew") {
+    steps.push({
+      id: "style-curls",
+      phase: "washDay",
+      title: `Style soaking wet — ${locOrder} layers`,
+      frequency: "Every wash day",
+      how: `While hair is still soaking wet, layer in ${locText}. Scrunch upward to encourage the pattern.`,
+      categories: ["curl-styler"],
+      principleId: "loc",
+      prefer: {
+        drugstore: ["cantu-curling-cream", "aussie-miracle-curls"],
+        luxury: ["devacurl-one-condition", "ouidad-climate-control"],
+        crueltyFree: ["innersense-curl-creme", "bread-curl-whip", "devacurl-one-condition"],
+      },
+    });
+    steps.push({
+      id: "plop",
+      phase: "washDay",
+      title: "Plop, then air-dry or diffuse",
+      frequency: "Every wash day",
+      how: "Wrap curls up in a microfiber towel or old t-shirt for 10–15 minutes (“plopping”), then air-dry or diffuse on low heat. No rough terry towels, no touching while it dries.",
+      categories: ["tool-dry"],
+      limit: 1,
+    });
+  } else if (c === "frizz") {
+    steps.push({
+      id: "loc-seal",
+      phase: "washDay",
+      title: `Lock in moisture — ${locOrder} layers`,
+      frequency: "Every wash day",
+      how: `Frizz is hair searching the air for moisture — beat it to the punch. On damp hair, layer in ${locText}.`,
+      categories: ["anti-frizz"],
+      principleId: "loc",
+      prefer: {
+        drugstore: ["ogx-antifrizz-argan-serum", "nym-frizz-go-away"],
+        luxury: ["livingproof-no-frizz"],
+        crueltyFree: ["rahua-frizz-free-cream", "bread-hair-oil"],
+      },
+    });
+    steps.push({
+      id: "dry-gently",
+      phase: "washDay",
+      title: "Dry gently",
+      frequency: "Every wash day",
+      how: "Blot and scrunch with a microfiber towel or a t-shirt — rough terry towels rough up the cuticle and undo everything you just did.",
+      categories: ["tool-dry"],
+      limit: 1,
+    });
+  } else if (depth >= 2 && (c === "thinning" || fine)) {
+    steps.push({
+      id: "style-volume",
+      phase: "washDay",
+      title: "Volume styling",
+      optional: true,
+      frequency: "As you like",
+      how: "Lift at the roots: mousse on damp roots before drying, or a texture spray once dry. Style away from tension on the hairline.",
+      categories: ["styling"],
+      prefer: {
+        drugstore: ["tresemme-volume-mousse", "tresemme-dry-texture"],
+        luxury: ["k18-astrolift", "livingproof-dry-volume"],
+        crueltyFree: ["k18-astrolift", "oribe-dry-texturizing"],
+      },
+    });
+  } else if (depth >= 2 && (curlyTexture || answers.hairType === "wavy")) {
+    steps.push({
+      id: "style-texture",
+      phase: "washDay",
+      title: "Define your texture",
+      optional: true,
+      frequency: "As you like",
+      how: `A curl cream or styler on damp hair, scrunched up and left alone to dry${curlyTexture ? ` — ${locOrder} layering applies here too` : ""}.`,
+      categories: ["curl-styler"],
+      principleId: curlyTexture ? "loc" : null,
+      prefer: {
+        drugstore: ["cantu-curling-cream", "aussie-miracle-curls"],
+        luxury: ["ouidad-climate-control"],
+        crueltyFree: ["innersense-curl-creme", "bread-curl-whip"],
+      },
+    });
+  } else if (depth >= 3) {
+    steps.push({
+      id: "style",
+      phase: "washDay",
+      title: "Styling",
+      optional: true,
+      frequency: "As you like",
+      how: "Whatever your look calls for — texture, volume, or shape. Any order, personal preference.",
+      categories: ["styling"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+    });
+  }
+
+  // Style sealers (8.8) — full depth; frizz & curly routines already seal.
+  if (depth >= 3 && c !== "frizz" && c !== "curlyNew") {
+    steps.push({
+      id: "sealer",
+      phase: "washDay",
+      title: "Seal it in",
+      optional: true,
+      frequency: "After styling",
+      how: fine
+        ? "A few drops of serum or lightweight oil on the ends only — fine hair wants finish, not weight."
+        : thick || curlyTexture
+          ? `A cream or oil over everything locks the style in — ${locOrder} order applies here too.`
+          : "A serum, cream, or oil over your leave-in for extra smoothness and shine.",
+      categories: fine
+        ? ["sealer-serum", "sealer-oil"]
+        : thick || curlyTexture
+          ? ["sealer-cream", "sealer-oil"]
+          : ["sealer-serum", "sealer-cream", "sealer-oil"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+    });
+  }
+
+  // ------------------------------------------------------------- EVERY DAY --
+  // Scalp massage (6.3) — daily for thinning; also for the scalp-health goal.
+  if (c === "thinning" || (answers.goal === "scalpHealth" && c !== "slowGrowth" && c !== "dandruff")) {
+    steps.push({
+      id: "scalp-massage",
+      phase: "daily",
+      title: "Scalp massage",
+      frequency: "10 min daily",
+      how: "Fingertips, never nails — small circles across the whole scalp. A cheap scalp brush makes the habit easier to keep.",
+      categories: ["tool-scalp"],
+      principleId: "scalpMassage",
+      limit: 1,
+    });
+  }
+
+  // Weekly scalp exfoliation for dandruff (spec section 7).
+  if (c === "dandruff") {
+    steps.push({
+      id: "scalp-exfoliate",
+      phase: "daily",
+      title: "Scalp exfoliation",
+      frequency: "1×/week",
+      how: "Once a week, a scalp scrub (or a scalp brush used in the shower) lifts flakes and buildup so the medicated washes can reach skin.",
+      categories: ["scalp-scrub", "tool-scalp"],
+      principleId: "scalpMassage",
+      prefer: {
+        drugstore: ["scalp-massage-brush"],
+        luxury: ["christophe-robin-scrub"],
+        crueltyFree: ["briogeo-scalp-revival"],
+      },
+    });
+  }
+
+  // Curl refresh (spec section 7 — curly starter routine).
+  if (c === "curlyNew") {
+    steps.push({
+      id: "refresh",
+      phase: "daily",
+      title: "Refresh, don't re-wash",
+      frequency: "Day 2–3",
+      how: "Mist curls with water plus a small amount of your leave-in, scrunch, and go. No new products needed — it's the same leave-in from wash day.",
+      noProducts: true,
+    });
+  }
+
+  // UV protection (6.6) — seasonal, always on right now (summer).
+  steps.push({
+    id: "uv-shield",
+    phase: "daily",
+    title: "UV shield before time outside",
+    frequency: "Sunny days",
+    how: colorTreated
+      ? "Sun can visibly shift color-treated hair over one summer — mist a UV spray on before heading out, like sunscreen for your hair."
+      : "A summer of sun can change the color and texture of your ends — mist a UV spray on before heading out.",
+    categories: ["uv-protect"],
+    principleId: "uvProtection",
+    prefer: {
+      drugstore: ["pantene-sunkiss-glow"],
+      luxury: [],
+      crueltyFree: ["sunbum-heat-protector"],
+    },
+    limit: 2,
+    emptyText: "No luxury UV pick in the library yet — Pantene Sunkiss Glow (Drugstore tab) is the one to grab.",
+  });
+
+  // Between-wash heat protection (8.9) — driven by Q7.
+  if (answers.heat === "daily" || (answers.heat === "weekly" && depth >= 2)) {
+    steps.push({
+      id: "heat-protect",
+      phase: "daily",
+      title: "Heat protectant before every hot tool",
+      frequency: answers.heat === "daily" ? "Daily" : "Before hot tools",
+      how:
+        answers.heat === "daily"
+          ? "Every pass of a hot tool on bare hair is cumulative damage — this is the one product never to skip. Try to sneak in a couple of heat-free days a week, too."
+          : "Any day a hot tool comes out between washes, a heat protectant goes on first.",
+      categories: ["heat-protect"],
+      prefer: {
+        drugstore: ["tresemme-heat-spray"],
+        luxury: ["livingproof-phd-heat"],
+        crueltyFree: ["sunbum-heat-protector"],
+      },
+    });
+  }
+
+  // Dry shampoo (8.9) — standard depth+; curly routine refreshes with water instead.
+  if (depth >= 2 && c !== "curlyNew") {
+    steps.push({
+      id: "dry-shampoo",
+      phase: "daily",
+      title: "Dry shampoo between washes",
+      frequency: "As needed",
+      how: "Great for greasy roots between washes — but it only absorbs surface oil. If you sweat today, actually wash tonight (see the sweat rule below).",
+      categories: ["dry-shampoo"],
+      principleId: "sweatRule",
+    });
+  }
+
+  // Between-wash conditioning oil (8.9) — full depth.
+  if (depth >= 3) {
+    steps.push({
+      id: "between-oil",
+      phase: "daily",
+      title: "Mid-week moisture",
+      optional: true,
+      frequency: "Dry or tangly days",
+      how: "When hair feels dry or tangly between washes, smooth a little oil or an overnight treatment through the ends.",
+      categories: ["between-wash-oil"],
+      prefer: { drugstore: [], luxury: ["amika-midnight-mender"], crueltyFree: [] },
+    });
+  }
+
+  // Hands off (spec section 7 — frizz).
+  if (c === "frizz") {
+    steps.push({
+      id: "hands-off",
+      phase: "daily",
+      title: "Hands off once it's dry",
+      frequency: "All day",
+      how: "Every touch roughs the cuticle back up and reintroduces frizz. Style it damp, then leave it alone — seriously, this one's free and it works.",
+      noProducts: true,
+    });
+  }
+
+  // -------------------------------------------------------------- AT NIGHT --
+  // Night serum (6.4) — for everyone.
+  steps.push({
+    id: "night-serum",
+    phase: "nightly",
+    title: "Night serum + a light oil",
+    frequency: "Nightly",
+    how: "Work a night serum through mid-lengths and ends, then seal with a drop of lightweight oil. Your hair repairs while you sleep instead of rubbing itself dry.",
+    categories: ["night-treatment"],
+    prefer: {
+      drugstore: ["loreal-midnight-serum"],
+      luxury: ["kerastase-8h-night"],
+      crueltyFree: ["amika-midnight-mender"],
+    },
+    limit: 2,
+  });
+
+  // Scalp serum at night — thinning (3–4×/week) and slow growth (nightly massage).
+  if (c === "thinning") {
+    steps.push({
+      id: "scalp-serum",
+      phase: "nightly",
+      title: "Scalp serum",
+      frequency: "3–4 nights/week",
+      how: "A few drops along the part lines, massaged in for a minute with fingertips. Consistency beats quantity here.",
+      categories: ["scalp-serum"],
+      prefer: {
+        drugstore: ["mielle-rosemary-mint", "maple-holistics-biotin"],
+        luxury: ["actacre-scalp-detox"],
+        crueltyFree: ["vegamour-gro"],
+      },
+    });
+  } else if (c === "slowGrowth") {
+    steps.push({
+      id: "scalp-massage-oil",
+      phase: "nightly",
+      title: "10-min scalp massage with oil",
+      frequency: "Nightly",
+      how: "Fingertips (never nails) or a scalp brush, working a growth oil or serum into the scalp for about 10 minutes. This is the anchor habit of the whole routine.",
+      categories: ["scalp-serum"],
+      principleId: "scalpMassage",
+      prefer: {
+        drugstore: ["mielle-rosemary-mint", "maple-holistics-biotin"],
+        luxury: ["actacre-scalp-detox"],
+        crueltyFree: ["vegamour-gro"],
+      },
+    });
+  }
+
+  // Protective style for sleep (6.4) — texture-aware, for everyone.
+  steps.push({
+    id: "protect-style",
+    phase: "nightly",
+    title: curlyTexture ? "Pineapple + silk or satin" : "Loose braid + silk or satin",
+    frequency: "Nightly",
+    how: curlyTexture
+      ? "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet)."
+      : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
+    categories: ["tool-night"],
+    principleId: "nightProtection",
+    limit: 1,
+  });
+
+  // ------------------------------------------------------------------ NOTES --
+  const notes = [];
+
+  notes.push({
+    id: "sweat-rule",
+    title: "The sweat rule (the one non-negotiable)",
+    body: [
+      "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), wash tonight. Don't just let it air dry: sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
+      "Dry shampoo doesn't count here — it absorbs surface oil but doesn't remove sweat, salt, or bacteria from the scalp.",
+    ],
+  });
+
+  if (c === "thinning") {
+    notes.push({
+      id: "tight-styles",
+      title: "Skip the tight hairstyles",
+      body: [
+        "Slicked-back ponies and tight braids pull on exactly the hairline you're trying to protect. Keep styles loose while you rebuild density.",
+      ],
+    });
+    notes.push({
+      id: "lifestyle",
+      title: "If you're doing everything right and still thinning",
+      body: [
+        "Sometimes the cause isn't the routine at all. The unglamorous basics — 7+ hours of sleep, staying hydrated, managing stress — show up again and again in hair-shedding research.",
+        "And if shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork (iron/ferritin, vitamin D, B12, zinc, thyroid). Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.",
+      ],
+    });
+  }
+
+  if (c === "dryness" || c === "breakage") {
+    notes.push({
+      id: "trims",
+      title: "Trim every 8–10 weeks",
+      body: [
+        "Split ends travel upward — a regular dusting keeps damage from climbing the strand. It feels counterproductive when you want length; it isn't.",
+      ],
+    });
+  }
+  if (c === "slowGrowth") {
+    notes.push({
+      id: "trims",
+      title: "Regular trims (yes, really)",
+      body: [
+        "Trims don't make hair grow faster — they stop breakage from erasing the growth you already got. Keeping ends healthy is how length actually accumulates.",
+      ],
+    });
+  }
+
+  if (chem.includes("boxDye")) {
+    notes.push({
+      id: "box-dye",
+      title: "Before your next color appointment",
+      body: [
+        "At-home box dye contains metallic salts that build up in hair and can react unpredictably with future bleach or bond-repair services — sometimes causing gumminess or breakage.",
+        "Use a clarifying/chelating shampoo (like L'Oréal Metal Detox) for a few washes before any future bleach or salon color, and always mention the box dye history to your stylist so they can strand-test first.",
+      ],
+    });
+  }
+  if (chem.includes("bleach")) {
+    notes.push({
+      id: "bleach",
+      title: "Bleached hair plays by porosity rules",
+      body: [
+        "Bleached hair is usually high-porosity — it drinks moisture in and loses it just as fast. That's why your layering order is LCO (cream before oil), and why bond treatments should be a fixture in your routine, not a treat.",
+      ],
+    });
+  }
+  if (chem.includes("keratin")) {
+    notes.push({
+      id: "keratin",
+      title: "Protect that keratin treatment",
+      body: [
+        "Sulfates strip smoothing treatments early — stick to sulfate-free washes to get your money's worth.",
+      ],
+    });
+  }
+  if (chem.includes("relaxer")) {
+    notes.push({
+      id: "relaxer",
+      title: "Relaxed or permed hair needs gentle handling",
+      body: [
+        "Chemically restructured hair is most fragile when wet — detangle slowly with a wide-tooth comb, keep bond care regular, and space out any further chemical services.",
+      ],
+    });
+  }
+
+  if (answers.heat === "daily") {
+    notes.push({
+      id: "heat",
+      title: "About that daily heat…",
+      body: [
+        "Cumulative heat is the quiet killer of ends. Protectant every single time, and try to swap in air-drying or heatless styles a couple of days a week — your future ends will thank you.",
+      ],
+    });
+  }
+
+  if (answers.scalp === "sensitive") {
+    notes.push({
+      id: "sensitive",
+      title: "Sensitive-scalp ground rules",
+      body: [
+        "Favor fragrance-light formulas, patch-test anything new behind your ear for a day or two, and keep rinse water warm rather than hot.",
+      ],
+    });
+  }
+
+  if (answers.density === "unsure") {
+    notes.push({
+      id: "start-light",
+      title: "Not sure about your hair yet? Start light",
+      body: [
+        "Use half the product you think you need — you can always add more. If hair falls flat by midday, your products are too heavy; if the ends still feel thirsty, go a step richer.",
+      ],
+    });
+  }
+
+  // ------------------------------------------------------------- ASSEMBLE --
+  const built = steps.map(makeStep);
+  const phases = [
+    {
+      id: "washDay",
+      title: "Wash Day",
+      emoji: "🚿",
+      intro: WASH_INTROS[answers.washFreq] || null,
+      steps: built.filter((s) => s.phase === "washDay"),
+    },
+    {
+      id: "daily",
+      title: "Every Day",
+      emoji: "☀️",
+      intro: null,
+      steps: built.filter((s) => s.phase === "daily"),
+    },
+    {
+      id: "nightly",
+      title: "At Night",
+      emoji: "🌙",
+      intro: null,
+      steps: built.filter((s) => s.phase === "nightly"),
+    },
+  ];
+
+  return {
+    summary: {
+      headline: concern.headline,
+      blurb: concern.blurb,
+      concernLabel: concern.label,
+      chips: [
+        optionLabel("hairType", answers.hairType),
+        optionLabel("density", answers.density) === "Not sure"
+          ? "Density TBD"
+          : `${optionLabel("density", answers.density)} density`,
+        `${optionLabel("scalp", answers.scalp)} scalp`,
+        optionLabel("goal", answers.goal),
+        DEPTH_LABELS[depth].split(" · ")[1],
+      ],
+    },
+    depthLabel: DEPTH_LABELS[depth],
+    defaultTier: TIER_KEYS.includes(answers.priority) ? answers.priority : "drugstore",
+    phases,
+    notes,
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// Demo shell — same screens & flow as the Next.js app (landing → quiz → results)
+// ---------------------------------------------------------------------------
+const app = document.getElementById("app");
+const state = { screen: "landing", idx: 0, answers: {}, tier: null, routine: null };
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderLanding() {
+  return `
+  <main class="landing">
+    <div class="blob" style="width:18rem;height:18rem;top:-6rem;left:-6rem;background:var(--blush);opacity:.6"></div>
+    <div class="blob" style="width:20rem;height:20rem;top:33%;right:-7rem;background:var(--coral);opacity:.3"></div>
+    <div class="blob" style="width:18rem;height:18rem;bottom:-8rem;left:25%;background:var(--blush);opacity:.5"></div>
+    <div class="rise" style="position:relative;max-width:28rem">
+      <div class="logo" aria-hidden="true">💆‍♀️</div>
+      <h1>Hair<span>IQ</span></h1>
+      <p class="tagline">Ten quick questions. One personalized hair routine — with picks for every budget.</p>
+      <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
+      <p class="fineprint">≈ 2 minutes · no account needed</p>
+    </div>
+  </main>`;
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[state.idx];
+  const value = state.answers[q.id];
+  const answered = isAnswered(state.answers, q);
+  const isLast = state.idx === QUESTIONS.length - 1;
+  const pct = Math.round(((state.idx + 1) / QUESTIONS.length) * 100);
+
+  const cards = q.options
+    .map((o) => {
+      const selected = q.multiSelect ? Array.isArray(value) && value.includes(o.value) : value === o.value;
+      return `
+      <button class="answer${selected ? " selected" : ""}" aria-pressed="${selected}" data-action="pick" data-value="${esc(o.value)}">
+        <span class="emoji" aria-hidden="true">${o.emoji || ""}</span>
+        <span class="lab"><b>${esc(o.label)}</b>${o.sublabel ? `<small>${esc(o.sublabel)}</small>` : ""}</span>
+        <span class="tick ${q.multiSelect ? "square" : "round"}" aria-hidden="true">${selected ? "✓" : ""}</span>
+      </button>`;
+    })
+    .join("");
+
+  return `
+  <main class="quiz col">
+    <div>
+      <div class="progress-meta">
+        <span class="label">Question ${state.idx + 1} of ${QUESTIONS.length}</span>
+        <span class="pct">${pct}%</span>
+      </div>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="${QUESTIONS.length}" aria-valuenow="${state.idx + 1}">
+        <div class="fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div class="rise" style="flex:1;display:flex;flex-direction:column">
+      <h1>${esc(q.title)}</h1>
+      ${q.subtitle ? `<p class="subtitle">${esc(q.subtitle)}</p>` : ""}
+      <div class="answers" role="group" aria-label="${esc(q.title)}">${cards}</div>
+    </div>
+    <nav>
+      <button class="ghost" data-action="back">← Back</button>
+      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${isLast ? "See my results ✨" : "Next"}</button>
+    </nav>
+  </main>`;
+}
+
+function productCard(p, tier) {
+  const badges =
+    (p.tags && p.tags.includes("new") ? `<span class="badge butter">New</span>` : "") +
+    (p.crueltyFree ? `<span class="badge mint">Cruelty-Free</span>` : "");
+  return `
+  <div class="prod">
+    <div class="prod-top"><span class="brand">${esc(p.brand)}</span><span class="badges">${badges}</span></div>
+    <div class="prod-name">${esc(p.name)}</div>
+    ${p.blurb ? `<div class="prod-blurb">${esc(p.blurb)}</div>` : ""}
+    ${tier === "crueltyFree" && p.cfNote ? `<div class="prod-cf">${esc(p.cfNote)}</div>` : ""}
+  </div>`;
+}
+
+function principleBlock(id) {
+  const pr = getPrinciple(id);
+  if (!pr) return "";
+  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "";
+  const options = pr.options
+    ? `<p>${esc(pr.options.intro)}</p><div class="choices">${pr.options.choices
+        .map((ch) => `<div class="choice"><b>${esc(ch.label)}</b><p>${esc(ch.text)}</p></div>`)
+        .join("")}</div>`
+    : "";
+  const body = pr.body.map((p) => `<p>${esc(p)}</p>`).join("");
+  return `
+  <details class="principle">
+    <summary>Why this works</summary>
+    <div class="principle-body"><p>${esc(pr.summary)}</p>${steps}${options}${body}</div>
+  </details>`;
+}
+
+function stepCard(step, index, tier) {
+  const products = step.products[tier] || [];
+  let productHtml = "";
+  if (!step.noProducts) {
+    productHtml = products.length
+      ? `<div class="prods">${products.map((p) => productCard(p, tier)).join("")}</div>`
+      : step.emptyText
+        ? `<div class="empty">${esc(step.emptyText)}</div>`
+        : "";
+  }
+  return `
+  <li class="step">
+    <div class="step-head">
+      <span class="step-num" aria-hidden="true">${index}</span>
+      <div>
+        <h3>${esc(step.title)}</h3>
+        ${step.optional ? `<span class="optional">(optional)</span>` : ""}
+        ${step.frequency ? `<span class="freq">${esc(step.frequency)}</span>` : ""}
+        <p class="how">${esc(step.how)}</p>
+      </div>
+    </div>
+    ${productHtml}
+    ${step.principleId ? principleBlock(step.principleId) : ""}
+  </li>`;
+}
+
+function renderResults() {
+  const r = state.routine;
+  const tier = state.tier;
+  const tabs = TIER_KEYS.map((key) => {
+    const meta = TIER_META[key];
+    return `<button class="tab${key === tier ? " active" : ""}" role="tab" aria-selected="${key === tier}" data-action="tier" data-value="${key}">
+      <span aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
+  }).join("");
+
+  const phases = r.phases
+    .filter((ph) => ph.steps.length)
+    .map(
+      (ph) => `
+      <section class="phase rise">
+        <h2><span aria-hidden="true">${ph.emoji}</span> ${esc(ph.title)}</h2>
+        ${ph.intro ? `<p class="intro">${esc(ph.intro)}</p>` : ""}
+        <ol class="steps">${ph.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
+      </section>`
+    )
+    .join("");
+
+  const notes = r.notes
+    .map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`)
+    .join("");
+
+  return `
+  <main class="results">
+    <div class="col">
+      <header class="rise">
+        <p class="eyebrow">Your routine is ready ✨</p>
+        <h1>${esc(r.summary.headline)}</h1>
+        <p class="blurb">${esc(r.summary.blurb)}</p>
+        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
+      </header>
+      <div class="tabs-wrap"><div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div></div>
+      ${tier === "crueltyFree" ? `<p class="cf-note">🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.</p>` : ""}
+      ${phases}
+      <section class="notes"><h2>💡 Good to know</h2>${notes}</section>
+      <div class="actions">
+        <div class="save-wrap">
+          <button class="pill" disabled aria-disabled="true" title="Coming soon">Save My Routine</button>
+          <span class="soon">Coming soon</span>
+        </div>
+        <button class="pill retake" data-action="retake">Retake Quiz</button>
+      </div>
+      <footer>
+        HairIQ gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
+        spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
+        <br /><br />
+        Live demo — same quiz data &amp; recommendation engine as the HairIQ app (v1).
+      </footer>
+    </div>
+  </main>`;
+}
+
+let lastViewKey = null;
+function render() {
+  app.innerHTML =
+    state.screen === "landing" ? renderLanding() : state.screen === "quiz" ? renderQuiz() : renderResults();
+  // Scroll to top only when the view changes (new screen / next question) —
+  // answer taps and tier switches keep the reader's place.
+  const viewKey = `${state.screen}:${state.screen === "quiz" ? state.idx : ""}`;
+  if (viewKey !== lastViewKey) window.scrollTo(0, 0);
+  lastViewKey = viewKey;
+}
+
+app.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  const action = el.dataset.action;
+
+  if (action === "start") {
+    state.screen = "quiz";
+    state.idx = 0;
+    render();
+  } else if (action === "pick") {
+    const q = QUESTIONS[state.idx];
+    const v = el.dataset.value;
+    if (q.multiSelect) {
+      const current = Array.isArray(state.answers[q.id]) ? state.answers[q.id] : [];
+      const opt = q.options.find((o) => o.value === v);
+      let next;
+      if (opt.exclusive) {
+        next = current.includes(v) ? [] : [v];
+      } else if (current.includes(v)) {
+        next = current.filter((x) => x !== v);
+      } else {
+        const exclusives = q.options.filter((o) => o.exclusive).map((o) => o.value);
+        next = [...current.filter((x) => !exclusives.includes(x)), v];
+      }
+      state.answers[q.id] = next;
+    } else {
+      state.answers[q.id] = v;
+    }
+    render();
+  } else if (action === "back") {
+    if (state.idx === 0) state.screen = "landing";
+    else state.idx -= 1;
+    render();
+  } else if (action === "next") {
+    const q = QUESTIONS[state.idx];
+    if (!isAnswered(state.answers, q)) return;
+    if (state.idx === QUESTIONS.length - 1) {
+      state.routine = buildRoutine(state.answers);
+      state.tier = state.routine.defaultTier;
+      state.screen = "results";
+    } else {
+      state.idx += 1;
+    }
+    render();
+  } else if (action === "tier") {
+    state.tier = el.dataset.value;
+    render();
+  } else if (action === "retake") {
+    state.answers = {};
+    state.routine = null;
+    state.idx = 0;
+    state.screen = "quiz";
+    render();
+  }
+});
+
+render();
+</script>
