@@ -6,7 +6,7 @@
 //   crueltyFree  true → appears in the Cruelty-Free tab + gets the green badge
 //   cfNote       certification detail shown in the Cruelty-Free tab
 //   cfOnly       Section 10 additions — shown ONLY in the Cruelty-Free tab so
-//                they don't dilute the curated Drugstore/Luxury lists
+//                they don’t dilute the curated Affordable/Luxury lists
 //   universal    tools (brushes, pillowcases…) — shown in every tab
 //   categories   which routine steps can pick this product
 //   tags         "new" → yellow badge
@@ -18,8 +18,11 @@
 
 export const TIER_KEYS = ["drugstore", "luxury", "crueltyFree"];
 
+// NOTE: the internal tier key stays "drugstore" for data stability, but the
+// user-facing label is "Affordable" (spec §8.10 rename — price point matters
+// more than physical retail location).
 export const TIER_META = {
-  drugstore: { label: "Drugstore", emoji: "💸", blurb: "Budget-friendly picks that pull their weight." },
+  drugstore: { label: "Affordable", emoji: "💸", blurb: "Budget-friendly picks that pull their weight." },
   luxury: { label: "Luxury", emoji: "✨", blurb: "Treat-yourself picks worth the splurge." },
   crueltyFree: { label: "Cruelty-Free", emoji: "🐰", blurb: "Certified or independently tracked cruelty-free brands — across every price point." },
 };
@@ -89,7 +92,7 @@ export const PRODUCTS = [
     tier: "drugstore",
     crueltyFree: false,
     categories: ["clarifying-shampoo"],
-    blurb: "Clarifies while adding lift — handy for fine hair.",
+    blurb: "A standout: cheap, lathers beautifully, and clarifies while adding lift — great for fine hair.",
   },
   {
     id: "loreal-metal-detox",
@@ -147,7 +150,7 @@ export const PRODUCTS = [
     crueltyFree: true,
     cfNote: "Widely reported cruelty-free by independent trackers (Ethical Elephant, Cruelty-Free Kitty); not officially certified.",
     categories: ["strengthening-shampoo"],
-    blurb: "Bond-building wash at a drugstore price.",
+    blurb: "Bond-building wash at an affordable price.",
   },
   {
     id: "dove-intensive-repair-shampoo",
@@ -221,6 +224,33 @@ export const PRODUCTS = [
     crueltyFree: false,
     categories: ["strengthening-shampoo"],
     blurb: "Protein bond repair for breakage-prone hair.",
+  },
+  {
+    id: "loreal-dream-lengths-shampoo",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths Restoring Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "A standout affordable pick — restoring wash made for long or damaged hair.",
+  },
+  {
+    id: "dr-groot-thickening",
+    brand: "Dr. Groot",
+    name: "Hair Thickening Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["growth-shampoo", "strengthening-shampoo"],
+    blurb: "K-beauty thickening shampoo — about $30 at Sephora, prestige tier despite the drugstore-style branding.",
+  },
+  {
+    id: "pureology-blonde-shampoo",
+    brand: "Pureology",
+    name: "Strength Cure Blonde Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo", "sulfate-free"],
+    blurb: "Violet-toning repair wash made for bleached hair — tones brassiness while it strengthens. Vegan formulation (cruelty-free status unverified — L'Oréal-owned).",
   },
 
   // ---- 8.2 — Medicated shampoo ----------------------------------------------
@@ -490,6 +520,24 @@ export const PRODUCTS = [
     blurb: "Deeply hydrating clean-beauty conditioner.",
   },
   {
+    id: "loreal-dream-lengths-conditioner",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths Super Detangler Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Detangling conditioner pair to Dream Lengths — slip for days.",
+  },
+  {
+    id: "pureology-blonde-conditioner",
+    brand: "Pureology",
+    name: "Strength Cure Blonde Conditioner",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "The toning-repair conditioner pair for bleached hair. Vegan formulation (cruelty-free status unverified).",
+  },
+  {
     id: "devacurl-one-condition",
     brand: "DevaCurl",
     name: "One Condition Original",
@@ -517,7 +565,7 @@ export const PRODUCTS = [
     tier: "drugstore",
     crueltyFree: false,
     categories: ["mask"],
-    blurb: "Deep repair in a drugstore jar.",
+    blurb: "Deep repair in a budget-friendly jar.",
   },
   {
     id: "pantene-miracle-rescue-bond-mask",
@@ -674,8 +722,36 @@ export const PRODUCTS = [
     name: "Hairdresser's Invisible Oil Primer",
     tier: "luxury",
     crueltyFree: false,
-    categories: ["leave-in", "heat-protect"],
-    blurb: "Silky leave-in primer with UV and heat protection.",
+    categories: ["leave-in", "heat-protect", "uv-protect"],
+    blurb: "Silky leave-in primer combining UV filters with heat protection up to 450°F.",
+  },
+  {
+    id: "crown-affair-leave-in",
+    brand: "Crown Affair",
+    name: "The Leave-In Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Confirmed vegan + cruelty-free.",
+    categories: ["leave-in"],
+    blurb: "Lightweight everyday leave-in for wet or dry hair — a moisturizer first, with a natural meadowfoam-oil heat buffer as a bonus.",
+  },
+  {
+    id: "loreal-no-haircut-cream",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths No Haircut Cream",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in", "sealer-cream"],
+    blurb: "Everyday leave-in cream for long or damaged hair — cuts breakage and split ends, no hot tools required.",
+  },
+  {
+    id: "loreal-purple-10in1",
+    brand: "L'Oréal",
+    name: "Elvive Colour Protect Purple 10-in-1 Leave-In Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in"],
+    blurb: "Purple leave-in for color-treated or blonde hair — tones brassiness while it conditions.",
   },
 
   // ---- 8.7 — Styling -------------------------------------------------------------
@@ -974,6 +1050,16 @@ export const PRODUCTS = [
     categories: ["dry-shampoo"],
     blurb: "The $8 dry shampoo classic.",
   },
+  {
+    id: "k18-airwash",
+    brand: "K18",
+    name: "AirWash Dry Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Independently certified cruelty-free · vegan.",
+    categories: ["dry-shampoo"],
+    blurb: "Non-aerosol mist with an odor-eliminating biotech formula — a very light touch goes a long way.",
+  },
 
   // ---- Section 7 — Thinning / slow growth -----------------------------------------------
   {
@@ -1188,6 +1274,15 @@ export const PRODUCTS = [
     blurb: "The luxury overnight serum — follow with a lightweight hair oil.",
   },
   {
+    id: "crown-affair-overnight",
+    brand: "Crown Affair",
+    name: "Overnight Repair Serum",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["night-treatment"],
+    blurb: "A ~$55 luxury night option in its own right — not a Kérastase dupe; bleached or heavily processed hair usually wants more repair power than this.",
+  },
+  {
     id: "loreal-midnight-serum",
     brand: "L'Oréal",
     name: "Elvive Extraordinary Oil Midnight Serum",
@@ -1207,6 +1302,16 @@ export const PRODUCTS = [
     categories: ["uv-protect"],
     tags: ["new"],
     blurb: "2026 launch that targets UV, salt, and chlorine exposure specifically.",
+  },
+  {
+    id: "jvn-uv",
+    brand: "JVN",
+    name: "Complete UV Protection Line",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny certified.",
+    categories: ["uv-protect", "leave-in"],
+    blurb: "Luxury UV shield — wear it as your everyday summer leave-in, not a special-occasion spray.",
   },
   {
     id: "sunbum-heat-protector",
@@ -1240,7 +1345,7 @@ export const PRODUCTS = [
     cfOnly: true,
     cfNote: "Cruelty-free brand.",
     categories: ["strengthening-shampoo", "conditioner"],
-    blurb: "Budget/drugstore-friendly — easy to find at Target.",
+    blurb: "Budget-friendly — easy to find at Target.",
   },
   {
     id: "verb-range",
@@ -1372,8 +1477,10 @@ export const PRODUCTS = [
     categories: ["tool-detangle"],
     blurb: "The only thing that should detangle wet hair.",
   },
-  // Brushes (spec §11.2) — texture-dependent; exact brand/model picks are a
-  // starting point for Crystal to confirm, so these stay brand-agnostic.
+  // Brushes (spec §11.2) — lookup on hair type AND density: pure boar for
+  // straight fine/normal, boar+nylon blend for straight thick, wet detangling
+  // brush for any texture. Affordable-tier and cruelty-free brand picks are
+  // pending exact names from Crystal — generics stay brand-agnostic.
   {
     id: "wet-detangling-brush",
     brand: "Any brand",
@@ -1381,7 +1488,7 @@ export const PRODUCTS = [
     tier: null,
     universal: true,
     crueltyFree: false,
-    categories: ["tool-brush", "tool-detangle"],
+    categories: ["tool-brush-wet", "tool-detangle"],
     blurb: "Flexible bristles built for wet, tangled hair — works through knots without snapping curls.",
   },
   {
@@ -1391,8 +1498,36 @@ export const PRODUCTS = [
     tier: null,
     universal: true,
     crueltyFree: false,
-    categories: ["tool-brush"],
+    categories: ["tool-brush-boar"],
     blurb: "Carries your scalp's natural oils down the length for shine — something a detangling brush isn't designed to do.",
+  },
+  {
+    id: "boar-nylon-blend-brush",
+    brand: "Any brand",
+    name: "Boar + Nylon Blend Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush-blend"],
+    blurb: "Distributes oils like pure boar, with nylon pins that actually get through thicker hair.",
+  },
+  {
+    id: "mason-pearson",
+    brand: "Mason Pearson",
+    name: "Boar Bristle Brush",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["tool-brush-boar"],
+    blurb: "The original, iconic boar bristle brush (~$250) — the heirloom version of this step.",
+  },
+  {
+    id: "crown-affair-brush",
+    brand: "Crown Affair",
+    name: "Mini Dual-Bristle Boar Hair Brush",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["tool-brush-blend"],
+    blurb: "Luxury boar + nylon blend for thicker strands. (The brand's leave-in line is confirmed vegan/cruelty-free; the brush line hasn't been verified.)",
   },
 ];
 

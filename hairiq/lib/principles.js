@@ -35,9 +35,10 @@ export const PRINCIPLES = {
     id: "doubleWash",
     title: "Double-washing, explained",
     summary:
-      "If your scalp feels heavy with product, sweat, or buildup — shampoo twice.",
+      "If your scalp feels heavy with product, sweat, or buildup — shampoo twice. Most people skip this without realizing.",
     body: [
       "The first wash breaks down surface buildup. The second is the one that actually cleanses the scalp — and it's when a medicated or treatment shampoo does its real work, so always use those as the second wash.",
+      "One correction people get wrong: if your first wash is a clarifying shampoo, do NOT clarify twice. That squeaky-clean, stripped feeling means it already worked — follow it with a hydrating, non-clarifying shampoo for the second wash instead, so you cleanse without over-stripping.",
     ],
   },
 
@@ -101,7 +102,7 @@ export const PRINCIPLES = {
     summary:
       "UV exposure can visibly change the color and texture of your ends over a single summer — especially on color-treated hair.",
     body: [
-      "A leave-in UV protection spray is the fix — spray it on before time outside, the way you'd apply sunscreen before the beach. Look for sprays that also cover salt and chlorine if you swim.",
+      "The easy fix isn't another 'before going outside' product to remember — just let a UV leave-in replace your regular leave-in for the whole summer. Worn every day, it covers sun, salt, and chlorine without adding a step.",
     ],
   },
 

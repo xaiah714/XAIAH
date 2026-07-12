@@ -246,8 +246,22 @@ export function buildRoutine(answers) {
       categories: ["strengthening-shampoo"],
       prefer: {
         drugstore: ["ogx-bond-shampoo", "loreal-everpure-bond-shampoo"],
-        luxury: ["amika-kure-shampoo"],
+        luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo", "amika-kure-shampoo"] : ["amika-kure-shampoo"],
         crueltyFree: ["olaplex-no4"],
+      },
+    });
+  } else if (c === "slowGrowth") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo — growth support",
+      frequency: "Every wash",
+      how: "A growth-supporting wash on wash days, massaged into the scalp with fingertips.",
+      categories: ["growth-shampoo", "strengthening-shampoo"],
+      prefer: {
+        drugstore: ["ogx-thick-full-shampoo"],
+        luxury: ["dr-groot-thickening"],
+        crueltyFree: ["aveda-range"],
       },
     });
   } else {
@@ -266,7 +280,7 @@ export function buildRoutine(answers) {
       principleId: answers.scalp === "oily" ? "doubleWash" : null,
       prefer: {
         drugstore: [],
-        luxury: [],
+        luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo"] : [],
         crueltyFree: [],
       },
     });
@@ -280,12 +294,17 @@ export function buildRoutine(answers) {
       phase: "washDay",
       title: "Clarifying wash (swap in)",
       frequency: "1×/week",
-      how: chem.includes("boxDye")
-        ? "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment."
-        : "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better.",
+      how:
+        (chem.includes("boxDye")
+          ? "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment."
+          : "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better.") +
+        " If you double-wash that day, clarify only once: follow it with a hydrating, non-clarifying shampoo for the second wash.",
       categories: ["clarifying-shampoo"],
+      principleId: "doubleWash",
       prefer: {
-        drugstore: chem.includes("boxDye") ? ["loreal-metal-detox"] : [],
+        drugstore: chem.includes("boxDye")
+          ? ["loreal-metal-detox", "pantene-volume-body"]
+          : ["pantene-volume-body"],
         luxury: [],
         crueltyFree: [],
       },
@@ -376,9 +395,11 @@ export function buildRoutine(answers) {
       luxury:
         c === "curlyNew"
           ? ["devacurl-one-condition"]
-          : c === "dryness"
-            ? ["pureology-strength-cure-conditioner"]
-            : [],
+          : chem.includes("bleach")
+            ? ["pureology-blonde-conditioner"]
+            : c === "dryness"
+              ? ["pureology-strength-cure-conditioner"]
+              : [],
       crueltyFree:
         c === "curlyNew"
           ? ["devacurl-one-condition", "innersense-hydrating-conditioner"]
@@ -448,24 +469,37 @@ export function buildRoutine(answers) {
   // Post-shower bond repair (8.5) renders as the "After shower" timing inside
   // the bond-repair step above — never as its own extra step (spec §8 callout).
 
-  // Leave-in + heat protectant (8.6) — always present.
+  // Leave-in (8.6) — gated by actual heat use (spec §11.3): heat users get the
+  // protectant-forward picks; rarely/never gets everyday moisturizing leave-ins
+  // with zero "protectant" framing.
+  const usesHeat = answers.heat === "daily" || answers.heat === "weekly";
   steps.push({
     id: "leave-in",
     phase: "washDay",
-    title: answers.heat === "rarely" ? "Leave-in conditioner" : "Leave-in conditioner + heat protectant",
+    title: usesHeat ? "Leave-in conditioner + heat protectant" : "Everyday leave-in conditioner",
     frequency: "Every wash day",
     how:
       c === "curlyNew" || c === "frizz"
         ? `Apply liberally to soaking-wet hair — this is the L (liquid) of your ${locOrder} layers.`
         : answers.heat === "daily"
           ? "Apply liberally to damp hair, every wash day — and never let a hot tool touch bare hair."
-          : "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better.",
+          : usesHeat
+            ? "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better."
+            : "Since hot tools aren't your thing, skip the heat-protectant sprays entirely — a moisturizing everyday leave-in on damp hair is all this step needs.",
     categories: ["leave-in"],
-    prefer: {
-      drugstore: [],
-      luxury: colorTreated ? ["pureology-color-fanatic"] : [],
-      crueltyFree: [],
-    },
+    prefer: usesHeat
+      ? {
+          drugstore: [],
+          luxury: colorTreated ? ["pureology-color-fanatic"] : [],
+          crueltyFree: [],
+        }
+      : {
+          drugstore: colorTreated
+            ? ["loreal-purple-10in1", "loreal-no-haircut-cream", "loreal-everpure-2in1"]
+            : ["loreal-no-haircut-cream", "loreal-everpure-2in1", "pantene-miracle-rescue-spray"],
+          luxury: ["crown-affair-leave-in", "redken-one-united"],
+          crueltyFree: ["crown-affair-leave-in", "nym-tough-love-leave-in"],
+        },
   });
 
   // Styling (8.7 / concern-specific).
@@ -628,37 +662,50 @@ export function buildRoutine(answers) {
     });
   }
 
-  // UV protection (6.6) — seasonal, always on right now (summer).
+  // UV protection (6.6) — seasonal; reframed per v1 feedback as an everyday
+  // summer swap, not a "before going outside" extra step.
   steps.push({
     id: "uv-shield",
     phase: "daily",
-    title: "UV shield before time outside",
-    frequency: "Sunny days",
+    title: "Make your leave-in a UV one for summer",
+    frequency: "All summer",
     how: colorTreated
-      ? "Sun can visibly shift color-treated hair over one summer — mist a UV spray on before heading out, like sunscreen for your hair."
-      : "A summer of sun can change the color and texture of your ends — mist a UV spray on before heading out.",
+      ? "Sun can visibly shift color-treated hair over one summer. No extra step needed — just let a UV leave-in replace your regular leave-in until fall, worn every day."
+      : "A summer of sun can change the color and texture of your ends. No extra step needed — just let a UV leave-in replace your regular leave-in until fall.",
     categories: ["uv-protect"],
     principleId: "uvProtection",
     prefer: {
       drugstore: ["pantene-sunkiss-glow"],
-      luxury: [],
-      crueltyFree: ["sunbum-heat-protector"],
+      luxury: ["jvn-uv", "bb-invisible-oil-primer"],
+      crueltyFree: ["jvn-uv", "sunbum-heat-protector"],
     },
     limit: 2,
-    emptyText: "No luxury UV pick in the library yet — Pantene Sunkiss Glow (Drugstore tab) is the one to grab.",
   });
 
-  // The right brush for the texture (spec §11.2) — simple Q1 lookup.
-  if (answers.hairType === "straight") {
+  // The right brush (spec §11.2) — lookup on hair type AND density: pure boar
+  // for straight fine/normal, boar+nylon blend for straight thick, wet
+  // detangling brush for any texture regardless of density.
+  if (answers.hairType === "straight" && thick) {
     steps.push({
       id: "brush",
       phase: "daily",
-      title: "Brush with boar bristle",
+      title: "Brush with a boar + nylon blend",
       frequency: "Daily-ish",
-      how: "For straight hair, a boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
-      categories: ["tool-brush"],
-      prefer: { drugstore: ["boar-bristle-brush"], luxury: ["boar-bristle-brush"], crueltyFree: ["boar-bristle-brush"] },
-      limit: 1,
+      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry hair, roots to ends.",
+      categories: ["tool-brush-blend"],
+      prefer: { drugstore: [], luxury: ["crown-affair-brush"], crueltyFree: [] },
+      limit: 2,
+    });
+  } else if (answers.hairType === "straight") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush with pure boar bristle",
+      frequency: "Daily-ish",
+      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      categories: ["tool-brush-boar"],
+      prefer: { drugstore: [], luxury: ["mason-pearson"], crueltyFree: [] },
+      limit: 2,
     });
   } else {
     steps.push({
@@ -666,9 +713,9 @@ export function buildRoutine(answers) {
       phase: "daily",
       title: "Use the right brush (a wet one)",
       frequency: "Wash day only",
-      how: "Textured hair gets a wet detangling brush — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
-      categories: ["tool-brush"],
-      prefer: { drugstore: ["wet-detangling-brush"], luxury: ["wet-detangling-brush"], crueltyFree: ["wet-detangling-brush"] },
+      how: "Textured hair gets a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      categories: ["tool-brush-wet"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
       limit: 1,
     });
   }
@@ -743,7 +790,7 @@ export function buildRoutine(answers) {
     categories: ["night-treatment"],
     prefer: {
       drugstore: ["loreal-midnight-serum"],
-      luxury: ["kerastase-8h-night"],
+      luxury: ["kerastase-8h-night", "crown-affair-overnight"],
       crueltyFree: ["amika-midnight-mender"],
     },
     limit: 2,
@@ -816,6 +863,21 @@ export function buildRoutine(answers) {
     ],
   });
 
+  // 6.9 — hygral fatigue: air-drying isn't automatically healthier.
+  notes.push({
+    id: "air-dry",
+    title: "Air-drying isn't automatically “healthier”",
+    body: [
+      "Hair swells when wet and contracts as it dries — and hours of staying wet (sleeping on wet hair, air-drying that drags on all day) slowly weakens its internal structure. It's called hygral fatigue, and medium/high-porosity hair feels it most.",
+      "So don't avoid the blow dryer on principle: a quick, protected blow-dry — low heat, diffuser, heat protectant on first — can genuinely be gentler than hours of wetness. The rule of thumb is simply “avoid hours of wet,” not a specific timer.",
+      ...(answers.scalp === "oily"
+        ? [
+            "Oily-scalp bonus move: a partial blow-dry, pointing the dryer straight down at the roots only (never the lengths or ends), speeds up root drying and can slow how fast your scalp re-oils — with zero heat on your ends.",
+          ]
+        : []),
+    ],
+  });
+
   if (c === "thinning") {
     notes.push({
       id: "tight-styles",
@@ -869,6 +931,7 @@ export function buildRoutine(answers) {
       title: "Bleached hair plays by porosity rules",
       body: [
         "Bleached hair is usually high-porosity — it drinks moisture in and loses it just as fast. That's why your layering order is LCO (cream before oil), and why bond treatments should be a fixture in your routine, not a treat.",
+        "Worth a look on the Luxury tab: Pureology Strength Cure Blonde — a violet-toning shampoo/conditioner system built for exactly this, toning brassiness while repairing lightened hair.",
       ],
     });
   }

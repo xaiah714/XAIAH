@@ -2,9 +2,10 @@
 
 Quiz-based hair care routine builder. Eleven questions in, one personalized
 routine out — broken into **Wash Day / Every Day / At Night** steps, with
-product picks across three always-available tabs: **Drugstore, Luxury, and
+product picks across three always-available tabs: **Affordable, Luxury, and
 Cruelty-Free** (all three are pre-calculated on every result; Q11 only picks
-which tab you land on).
+which tab you land on). The tier's internal data key is still `drugstore`
+(renamed to "Affordable" in the UI per spec §8.10).
 
 > v1 scope: no login, no database — pure quiz → results, all state
 > client-side, plus the free segmented email signup (spec §12, wired to a
@@ -34,7 +35,7 @@ can be edited without touching components:
 | `lib/products.js` | The full product library (spec sections 6–8 + 10–11) with tier, cruelty-free status/notes, and step categories |
 | `lib/recommendations.js` | The engine: concern routines (§7), framework steps + time-based depth (§8–9), answer-driven logic (§6), length gating + brush lookup (§11) |
 | `lib/config.js` | The premium price + "Unlock for $X" paywall copy (ONE place, per §13.1) and newsletter tier topics |
-| `app/api/subscribe/route.js` | Email signup endpoint — forwards to Mailchimp when env vars are set (see below) |
+| `app/api/subscribe/route.js` | Email signup endpoint — stores to our own Postgres when a connection string is set (see below) |
 | `app/` | Screens: landing → `/quiz` → `/results` |
 | `components/` | UI only — no content (`EmailSignup.js` is the §12 form) |
 | `scripts/build-demo.mjs` | Bundles the `lib/` files + a vanilla-JS shell into `demo/index.html` — a dependency-free, single-file version of the whole app for sharing |
@@ -61,12 +62,19 @@ with a pick-one timing choice (in-shower highlighted), per the §8 callout.
 
 The results page ends with the free segmented newsletter form: tier topics
 (multi-select, plus an "All three" option), email, and optional ZIP. It
-posts to `/api/subscribe`, which forwards to **Mailchimp** — tagging each
-subscriber with their tier picks and a ZIP merge field so campaigns can be
-segmented provider-side. Copy `.env.example` → `.env.local` and set
-`MAILCHIMP_API_KEY` + `MAILCHIMP_AUDIENCE_ID` to go live; until then,
-signups validate but are not stored (the server logs a warning). Swapping
-to Klaviyo/ConvertKit only touches that one route file.
+posts to `/api/subscribe`, which stores signups in **our own Postgres** —
+no third-party marketing account needed to capture the list. The table
+`hairiq_subscribers` (email unique, `tiers text[]`, zip, created_at) is
+auto-created on first signup; re-signups update preferences instead of
+erroring. On Vercel, attach Vercel Postgres and `POSTGRES_URL` is set
+automatically (any Postgres works via `DATABASE_URL` — see `.env.example`);
+until one is set, signups validate but are not stored and the server logs
+a warning.
+
+Honest limit, per the spec: *sending* newsletters later needs an email
+delivery service (Resend, Postmark, etc.) with human domain/sender
+verification — a separate future task. This table, with its tier tags and
+ZIPs, is exactly the segmented list that service will import.
 
 ### Cruelty-free tab
 

@@ -1,17 +1,26 @@
 # Hair Care Routine App — Build Spec for Claude Code
 
-> App name: TBD — using placeholder "HairIQ" throughout. Find/replace once you pick one.
+> App name: TBD — leaning toward "How's My Hair," pending domain/
+> availability confirmation (no existing app or trademark conflict found
+> in research so far, but that's not the same as confirming the domain is
+> free — check before committing). Using placeholder "HairIQ" throughout
+> until then. Find/replace once confirmed.
 >
 > **Repo note:** this is the spec the app in this directory was built from
-> (latest revision received July 11, 2026 — adds Q3 hair length, §11 brushes,
-> §12 free email capture, and the §13.1 explicit-paywall copy rule).
-> Sections 1–12 are v1 and are implemented; Section 13 is the v2 roadmap and
-> is intentionally NOT built — it needs its own planning session.
+> (latest revision received July 12, 2026 — renames the Drugstore tier to
+> "Affordable," adds §6.9 air-drying/hygral fatigue, §11.3 heat-gated
+> leave-ins, density-aware brushes in §11.2, the §6.2 double-wash
+> clarifying correction, and switches §12 email capture to self-owned
+> Postgres storage). Sections 1–12 are v1 and are implemented; Section 13
+> is the v2 roadmap and is intentionally NOT built — it needs its own
+> planning session. Products the spec says not to guess (the cruelty-free
+> boar-blend brush brand, the "sleek" spray, etc.) are NOT in the data —
+> pending exact names from Crystal per §14.
 
 ## 1. What This App Does
 A quiz-based tool that takes someone's hair type, scalp condition, and goals, then generates
 a personalized hair-care routine with specific product recommendations across three lenses —
-Drugstore, Luxury, and Cruelty-Free — calculated regardless of quiz answer so the
+Affordable, Luxury, and Cruelty-Free — calculated regardless of quiz answer so the
 user can switch tabs anytime.
 
 **v1 scope:** No login, no email capture. Pure quiz → results. Architecture should leave
@@ -48,7 +57,7 @@ room to bolt on accounts/saved routines later (v2).
 2. **Quiz** — one question per screen, progress bar at top, big tappable answer
    cards (not tiny radio buttons), Back + Next nav
 3. **Results** — routine card(s) broken into Wash Day / Daily / Nightly steps, a
-   3-way tab: **Drugstore | Luxury | Cruelty-Free** (always live, all three
+   3-way tab: **Affordable | Luxury | Cruelty-Free** (always live, all three
    are pre-calculated), "Retake Quiz" button, a locked "Save My Routine"
    button (see 13.1 — this replaces the old vague "Coming soon" copy with an
    explicit paywall: lock icon + "Unlock for $X" wording), and — at the very
@@ -68,11 +77,17 @@ room to bolt on accounts/saved routines later (v2).
    frizz / Improve scalp health / Just maintain
 7. Chemical treatments (**multi-select**): Salon color, no bleach / Bleached /
    Box dye at home, no bleach / Relaxed or permed / Keratin or smoothing
-   treatment / None
+   treatment / None — **UI note (small, not loud):** color-depositing
+   shampoo/conditioner (purple shampoo, toning products, etc.) does NOT
+   count here — it just deposits pigment on the outside of the hair; it
+   doesn't chemically alter the hair the way bleach/color/relaxers/keratin
+   do. Real feedback: this was a genuine point of confusion when someone
+   took the quiz, so a small clarifying line under the question (or an
+   info tooltip) is worth adding.
 8. Heat styling frequency: Daily / A few times a week / Rarely or never
 9. Wash frequency: Daily / Every other day / Twice a week / Weekly or less
 10. Time available for a routine: 5 min or less / 10–15 min / 20+ min
-11. What matters most in product picks: Budget-friendly (drugstore) / Luxury /
+11. What matters most in product picks: Budget-friendly (affordable) / Luxury /
     Cruelty-free — (note: this only sets the *default* results tab; all
     three tiers are always calculated and viewable)
 
@@ -103,14 +118,20 @@ room to bolt on accounts/saved routines later (v2).
 ### 6.2 Scalp-Aware Washing & the Sweat Rule
 - There's no fixed "wash schedule" — let people wash whenever works for them.
 - One firm rule: **if you sweat that day (workout, hot day, etc.), wash your
-  hair after; don't just let it air dry.** Sweat, sebum, and salt sitting on the
+  hair after, don't just let it air dry.** Sweat, sebum, and salt sitting on the
   scalp for hours can lead to buildup, odor, and irritation.
 - Dry shampoo is fine between washes, but it is **not a substitute** for washing
   after sweating — it only absorbs surface oil; it doesn't actually remove sweat,
   salt, or bacteria from the scalp.
-- **Double-washing:** if scalp feels heavy with product/sweat/buildup, shampoo
-  twice — the first wash breaks down surface buildup, the second actually
-  cleanses the scalp (and is when a medicated/treatment shampoo does its real work).
+- **Double-washing — say this explicitly in the app; most people skip it
+  without realizing:** shampoo twice if scalp feels heavy with product,
+  sweat, or buildup. **Important correction confirmed via research:** if
+  the first wash is a clarifying shampoo, do NOT clarify twice — that
+  squeaky-clean, stripped feeling means it's already worked. Follow it
+  with a hydrating/moisturizing (non-clarifying) shampoo for the second
+  wash instead. Clarifying breaks down buildup; the second, gentler wash
+  actually cleanses without over-stripping. This is standard, well-
+  supported practice, not a personal preference call.
 
 ### 6.3 Scalp Massage Tools
 - Fingertip massage (never nails) is the default 10-min daily technique.
@@ -123,9 +144,19 @@ room to bolt on accounts/saved routines later (v2).
 - Friction and movement while sleeping cause mechanical breakage, dryness,
   and frizz over time — worth a dedicated night step, especially for long hair.
 - Example luxury pick: Kérastase Nutritive 8H Magic Night Serum Hydrating
-  Treatment, followed by a lightweight hair oil.
+  Treatment, followed by a lightweight hair oil. Crown Affair's Overnight
+  Repair Serum (~$55) is another luxury night option some people compare
+  to the Kérastase serum — real v1 feedback is that the comparison isn't
+  a close match in practice, especially for bleached/heavily processed
+  hair that needs more repair power, so list it as its own option rather
+  than as an interchangeable dupe.
 - Drugstore dupe: L'Oréal Paris Elvive Extraordinary Oil Midnight Serum —
-  commonly cited as a similar, much cheaper alternative to the Kérastase serum.
+  Abbey Yung's own content specifically calls this a dupe for the 8H Magic
+  Night Serum, so the original claim here stands. Worth knowing: some other
+  creators compare the same L'Oréal product to a *different* Kérastase
+  product (Elixir Ultime) instead — both comparisons exist online, but
+  since this project is following Abbey Yung's method specifically, her own
+  stated comparison (8H Magic Night Serum) is the one to keep.
 - Protective styling for sleep: loose braid + silk/satin bonnet or pillowcase
   for straight/wavy hair; a loose high "pineapple" pony for curly/coily hair
   to protect the curl pattern overnight.
@@ -140,7 +171,7 @@ option. Correct usage (a lot of people use it wrong and waste product):
 3. Rub 1–3 pumps between your palms first so it distributes evenly before
    touching your hair (helps avoid over-applying and wasting product)
 4. Apply from mid-lengths to ends, working upward — avoid the scalp
-5. Leave for 4 minutes
+5. Leave 4 minutes
 6. Now you've got two good options — call this out clearly in the app so
    people don't skip it out of confusion:
    - **Leave it in:** go straight to your leave-in conditioner and styling
@@ -156,15 +187,32 @@ option. Correct usage (a lot of people use it wrong and waste product):
 ### 6.6 Sun & UV Protection (seasonal, relevant now in summer)
 - UV exposure can visibly change the color/texture of ends over a summer,
   especially on color-treated hair.
-- Recommend a leave-in UV protection spray — e.g., Pantene Sunkiss Glow
-  (2026 launch), which targets UV, salt, and chlorine exposure specifically.
+- **Reframe how this is presented — real v1 feedback:** don't word it as
+  something you only put on right before going outside. A UV leave-in can
+  just *replace* someone's regular leave-in for the whole summer instead —
+  worn as an everyday product, not an occasional pre-outing step.
+- Affordable pick: Pantene Sunkiss Glow (2026 launch), which targets UV,
+  salt, and chlorine exposure specifically.
+- Luxury picks (this tier was thin before — added two real options):
+  JVN Complete UV Protection line (Leaping Bunny certified, also
+  cruelty-free — cross-tag), and Bumble and bumble's UV Hair Protection
+  collection (e.g., Hairdresser's Invisible Oil Primer, which combines UV
+  filters with heat protection up to 450°F).
 
-### 6.7 Chemical Processing Caution (box dye/bleach)
+### 6.7 Chemical Processing Caution (box dye / bleach)
 - At-home box dye contains metallic salts that can build up in hair and react
   unpredictably with future bleach or bond-repair services (sometimes causing
   gumminess or breakage). If Q7 flags box dye use, show a note recommending a
   clarifying/chelating shampoo before any future bleach or salon color, and
   mentioning the box dye history to a stylist.
+- **Luxury pick for bleached hair specifically:** Pureology Strength Cure
+  Blonde Shampoo/Conditioner — a violet-toning, repair-focused system
+  (colloquially called "the blue one" though the formula itself is
+  purple/violet-pigmented) made for exactly this case: toning brassiness
+  while repairing lightened/bleached hair. Vegan formulation, though note
+  Pureology is L'Oréal-owned so don't assume independent cruelty-free
+  certification without checking — vegan and cruelty-free aren't the same
+  claim here.
 
 ### 6.8 The LOC / LCO Method, Explained
 For locking in moisture (especially relevant for curly/coily/dry hair):
@@ -182,9 +230,33 @@ For locking in moisture (especially relevant for curly/coily/dry hair):
 These are common, non-proprietary hair-care practices — safe to build directly
 into the app's logic.
 
+### 6.9 Air-Drying Isn't Automatically "Healthier" Than Blow-Drying
+- There's a real, well-documented phenomenon called **hygral fatigue**:
+  hair swells when wet and contracts as it dries, and repeated/prolonged
+  swelling weakens the internal structure over time (damage to what's
+  called the cell membrane complex, the "glue" holding the hair's layers
+  together). This means leaving hair wet for a long stretch — especially
+  sleeping with wet hair, or air-drying that drags on for hours — can
+  cause more cumulative damage than a quick, protected blow-dry would.
+  Medium/high porosity hair is more at risk than low porosity hair, since
+  water gets in and out of the cuticle more easily.
+- **Don't hardcode a specific minute threshold** — sources agree on the
+  concept but not on one universal cutoff; frame the guidance as "avoid
+  hours of wetness" (e.g., don't sleep on wet hair, don't let air-drying
+  drag on indefinitely) rather than a precise number.
+- Practical takeaway for the app: for people who air dry, a quick blow-dry
+  with a diffuser and heat protectant is a reasonable alternative to
+  hours of air-drying, not something to avoid on principle just because
+  it's heat.
+- **Technique tip worth including:** for oily-scalp types specifically, a
+  partial blow-dry — pointing the dryer straight down at the roots/scalp
+  only, not touching the length or ends — can speed up root drying time
+  and help reduce how quickly the scalp gets oily again, without adding
+  heat exposure to the ends at all.
+
 ## 7. Recommendation Engine — Starter Content
 Primary lookup key = answer to Q5 (Main Concern). Each concern lists a routine
-plus three product lenses — Drugstore, Luxury, and Cruelty-Free (this tab no
+plus three product lenses — Affordable, Luxury, and Cruelty-Free (this tab no
 longer requires "vegan" too, which opens it up to a much wider pool of
 brands — see 8.10 and Section 10). These are starter picks — review for
 current availability/formulation before shipping.
@@ -198,7 +270,7 @@ current availability/formulation before shipping.
 - Routine: 10-min scalp massage daily (see 6.3); scalp serum 3–4x/week at
   night; growth-supporting shampoo on wash days; avoid tight hairstyles
   pulling on the hairline; pre-poo per 6.1
-- Drugstore: Mielle Rosemary Mint Scalp & Strengthening Oil; OGX Thick & Full
+- Affordable: Mielle Rosemary Mint Scalp & Strengthening Oil; OGX Thick & Full
   Biotin & Collagen Shampoo
 - Luxury: Act+Acre Cold Processed Scalp Detox
 - Cruelty-Free: Vegamour GRO Hair Serum; Briogeo Scalp Revival Scrub
@@ -212,7 +284,7 @@ current availability/formulation before shipping.
 **Dryness / Damage**
 - Routine: pre-poo per 6.1; deep conditioning mask 1x/week (15–20 min, shower
   cap or warm towel); leave-in conditioner every wash day; trim every 8–10 weeks
-- Drugstore: OGX Coconut Miracle Oil Mask; Aussie 3 Minute Miracle
+- Affordable: OGX Coconut Miracle Oil Mask; Aussie 3 Minute Miracle
 - Luxury: Olaplex No.3 Hair Perfector
 - Cruelty-Free: Briogeo Don't Despair, Repair! Mask; Innersense Hydrating
   Cream Conditioner
@@ -220,7 +292,7 @@ current availability/formulation before shipping.
 **Frizz**
 - Routine: LOC/LCO method per 6.8; microfiber towel or t-shirt to dry (not
   rough terry); avoid touching hair once dry
-- Drugstore: OGX Anti-Frizz Argan Oil Serum; Not Your Mother's Frizz Go Away
+- Affordable: OGX Anti-Frizz Argan Oil Serum; Not Your Mother's Frizz Go Away
 - Luxury: Living Proof No Frizz Leave-In Conditioner
 - Cruelty-Free: Rahua Frizz-Free Cream; Bread Beauty Supply Hair Oil
 
@@ -228,7 +300,7 @@ current availability/formulation before shipping.
 - Routine: bond-repair treatment on wash days (K18 per 6.5); silk/satin
   pillowcase or nighttime bonnet per 6.4; only detangle wet hair with a
   wide-tooth comb; trim every 8–10 weeks
-- Drugstore: OGX Bond Repair Shampoo/Conditioner; L'Oréal EverPure Bond
+- Affordable: OGX Bond Repair Shampoo/Conditioner; L'Oréal EverPure Bond
   Strengthening line
 - Luxury: K18 Leave-In Molecular Repair Mask
 - Cruelty-Free: Olaplex No.4/No.5; K18 Leave-In Molecular Repair Mask (both
@@ -239,7 +311,7 @@ current availability/formulation before shipping.
 - Routine: medicated shampoo 2x/week alternating with a gentle daily shampoo
   (see double-washing, 6.2); avoid hot water directly on scalp; scalp
   exfoliation 1x/week (scalp brush per 6.3)
-- Drugstore: Nizoral Anti-Dandruff Shampoo; Head & Shoulders (works well as
+- Affordable: Nizoral Anti-Dandruff Shampoo; Head & Shoulders (works well as
   one wash within a double-wash routine — it doesn't have to replace someone's
   whole shampoo/conditioner system, just swap it in for the second wash)
 - Luxury: Christophe Robin Purifying Scalp Scrub
@@ -249,8 +321,10 @@ current availability/formulation before shipping.
 **Slow Growth**
 - Routine: 10-min nightly scalp massage with oil (6.3); growth serum on scalp;
   monthly protein treatment; regular trims to offset breakage
-- Drugstore: Mielle Rosemary Mint Oil; Maple Holistics Biotin Growth Serum
-- Luxury: Act+Acre scalp treatments
+- Affordable: Mielle Rosemary Mint Oil; Maple Holistics Biotin Growth Serum
+- Luxury: Act+Acre scalp treatments; Dr. Groot Hair Thickening Shampoo
+  (correction — confirmed ~$30/bottle and sold at Sephora, so this is
+  prestige-tier, not affordable, despite being Amazon-available too)
 - Cruelty-Free: Vegamour GRO Serum
 
 **New to Curly/Wavy — Styling Basics**
@@ -260,7 +334,7 @@ current availability/formulation before shipping.
   hair — detangle only with fingers or a wide-tooth comb while conditioner
   is still in; refresh day 2–3 with water + a small amount of leave-in;
   loose "pineapple" pony at night per 6.4
-- Drugstore: Cantu Coconut Curling Cream; Aussie Miracle Curls Air Dry Cream
+- Affordable: Cantu Coconut Curling Cream; Aussie Miracle Curls Air Dry Cream
 - Luxury: DevaCurl One Condition Original; Ouidad Climate Control Gel
 - Cruelty-Free: Innersense Curl Crème; Bread Beauty Supply Curl Whip;
   DevaCurl One Condition Original (DevaCurl is PETA-certified cruelty-free —
@@ -274,7 +348,7 @@ current availability/formulation before shipping.
 Section 7 gives fast, concern-based defaults, but don't limit the app to
 only those picks. This is the fuller product library — pulled from a
 widely-referenced 11-step routine framework — that Claude Code should draw
-from for the Drugstore and Luxury tiers across the app. Every product below
+from for the Affordable and Luxury tiers across the app. Every product below
 should end up in the product data somewhere; Section 7's picks are the
 highlighted defaults, not the ceiling.
 
@@ -310,15 +384,19 @@ science and timing; this is where those products sit in the step order.
 
 ### 8.2 In-Shower — Shampoo
 **Clarifying** (≥1x/week): L'Oréal EverPure Sulfate-Free, Garnier Fructis
-Pure Clean, Dove Scalp+Hair Therapy Clarifying, Pantene Pro-V Volume & Body,
+Pure Clean, Dove Scalp+Hair Therapy Clarifying, Pantene Pro-V Volume & Body
+(real v1 feedback: this one's a standout — cheap and lathers well, good
+one to feature prominently in the affordable tier, not just list),
 L'Oréal Metal Detox, Living Proof Clarifying Detox Shampoo, K18 Peptide Prep
 Detox Shampoo, OUAI Detox Shampoo
 
 **Non-clarifying / strengthening** (as often as needed): Garnier Fructis
 Hair Filler + Vitamin Cg Shampoo, Not Your Mother's Tough Love Bonding
 Shampoo, Dove Intensive Repair Shampoo, Dove Bond Strength Shampoo, L'Oréal
-EverPure Bond Repair Shampoo, Pureology Strength Cure Shampoo, amika the
-kure Bond Repair Shampoo, Redken Acidic Bonding Concentrate Shampoo
+EverPure Bond Repair Shampoo, L'Oréal Elvive Dream Lengths Restoring
+Shampoo (real v1 feedback: another standout affordable pick), Pureology
+Strength Cure Shampoo, amika the kure Bond Repair Shampoo, Redken Acidic
+Bonding Concentrate Shampoo
 
 **Medicated** (optional, as needed for itching/irritation/flaking — in
 place of or alongside the above): Neutrogena Scalp Therapy Anti-Dandruff,
@@ -346,7 +424,8 @@ Glycolic Gloss 5-Min Lamination
 **Conditioner:** Garnier Fructis Hair Filler + Vitamin Cg Conditioner, Not
 Your Mother's Tough Love Bonding Conditioner, Dove Intensive Repair
 Conditioner, Dove Bond Strength Conditioner, L'Oréal EverPure Bond Repair
-Conditioner, Pureology Strength Cure Conditioner, amika the kure Bond Repair
+Conditioner, L'Oréal Elvive Dream Lengths Super Detangler Conditioner,
+Pureology Strength Cure Conditioner, amika the kure Bond Repair
 Conditioner, Redken Acidic Bonding Concentrate Conditioner
 
 **Mask:** CER-100 Collagen Ceramide Cooling Protein Treatment, Pantene
@@ -362,6 +441,11 @@ Living Proof Triple Bond Complex Hair Strengthener — apply post-wash, wait
 
 ### 8.6 Post-Shower — Leave-In Conditioner & Heat Protectant (every wash
 day, apply liberally)
+> **Gate this by Q8 (heat styling frequency)** — see 11.3 for the
+> non-heat-user alternatives (L'Oréal No Haircut Cream, L'Oréal Purple
+> 10-in-1, Crown Affair The Leave-In). Don't show heat-protectant-forward
+> copy to someone who rarely/never uses heat.
+
 Pantene Miracle Rescue 10-in-1 Multitasking Spray, TRESemmé Protecting Heat
 Spray, TRESemmé Keratin Smooth Blowout Heat Protect Spray, Not Your Mother's
 Tough Love Bonding Leave-In Protector, OGX Bond Protein Repair Leave-In
@@ -403,14 +487,30 @@ Spray, Moroccanoil Perfect Defense, Oribe Gold Lust Dry Heat Protection Spray
 **Dry shampoo** (refresh greasy roots — not a replacement for washing, see
 6.2): amika Perk Up Plus Extended Clean Dry Shampoo, Living Proof Perfect
 Hair Day Advanced Clean Dry Shampoo, Dove Volume & Fullness Advanced Dry
-Shampoo, Not Your Mother's Clean Freak Refreshing Dry Shampoo
+Shampoo, Not Your Mother's Clean Freak Refreshing Dry Shampoo, K18 AirWash
+Dry Shampoo (real product, confirmed — non-aerosol mist, biotech
+odor-eliminating formula, very light application; also cruelty-free/vegan
+per K18's existing certification, cross-tag into that tab too)
 
-### 8.10 Drugstore vs. Luxury Split (for tagging in the product data)
-- **Drugstore:** Garnier Fructis, OGX, Dove, Pantene, TRESemmé, L'Oréal
+### 8.10 Affordable vs. Luxury Split (for tagging in the product data)
+> **Renamed from "Drugstore" to "Affordable"** — correction on the
+> original reasoning: Dr. Groot was cited as the example that prompted
+> this rename, but that was wrong — Dr. Groot is confirmed ~$30/bottle
+> and sold at Sephora, so it's actually Luxury tier (moved below), not an
+> affordable online-only example. The rename itself still holds as a
+> reasonable general practice (price point matters more than physical
+> retail location for this category), but flag that the specific example
+> used to justify it was mistaken — double-check pricing/retail placement
+> before assuming a brand's tier based on where it's sold rather than
+> what it costs.
+
+- **Affordable:** Garnier Fructis, OGX, Dove, Pantene, TRESemmé, L'Oréal
   (Elvive/EverPure), Not Your Mother's, CeraVe, Neutrogena, Nizoral, Head &
   Shoulders, CER-100
 - **Luxury:** K18, Living Proof, Redken, Pureology, amika, Oribe,
-  Moroccanoil, Bumble and bumble, IGK, R+Co, epres
+  Moroccanoil, Bumble and bumble, IGK, R+Co, epres, Dr. Groot (corrected —
+  Sephora-sold, ~$30/bottle, prestige tier despite Korean-drugstore-style
+  branding)
 - **Cruelty-Free tab:** dropping "vegan" as a requirement means several
   brands already in this library qualify directly — **K18** (vegan +
   cruelty-free certified), **amika** (Leaping Bunny + PETA certified),
@@ -444,7 +544,7 @@ as a requirement — it's cruelty-free only now, which widens the pool a lot.
 Brands that are cruelty-free but not fully vegan (DevaCurl, Not Your
 Mother's, Olaplex) now qualify cleanly, no caveat needed.
 
-**Already in Section 8's Drugstore/Luxury library — cross-tag these too:**
+**Already in Section 8's Affordable/Luxury library — cross-tag these too:**
 - **amika** — Leaping Bunny + PETA certified cruelty-free (bonus: mostly
   vegan too, with a few exceptions containing keratin, honey, or lanolin).
 - **R+Co** — Leaping Bunny certified cruelty-free (100% vegan too).
@@ -470,13 +570,13 @@ affordable), Giovanni (salon-quality, affordable), Ethique (shampoo bars,
 zero-waste), Paul Mitchell (cruelty-free since 1980, Leaping Bunny + PETA
 certified)
 
-*Medicated/dandruff shampoo:* Derma E Scalp Relief Shampoo, JASON
+*Medicated / dandruff shampoo:* Derma E Scalp Relief Shampoo, JASON
 Dandruff Relief Shampoo (alternative to Head & Shoulders), Oribe Serene
 Scalp Anti-Dandruff Shampoo (see Oribe/Kao note above)
 
-*Bond repair/treatment:* K18, Olaplex
+*Bond repair / treatment:* K18, Olaplex
 
-*Styling/serum/oil:* JVN — Jonathan Van Ness's line (Leaping Bunny
+*Styling / serum / oil:* JVN — Jonathan Van Ness's line (Leaping Bunny
 certified), Playa Ritual Hair Oil (natural coconut/apricot/sunflower oil
 blend)
 
@@ -509,18 +609,60 @@ bond-repair or mask options if they exist.
   protect from friction than extra-long hair does. Not a hard requirement
   for v1, but reasonable to de-emphasize for short hair the same way.
 
-### 11.2 Recommended Brushes (new content area, tied to Q1 hair type)
-Brush choice is texture-dependent and worth a dedicated content block
-rather than folding into an existing product list — confirm exact
-brand/model picks with Crystal; the specifics below are a starting point:
-- **Curly/wavy/coily hair:** a wet detangling brush (flexible bristles
-  designed for wet, tangled hair without snapping curls) is the standard
-  recommendation
-- **Straight hair:** a boar bristle brush is commonly preferred instead —
-  it distributes natural scalp oils down the length of the hair for shine,
-  which a detangling brush isn't designed to do
-- Tie this to Q1 (hair type) the same way Section 7 ties concern to
-  routine — it's a simple lookup, not a new quiz question
+### 11.2 Recommended Brushes (tied to Q1 hair type AND Q2 hair density)
+Brush choice isn't just hair type — density matters too, per actual brush
+expertise: pure boar bristle is best for fine/normal hair, while a boar +
+nylon blend works better for normal-to-thick hair (nylon alone for very
+thick/coarse). Build this as a lookup on both Q1 and Q2, not Q1 alone:
+
+- **Straight hair, fine/normal density:** pure boar bristle brush
+- **Straight hair, thick density:** boar + nylon bristle blend (distributes
+  oil like pure boar, but the nylon pins help with thicker strands)
+- **Curly / wavy / coily hair (any density):** a wet detangling brush
+  (flexible bristles designed for wet, tangled hair without snapping
+  curls) stays the standard recommendation regardless of density
+
+**Confirmed real products to use:**
+- Mason Pearson — the original, iconic boar bristle brush (~$250), real
+  and commonly referenced
+- Crown Affair Mini Dual-Bristle Boar Hair Brush — luxury boar+nylon
+  blend pick; Crown Affair's leave-in line is independently confirmed
+  vegan and cruelty-free, reasonable to assume the brush line follows the
+  same brand practice but confirm before stating that as fact
+- For an affordable-tier option and any curly/wavy-specific brand names
+  (a "wet detangling brush" style product, plus whatever the cruelty-free
+  boar-bristle-blend brand was that got mentioned — transcription wasn't
+  clear enough to pin down the exact name), get exact names from Crystal
+  before finalizing rather than guessing
+
+### 11.3 Leave-In & Heat Protectant — Gate by Actual Heat Use (Q8)
+Real v1 feedback: recommending heat-protectant sprays to someone who
+answered "rarely or never" on Q8 (heat styling frequency) doesn't make
+sense — split this step into two paths instead of one generic list:
+
+**For people who use heat (daily / a few times a week):** keep the
+existing heat-protectant-forward picks — TRESemmé Protecting Heat Spray,
+TRESemmé Keratin Smooth Blowout Heat Protect Spray, etc. (full list stays
+in Section 8.6)
+
+**For people who rarely/never use heat:** don't lead with "protectant"
+framing at all — these should read as everyday moisturizing leave-ins,
+not heat products:
+- L'Oréal Elvive Dream Lengths No Haircut Cream — leave-in cream for
+  long/damaged hair, reduces breakage and split ends (note: it does
+  technically offer heat protection up to 450°F per the brand, but it's
+  not positioned as a dedicated heat product, so it fits this list fine)
+- L'Oréal Elvive Colour Protect Purple 10-in-1 Leave-In Spray — good pick
+  specifically for color-treated/blonde hair, ties into the hair color
+  section (13.6)
+- Crown Affair The Leave-In Conditioner — confirmed vegan + cruelty-free,
+  lightweight, works on wet or dry hair; good Luxury/Cruelty-Free tier
+  pick for this list specifically because it's positioned as an everyday
+  moisturizing leave-in rather than a heat product, even though it has a
+  natural (meadowfoam oil) heat-protectant property as a bonus
+- A specific new "sleek" spray was also mentioned but the name wasn't
+  clear enough to confirm — check with Crystal for the exact product
+  before adding it
 
 ## 12. Free Email Capture & Segmented Newsletter
 This reverses the original v1 decision to skip email entirely (Section 1
@@ -533,26 +675,35 @@ free value-add, not tied to payment at all.
 - **Framing:** something like "Get new products, treatments, and deals sent
   to you" — not a signup wall, just an optional extra
 - **Segmented by preference, not one-size-fits-all:** ask which tier(s)
-  they want content about — Cruelty-Free, Luxury, Drugstore (multi-select,
+  they want content about — Cruelty-Free, Luxury, Affordable (multi-select,
   can pick more than one). Someone who only cares about cruelty-free
-  shouldn't get emails pushing drugstore-only products they'd never buy —
+  shouldn't get emails pushing affordable-only products they'd never buy —
   that's the fastest way to get someone to unsubscribe or never open the
   email again
 - **Also capture ZIP/area code**, framed as "so we can point you to
   relevant options in your area" — this is about general regional
   relevance in email content, not a live store-inventory lookup (that's
   the separate, bigger "Where to Buy" feature in 13.3)
-- **Implementation:** use an existing email marketing service (Mailchimp,
-  Klaviyo, or ConvertKit are all reasonable defaults) rather than building
-  email infrastructure from scratch — tag each subscriber by their tier
-  preference(s) and ZIP so campaigns can be filtered/segmented on the
-  provider's side
+- **Implementation — self-contained, no third-party account needed to
+  build this:** store signups directly in a database Claude Code sets up
+  on the existing Vercel hosting (Vercel Postgres or similar) — a simple
+  table of email, tier tags, ZIP, and timestamp. This avoids needing to
+  create a Mailchimp/Klaviyo/ConvertKit account just to *capture* signups,
+  and Claude Code can build and own this part entirely.
+  > **One honest limit worth knowing:** capturing and storing emails is
+  > fully automatable, but *actually sending* newsletter content to that
+  > list later will still need some email-delivery service at that point
+  > (e.g., Resend, Postmark, or one of the marketing tools). Setting up
+  > that account requires domain/sender verification tied to a real
+  > identity — that step can't be done by an AI on anyone's behalf, since
+  > it requires a human to verify ownership. That's a separate, later
+  > task from today's capture-and-store build, not a blocker for it.
 - This is a free-tier, v1-appropriate feature — much lighter than the
-  accounts/database lift the rest of Section 13 (v2) needs, since it's
-  just a signup form feeding a third-party service, no login required
+  full accounts/payments lift the rest of Section 13 (v2) needs, since a
+  signup form + one database table doesn't require user login
 
 > **Owner note (July 11):** if they want all 3 included in their newsletter
-> (cruelty-free, luxury, drugstore), definitely have that as an option as
+> (cruelty-free, luxury, affordable), definitely have that as an option as
 > well — make sure we can gather every prospect we possibly can grab for
 > attention. (Implemented as the "All three ✨" chip in the signup form.)
 
@@ -567,7 +718,7 @@ so Claude Code doesn't try to build all of it at once.
 ### 13.1 Tier Breakdown
 
 > **Copy note:** never call the free tier a "trial" anywhere in the UI —
-> it's not time-limited; it's a permanent free feature set. Word it as
+> it's not time-limited, it's a permanent free feature set. Word it as
 > "free" / "included," not "trial."
 
 > **"Save My Routine" button — make the paywall obvious, not vague:**
@@ -694,10 +845,11 @@ as the highest-risk item.
       an approach
 
 ## 14. Open Items (fill in before/during build)
+- [ ] Final app name — leaning "How's My Hair," needs an actual domain/
+      availability check before committing (not yet confirmed either way)
 - [ ] Keep expanding Section 10 as more cruelty-free research comes in — it's
       intentionally a living list, not a final one
-- [ ] Final app name
-- [ ] Logo/wordmark
+- [ ] Logo / wordmark
 - [ ] Domain
 - [ ] Final product list review (Crystal to confirm/expand picks above)
 - [ ] Verify current cruelty-free certifications before launch
@@ -705,13 +857,19 @@ as the highest-risk item.
 - [ ] Sections 11–12 are new: hair length quiz question + brush
       recommendations (11), and the free segmented email signup (12) —
       both are v1-appropriate (no accounts needed), unlike Section 13
+- [ ] Confirm exact product names with Crystal: the cruelty-free
+      boar-bristle-blend brush brand (name unclear from transcription),
+      any additional wet-detangling-brush brand picks, the "sleek" leave-in
+      spray mentioned as a new launch, and the exact serum product meant by
+      "L'Oréal ... serum" under post-shower serums — don't guess these,
+      confirm before adding to `lib/products.js`
 
 ---
 **Instructions for Claude Code:** Build this as a Next.js + Tailwind app per
 the stack, colors, screens, and flow above. Start with the landing page,
 then the 11-question quiz component with progress bar (note Q7 is multi-select,
 all others single-select), then the results page with the 3-way
-Drugstore/Luxury/Cruelty-Free tab wired to the recommendation engine in sections
+Affordable/Luxury/Cruelty-Free tab wired to the recommendation engine in sections
 7–9 (concern-based defaults in 7, the fuller product library to draw from
 in 8, and time-based routine depth in 9). Keep the recommendation data in
 its own file (e.g. `lib/recommendations.js`) separate from UI components,

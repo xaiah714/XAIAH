@@ -1,18 +1,50 @@
-// Free segmented email signup (spec §12) — forwards to a third-party email
-// service rather than building email infrastructure. Mailchimp is wired as
-// the default; subscribers get tagged with their tier preference(s) and a
-// ZIP merge field so campaigns can be segmented on the provider's side.
+// Free segmented email signup (spec §12) — self-contained capture-and-store.
+// Signups go straight into our own Postgres (Vercel Postgres or any provider
+// that hands us a connection string): one row per email with tier tags, ZIP,
+// and timestamp. No third-party marketing account needed to CAPTURE signups.
 //
-// Configure via env (see .env.example):
-//   MAILCHIMP_API_KEY      e.g. abc123...-us21 (data center suffix required)
-//   MAILCHIMP_AUDIENCE_ID  the list/audience ID
+// Configure via env (see .env.example): POSTGRES_URL (set automatically when
+// you attach Vercel Postgres) or DATABASE_URL. Until one is set, signups
+// validate and return ok but are NOT stored (a server warning is logged).
 //
-// Until those are set, signups validate and return ok but are NOT stored
-// (a server-side warning is logged) — swap in Klaviyo/ConvertKit here if
-// preferred; this route is the only place that knows about the provider.
+// Honest limit (per spec): actually SENDING newsletters later needs an email
+// delivery service (Resend, Postmark, etc.) with human domain/sender
+// verification — that's a separate future task; this table is the list
+// they'll import/segment from (tiers + ZIP are stored for exactly that).
+
+import { Pool } from "pg";
 
 const VALID_TIERS = ["drugstore", "luxury", "crueltyFree"];
-const TIER_TAGS = { drugstore: "Drugstore", luxury: "Luxury", crueltyFree: "Cruelty-Free" };
+
+let pool = null;
+let tableReady = false;
+
+function getPool() {
+  const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!url) return null;
+  if (!pool) {
+    pool = new Pool({
+      connectionString: url,
+      max: 3,
+      ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false },
+    });
+  }
+  return pool;
+}
+
+async function ensureTable(db) {
+  if (tableReady) return;
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS hairiq_subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      tiers TEXT[] NOT NULL,
+      zip TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  tableReady = true;
+}
 
 export async function POST(request) {
   let body;
@@ -22,11 +54,11 @@ export async function POST(request) {
     return Response.json({ ok: false, error: "Invalid request." }, { status: 400 });
   }
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const zip = typeof body.zip === "string" ? body.zip.trim() : "";
   const tiers = Array.isArray(body.tiers) ? body.tiers.filter((t) => VALID_TIERS.includes(t)) : [];
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return Response.json({ ok: false, error: "That email doesn't look quite right." }, { status: 400 });
   }
   if (tiers.length === 0) {
@@ -36,45 +68,28 @@ export async function POST(request) {
     return Response.json({ ok: false, error: "ZIP should be 5 digits." }, { status: 400 });
   }
 
-  const apiKey = process.env.MAILCHIMP_API_KEY;
-  const audienceId = process.env.MAILCHIMP_AUDIENCE_ID;
-
-  if (!apiKey || !audienceId) {
-    console.warn("[subscribe] Email service not configured — signup NOT stored.", { email, tiers, zip });
-    return Response.json({ ok: true, configured: false });
+  const db = getPool();
+  if (!db) {
+    console.warn("[subscribe] No POSTGRES_URL/DATABASE_URL configured — signup NOT stored.", { email, tiers, zip });
+    return Response.json({ ok: true, stored: false });
   }
 
-  const dataCenter = apiKey.split("-").pop();
   try {
-    const res = await fetch(`https://${dataCenter}.api.mailchimp.com/3.0/lists/${audienceId}/members`, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${Buffer.from(`anystring:${apiKey}`).toString("base64")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email_address: email,
-        status: "subscribed",
-        tags: tiers.map((t) => TIER_TAGS[t]),
-        merge_fields: zip ? { ZIP: zip } : {},
-      }),
-    });
-
-    if (res.ok) return Response.json({ ok: true, configured: true });
-
-    const detail = await res.json().catch(() => ({}));
-    if (detail.title === "Member Exists") {
-      return Response.json({ ok: true, configured: true, already: true });
-    }
-    console.error("[subscribe] Mailchimp error:", detail.title || res.status);
-    return Response.json(
-      { ok: false, error: "Couldn't sign you up right now — try again in a bit." },
-      { status: 502 }
+    await ensureTable(db);
+    // Re-signup updates preferences instead of erroring.
+    await db.query(
+      `INSERT INTO hairiq_subscribers (email, tiers, zip)
+       VALUES ($1, $2, NULLIF($3, ''))
+       ON CONFLICT (email) DO UPDATE
+         SET tiers = EXCLUDED.tiers,
+             zip = COALESCE(NULLIF(EXCLUDED.zip, ''), hairiq_subscribers.zip)`,
+      [email, tiers, zip]
     );
+    return Response.json({ ok: true, stored: true });
   } catch (err) {
-    console.error("[subscribe] Mailchimp request failed:", err);
+    console.error("[subscribe] Database error:", err.message);
     return Response.json(
-      { ok: false, error: "Couldn't reach the signup service — try again in a bit." },
+      { ok: false, error: "Couldn't save your signup right now — try again in a bit." },
       { status: 502 }
     );
   }

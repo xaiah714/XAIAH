@@ -226,7 +226,7 @@ const PREMIUM = {
 
 // Newsletter tier topics (spec §12) — keys match the results-tab tiers.
 const NEWSLETTER_TIERS = [
-  { value: "drugstore", label: "Drugstore deals" },
+  { value: "drugstore", label: "Affordable deals" },
   { value: "luxury", label: "Luxury picks" },
   { value: "crueltyFree", label: "Cruelty-free finds" },
 ];
@@ -318,7 +318,8 @@ const QUESTIONS = [
   {
     id: "chemical",
     title: "Any chemical treatments?",
-    subtitle: "Select all that apply.",
+    subtitle:
+      "Select all that apply. (Purple shampoo and other color-depositing products don't count — they only coat the outside of the hair, they don't chemically change it.)",
     multiSelect: true,
     options: [
       { value: "salonColor", label: "Salon color, no bleach", emoji: "🎨" },
@@ -364,7 +365,7 @@ const QUESTIONS = [
     title: "What matters most in product picks?",
     subtitle: "This just sets which tab you land on — you can always flip between all three.",
     options: [
-      { value: "drugstore", label: "Budget-friendly", sublabel: "Drugstore picks", emoji: "💸" },
+      { value: "drugstore", label: "Budget-friendly", sublabel: "Affordable picks", emoji: "💸" },
       { value: "luxury", label: "Luxury", sublabel: "Treat-yourself picks", emoji: "✨" },
       { value: "crueltyFree", label: "Cruelty-free", sublabel: "Certified & verified brands", emoji: "🐰" },
     ],
@@ -420,9 +421,10 @@ const PRINCIPLES = {
     id: "doubleWash",
     title: "Double-washing, explained",
     summary:
-      "If your scalp feels heavy with product, sweat, or buildup — shampoo twice.",
+      "If your scalp feels heavy with product, sweat, or buildup — shampoo twice. Most people skip this without realizing.",
     body: [
       "The first wash breaks down surface buildup. The second is the one that actually cleanses the scalp — and it's when a medicated or treatment shampoo does its real work, so always use those as the second wash.",
+      "One correction people get wrong: if your first wash is a clarifying shampoo, do NOT clarify twice. That squeaky-clean, stripped feeling means it already worked — follow it with a hydrating, non-clarifying shampoo for the second wash instead, so you cleanse without over-stripping.",
     ],
   },
 
@@ -486,7 +488,7 @@ const PRINCIPLES = {
     summary:
       "UV exposure can visibly change the color and texture of your ends over a single summer — especially on color-treated hair.",
     body: [
-      "A leave-in UV protection spray is the fix — spray it on before time outside, the way you'd apply sunscreen before the beach. Look for sprays that also cover salt and chlorine if you swim.",
+      "The easy fix isn't another 'before going outside' product to remember — just let a UV leave-in replace your regular leave-in for the whole summer. Worn every day, it covers sun, salt, and chlorine without adding a step.",
     ],
   },
 
@@ -554,7 +556,7 @@ function getPrinciple(id) {
 //   crueltyFree  true → appears in the Cruelty-Free tab + gets the green badge
 //   cfNote       certification detail shown in the Cruelty-Free tab
 //   cfOnly       Section 10 additions — shown ONLY in the Cruelty-Free tab so
-//                they don't dilute the curated Drugstore/Luxury lists
+//                they don’t dilute the curated Affordable/Luxury lists
 //   universal    tools (brushes, pillowcases…) — shown in every tab
 //   categories   which routine steps can pick this product
 //   tags         "new" → yellow badge
@@ -566,8 +568,11 @@ function getPrinciple(id) {
 
 const TIER_KEYS = ["drugstore", "luxury", "crueltyFree"];
 
+// NOTE: the internal tier key stays "drugstore" for data stability, but the
+// user-facing label is "Affordable" (spec §8.10 rename — price point matters
+// more than physical retail location).
 const TIER_META = {
-  drugstore: { label: "Drugstore", emoji: "💸", blurb: "Budget-friendly picks that pull their weight." },
+  drugstore: { label: "Affordable", emoji: "💸", blurb: "Budget-friendly picks that pull their weight." },
   luxury: { label: "Luxury", emoji: "✨", blurb: "Treat-yourself picks worth the splurge." },
   crueltyFree: { label: "Cruelty-Free", emoji: "🐰", blurb: "Certified or independently tracked cruelty-free brands — across every price point." },
 };
@@ -637,7 +642,7 @@ const PRODUCTS = [
     tier: "drugstore",
     crueltyFree: false,
     categories: ["clarifying-shampoo"],
-    blurb: "Clarifies while adding lift — handy for fine hair.",
+    blurb: "A standout: cheap, lathers beautifully, and clarifies while adding lift — great for fine hair.",
   },
   {
     id: "loreal-metal-detox",
@@ -695,7 +700,7 @@ const PRODUCTS = [
     crueltyFree: true,
     cfNote: "Widely reported cruelty-free by independent trackers (Ethical Elephant, Cruelty-Free Kitty); not officially certified.",
     categories: ["strengthening-shampoo"],
-    blurb: "Bond-building wash at a drugstore price.",
+    blurb: "Bond-building wash at an affordable price.",
   },
   {
     id: "dove-intensive-repair-shampoo",
@@ -769,6 +774,33 @@ const PRODUCTS = [
     crueltyFree: false,
     categories: ["strengthening-shampoo"],
     blurb: "Protein bond repair for breakage-prone hair.",
+  },
+  {
+    id: "loreal-dream-lengths-shampoo",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths Restoring Shampoo",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo"],
+    blurb: "A standout affordable pick — restoring wash made for long or damaged hair.",
+  },
+  {
+    id: "dr-groot-thickening",
+    brand: "Dr. Groot",
+    name: "Hair Thickening Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["growth-shampoo", "strengthening-shampoo"],
+    blurb: "K-beauty thickening shampoo — about $30 at Sephora, prestige tier despite the drugstore-style branding.",
+  },
+  {
+    id: "pureology-blonde-shampoo",
+    brand: "Pureology",
+    name: "Strength Cure Blonde Shampoo",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["strengthening-shampoo", "sulfate-free"],
+    blurb: "Violet-toning repair wash made for bleached hair — tones brassiness while it strengthens. Vegan formulation (cruelty-free status unverified — L'Oréal-owned).",
   },
 
   // ---- 8.2 — Medicated shampoo ----------------------------------------------
@@ -1038,6 +1070,24 @@ const PRODUCTS = [
     blurb: "Deeply hydrating clean-beauty conditioner.",
   },
   {
+    id: "loreal-dream-lengths-conditioner",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths Super Detangler Conditioner",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "Detangling conditioner pair to Dream Lengths — slip for days.",
+  },
+  {
+    id: "pureology-blonde-conditioner",
+    brand: "Pureology",
+    name: "Strength Cure Blonde Conditioner",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["conditioner"],
+    blurb: "The toning-repair conditioner pair for bleached hair. Vegan formulation (cruelty-free status unverified).",
+  },
+  {
     id: "devacurl-one-condition",
     brand: "DevaCurl",
     name: "One Condition Original",
@@ -1065,7 +1115,7 @@ const PRODUCTS = [
     tier: "drugstore",
     crueltyFree: false,
     categories: ["mask"],
-    blurb: "Deep repair in a drugstore jar.",
+    blurb: "Deep repair in a budget-friendly jar.",
   },
   {
     id: "pantene-miracle-rescue-bond-mask",
@@ -1222,8 +1272,36 @@ const PRODUCTS = [
     name: "Hairdresser's Invisible Oil Primer",
     tier: "luxury",
     crueltyFree: false,
-    categories: ["leave-in", "heat-protect"],
-    blurb: "Silky leave-in primer with UV and heat protection.",
+    categories: ["leave-in", "heat-protect", "uv-protect"],
+    blurb: "Silky leave-in primer combining UV filters with heat protection up to 450°F.",
+  },
+  {
+    id: "crown-affair-leave-in",
+    brand: "Crown Affair",
+    name: "The Leave-In Conditioner",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Confirmed vegan + cruelty-free.",
+    categories: ["leave-in"],
+    blurb: "Lightweight everyday leave-in for wet or dry hair — a moisturizer first, with a natural meadowfoam-oil heat buffer as a bonus.",
+  },
+  {
+    id: "loreal-no-haircut-cream",
+    brand: "L'Oréal",
+    name: "Elvive Dream Lengths No Haircut Cream",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in", "sealer-cream"],
+    blurb: "Everyday leave-in cream for long or damaged hair — cuts breakage and split ends, no hot tools required.",
+  },
+  {
+    id: "loreal-purple-10in1",
+    brand: "L'Oréal",
+    name: "Elvive Colour Protect Purple 10-in-1 Leave-In Spray",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["leave-in"],
+    blurb: "Purple leave-in for color-treated or blonde hair — tones brassiness while it conditions.",
   },
 
   // ---- 8.7 — Styling -------------------------------------------------------------
@@ -1522,6 +1600,16 @@ const PRODUCTS = [
     categories: ["dry-shampoo"],
     blurb: "The $8 dry shampoo classic.",
   },
+  {
+    id: "k18-airwash",
+    brand: "K18",
+    name: "AirWash Dry Shampoo",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Independently certified cruelty-free · vegan.",
+    categories: ["dry-shampoo"],
+    blurb: "Non-aerosol mist with an odor-eliminating biotech formula — a very light touch goes a long way.",
+  },
 
   // ---- Section 7 — Thinning / slow growth -----------------------------------------------
   {
@@ -1736,6 +1824,15 @@ const PRODUCTS = [
     blurb: "The luxury overnight serum — follow with a lightweight hair oil.",
   },
   {
+    id: "crown-affair-overnight",
+    brand: "Crown Affair",
+    name: "Overnight Repair Serum",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["night-treatment"],
+    blurb: "A ~$55 luxury night option in its own right — not a Kérastase dupe; bleached or heavily processed hair usually wants more repair power than this.",
+  },
+  {
     id: "loreal-midnight-serum",
     brand: "L'Oréal",
     name: "Elvive Extraordinary Oil Midnight Serum",
@@ -1755,6 +1852,16 @@ const PRODUCTS = [
     categories: ["uv-protect"],
     tags: ["new"],
     blurb: "2026 launch that targets UV, salt, and chlorine exposure specifically.",
+  },
+  {
+    id: "jvn-uv",
+    brand: "JVN",
+    name: "Complete UV Protection Line",
+    tier: "luxury",
+    crueltyFree: true,
+    cfNote: "Leaping Bunny certified.",
+    categories: ["uv-protect", "leave-in"],
+    blurb: "Luxury UV shield — wear it as your everyday summer leave-in, not a special-occasion spray.",
   },
   {
     id: "sunbum-heat-protector",
@@ -1788,7 +1895,7 @@ const PRODUCTS = [
     cfOnly: true,
     cfNote: "Cruelty-free brand.",
     categories: ["strengthening-shampoo", "conditioner"],
-    blurb: "Budget/drugstore-friendly — easy to find at Target.",
+    blurb: "Budget-friendly — easy to find at Target.",
   },
   {
     id: "verb-range",
@@ -1920,8 +2027,10 @@ const PRODUCTS = [
     categories: ["tool-detangle"],
     blurb: "The only thing that should detangle wet hair.",
   },
-  // Brushes (spec §11.2) — texture-dependent; exact brand/model picks are a
-  // starting point for Crystal to confirm, so these stay brand-agnostic.
+  // Brushes (spec §11.2) — lookup on hair type AND density: pure boar for
+  // straight fine/normal, boar+nylon blend for straight thick, wet detangling
+  // brush for any texture. Affordable-tier and cruelty-free brand picks are
+  // pending exact names from Crystal — generics stay brand-agnostic.
   {
     id: "wet-detangling-brush",
     brand: "Any brand",
@@ -1929,7 +2038,7 @@ const PRODUCTS = [
     tier: null,
     universal: true,
     crueltyFree: false,
-    categories: ["tool-brush", "tool-detangle"],
+    categories: ["tool-brush-wet", "tool-detangle"],
     blurb: "Flexible bristles built for wet, tangled hair — works through knots without snapping curls.",
   },
   {
@@ -1939,8 +2048,36 @@ const PRODUCTS = [
     tier: null,
     universal: true,
     crueltyFree: false,
-    categories: ["tool-brush"],
+    categories: ["tool-brush-boar"],
     blurb: "Carries your scalp's natural oils down the length for shine — something a detangling brush isn't designed to do.",
+  },
+  {
+    id: "boar-nylon-blend-brush",
+    brand: "Any brand",
+    name: "Boar + Nylon Blend Brush",
+    tier: null,
+    universal: true,
+    crueltyFree: false,
+    categories: ["tool-brush-blend"],
+    blurb: "Distributes oils like pure boar, with nylon pins that actually get through thicker hair.",
+  },
+  {
+    id: "mason-pearson",
+    brand: "Mason Pearson",
+    name: "Boar Bristle Brush",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["tool-brush-boar"],
+    blurb: "The original, iconic boar bristle brush (~$250) — the heirloom version of this step.",
+  },
+  {
+    id: "crown-affair-brush",
+    brand: "Crown Affair",
+    name: "Mini Dual-Bristle Boar Hair Brush",
+    tier: "luxury",
+    crueltyFree: false,
+    categories: ["tool-brush-blend"],
+    blurb: "Luxury boar + nylon blend for thicker strands. (The brand's leave-in line is confirmed vegan/cruelty-free; the brush line hasn't been verified.)",
   },
 ];
 
@@ -2208,8 +2345,22 @@ function buildRoutine(answers) {
       categories: ["strengthening-shampoo"],
       prefer: {
         drugstore: ["ogx-bond-shampoo", "loreal-everpure-bond-shampoo"],
-        luxury: ["amika-kure-shampoo"],
+        luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo", "amika-kure-shampoo"] : ["amika-kure-shampoo"],
         crueltyFree: ["olaplex-no4"],
+      },
+    });
+  } else if (c === "slowGrowth") {
+    steps.push({
+      id: "shampoo",
+      phase: "washDay",
+      title: "Shampoo — growth support",
+      frequency: "Every wash",
+      how: "A growth-supporting wash on wash days, massaged into the scalp with fingertips.",
+      categories: ["growth-shampoo", "strengthening-shampoo"],
+      prefer: {
+        drugstore: ["ogx-thick-full-shampoo"],
+        luxury: ["dr-groot-thickening"],
+        crueltyFree: ["aveda-range"],
       },
     });
   } else {
@@ -2228,7 +2379,7 @@ function buildRoutine(answers) {
       principleId: answers.scalp === "oily" ? "doubleWash" : null,
       prefer: {
         drugstore: [],
-        luxury: [],
+        luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo"] : [],
         crueltyFree: [],
       },
     });
@@ -2242,12 +2393,17 @@ function buildRoutine(answers) {
       phase: "washDay",
       title: "Clarifying wash (swap in)",
       frequency: "1×/week",
-      how: chem.includes("boxDye")
-        ? "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment."
-        : "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better.",
+      how:
+        (chem.includes("boxDye")
+          ? "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment."
+          : "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better.") +
+        " If you double-wash that day, clarify only once: follow it with a hydrating, non-clarifying shampoo for the second wash.",
       categories: ["clarifying-shampoo"],
+      principleId: "doubleWash",
       prefer: {
-        drugstore: chem.includes("boxDye") ? ["loreal-metal-detox"] : [],
+        drugstore: chem.includes("boxDye")
+          ? ["loreal-metal-detox", "pantene-volume-body"]
+          : ["pantene-volume-body"],
         luxury: [],
         crueltyFree: [],
       },
@@ -2338,9 +2494,11 @@ function buildRoutine(answers) {
       luxury:
         c === "curlyNew"
           ? ["devacurl-one-condition"]
-          : c === "dryness"
-            ? ["pureology-strength-cure-conditioner"]
-            : [],
+          : chem.includes("bleach")
+            ? ["pureology-blonde-conditioner"]
+            : c === "dryness"
+              ? ["pureology-strength-cure-conditioner"]
+              : [],
       crueltyFree:
         c === "curlyNew"
           ? ["devacurl-one-condition", "innersense-hydrating-conditioner"]
@@ -2410,24 +2568,37 @@ function buildRoutine(answers) {
   // Post-shower bond repair (8.5) renders as the "After shower" timing inside
   // the bond-repair step above — never as its own extra step (spec §8 callout).
 
-  // Leave-in + heat protectant (8.6) — always present.
+  // Leave-in (8.6) — gated by actual heat use (spec §11.3): heat users get the
+  // protectant-forward picks; rarely/never gets everyday moisturizing leave-ins
+  // with zero "protectant" framing.
+  const usesHeat = answers.heat === "daily" || answers.heat === "weekly";
   steps.push({
     id: "leave-in",
     phase: "washDay",
-    title: answers.heat === "rarely" ? "Leave-in conditioner" : "Leave-in conditioner + heat protectant",
+    title: usesHeat ? "Leave-in conditioner + heat protectant" : "Everyday leave-in conditioner",
     frequency: "Every wash day",
     how:
       c === "curlyNew" || c === "frizz"
         ? `Apply liberally to soaking-wet hair — this is the L (liquid) of your ${locOrder} layers.`
         : answers.heat === "daily"
           ? "Apply liberally to damp hair, every wash day — and never let a hot tool touch bare hair."
-          : "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better.",
+          : usesHeat
+            ? "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better."
+            : "Since hot tools aren't your thing, skip the heat-protectant sprays entirely — a moisturizing everyday leave-in on damp hair is all this step needs.",
     categories: ["leave-in"],
-    prefer: {
-      drugstore: [],
-      luxury: colorTreated ? ["pureology-color-fanatic"] : [],
-      crueltyFree: [],
-    },
+    prefer: usesHeat
+      ? {
+          drugstore: [],
+          luxury: colorTreated ? ["pureology-color-fanatic"] : [],
+          crueltyFree: [],
+        }
+      : {
+          drugstore: colorTreated
+            ? ["loreal-purple-10in1", "loreal-no-haircut-cream", "loreal-everpure-2in1"]
+            : ["loreal-no-haircut-cream", "loreal-everpure-2in1", "pantene-miracle-rescue-spray"],
+          luxury: ["crown-affair-leave-in", "redken-one-united"],
+          crueltyFree: ["crown-affair-leave-in", "nym-tough-love-leave-in"],
+        },
   });
 
   // Styling (8.7 / concern-specific).
@@ -2590,37 +2761,50 @@ function buildRoutine(answers) {
     });
   }
 
-  // UV protection (6.6) — seasonal, always on right now (summer).
+  // UV protection (6.6) — seasonal; reframed per v1 feedback as an everyday
+  // summer swap, not a "before going outside" extra step.
   steps.push({
     id: "uv-shield",
     phase: "daily",
-    title: "UV shield before time outside",
-    frequency: "Sunny days",
+    title: "Make your leave-in a UV one for summer",
+    frequency: "All summer",
     how: colorTreated
-      ? "Sun can visibly shift color-treated hair over one summer — mist a UV spray on before heading out, like sunscreen for your hair."
-      : "A summer of sun can change the color and texture of your ends — mist a UV spray on before heading out.",
+      ? "Sun can visibly shift color-treated hair over one summer. No extra step needed — just let a UV leave-in replace your regular leave-in until fall, worn every day."
+      : "A summer of sun can change the color and texture of your ends. No extra step needed — just let a UV leave-in replace your regular leave-in until fall.",
     categories: ["uv-protect"],
     principleId: "uvProtection",
     prefer: {
       drugstore: ["pantene-sunkiss-glow"],
-      luxury: [],
-      crueltyFree: ["sunbum-heat-protector"],
+      luxury: ["jvn-uv", "bb-invisible-oil-primer"],
+      crueltyFree: ["jvn-uv", "sunbum-heat-protector"],
     },
     limit: 2,
-    emptyText: "No luxury UV pick in the library yet — Pantene Sunkiss Glow (Drugstore tab) is the one to grab.",
   });
 
-  // The right brush for the texture (spec §11.2) — simple Q1 lookup.
-  if (answers.hairType === "straight") {
+  // The right brush (spec §11.2) — lookup on hair type AND density: pure boar
+  // for straight fine/normal, boar+nylon blend for straight thick, wet
+  // detangling brush for any texture regardless of density.
+  if (answers.hairType === "straight" && thick) {
     steps.push({
       id: "brush",
       phase: "daily",
-      title: "Brush with boar bristle",
+      title: "Brush with a boar + nylon blend",
       frequency: "Daily-ish",
-      how: "For straight hair, a boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
-      categories: ["tool-brush"],
-      prefer: { drugstore: ["boar-bristle-brush"], luxury: ["boar-bristle-brush"], crueltyFree: ["boar-bristle-brush"] },
-      limit: 1,
+      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry hair, roots to ends.",
+      categories: ["tool-brush-blend"],
+      prefer: { drugstore: [], luxury: ["crown-affair-brush"], crueltyFree: [] },
+      limit: 2,
+    });
+  } else if (answers.hairType === "straight") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush with pure boar bristle",
+      frequency: "Daily-ish",
+      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      categories: ["tool-brush-boar"],
+      prefer: { drugstore: [], luxury: ["mason-pearson"], crueltyFree: [] },
+      limit: 2,
     });
   } else {
     steps.push({
@@ -2628,9 +2812,9 @@ function buildRoutine(answers) {
       phase: "daily",
       title: "Use the right brush (a wet one)",
       frequency: "Wash day only",
-      how: "Textured hair gets a wet detangling brush — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
-      categories: ["tool-brush"],
-      prefer: { drugstore: ["wet-detangling-brush"], luxury: ["wet-detangling-brush"], crueltyFree: ["wet-detangling-brush"] },
+      how: "Textured hair gets a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      categories: ["tool-brush-wet"],
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
       limit: 1,
     });
   }
@@ -2705,7 +2889,7 @@ function buildRoutine(answers) {
     categories: ["night-treatment"],
     prefer: {
       drugstore: ["loreal-midnight-serum"],
-      luxury: ["kerastase-8h-night"],
+      luxury: ["kerastase-8h-night", "crown-affair-overnight"],
       crueltyFree: ["amika-midnight-mender"],
     },
     limit: 2,
@@ -2778,6 +2962,21 @@ function buildRoutine(answers) {
     ],
   });
 
+  // 6.9 — hygral fatigue: air-drying isn't automatically healthier.
+  notes.push({
+    id: "air-dry",
+    title: "Air-drying isn't automatically “healthier”",
+    body: [
+      "Hair swells when wet and contracts as it dries — and hours of staying wet (sleeping on wet hair, air-drying that drags on all day) slowly weakens its internal structure. It's called hygral fatigue, and medium/high-porosity hair feels it most.",
+      "So don't avoid the blow dryer on principle: a quick, protected blow-dry — low heat, diffuser, heat protectant on first — can genuinely be gentler than hours of wetness. The rule of thumb is simply “avoid hours of wet,” not a specific timer.",
+      ...(answers.scalp === "oily"
+        ? [
+            "Oily-scalp bonus move: a partial blow-dry, pointing the dryer straight down at the roots only (never the lengths or ends), speeds up root drying and can slow how fast your scalp re-oils — with zero heat on your ends.",
+          ]
+        : []),
+    ],
+  });
+
   if (c === "thinning") {
     notes.push({
       id: "tight-styles",
@@ -2831,6 +3030,7 @@ function buildRoutine(answers) {
       title: "Bleached hair plays by porosity rules",
       body: [
         "Bleached hair is usually high-porosity — it drinks moisture in and loses it just as fast. That's why your layering order is LCO (cream before oil), and why bond treatments should be a fixture in your routine, not a treat.",
+        "Worth a look on the Luxury tab: Pureology Strength Cure Blonde — a violet-toning shampoo/conditioner system built for exactly this, toning brassiness while repairing lightened hair.",
       ],
     });
   }

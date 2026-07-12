@@ -83,7 +83,8 @@ export const QUESTIONS = [
   {
     id: "chemical",
     title: "Any chemical treatments?",
-    subtitle: "Select all that apply.",
+    subtitle:
+      "Select all that apply. (Purple shampoo and other color-depositing products don't count — they only coat the outside of the hair, they don't chemically change it.)",
     multiSelect: true,
     options: [
       { value: "salonColor", label: "Salon color, no bleach", emoji: "🎨" },
@@ -129,7 +130,7 @@ export const QUESTIONS = [
     title: "What matters most in product picks?",
     subtitle: "This just sets which tab you land on — you can always flip between all three.",
     options: [
-      { value: "drugstore", label: "Budget-friendly", sublabel: "Drugstore picks", emoji: "💸" },
+      { value: "drugstore", label: "Budget-friendly", sublabel: "Affordable picks", emoji: "💸" },
       { value: "luxury", label: "Luxury", sublabel: "Treat-yourself picks", emoji: "✨" },
       { value: "crueltyFree", label: "Cruelty-free", sublabel: "Certified & verified brands", emoji: "🐰" },
     ],

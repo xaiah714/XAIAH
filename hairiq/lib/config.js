@@ -13,7 +13,7 @@ export const PREMIUM = {
 
 // Newsletter tier topics (spec §12) — keys match the results-tab tiers.
 export const NEWSLETTER_TIERS = [
-  { value: "drugstore", label: "Drugstore deals" },
+  { value: "drugstore", label: "Affordable deals" },
   { value: "luxury", label: "Luxury picks" },
   { value: "crueltyFree", label: "Cruelty-free finds" },
 ];
