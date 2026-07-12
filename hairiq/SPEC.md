@@ -847,6 +847,18 @@ as the highest-risk item.
 ## 14. Open Items (fill in before/during build)
 - [ ] Final app name — leaning "How's My Hair," needs an actual domain/
       availability check before committing (not yet confirmed either way)
+      > **Domain check (RDAP, July 12, 2026):**
+      > - `howsmyhair.com` — **taken**: registered Sept 2019 via Dynadot,
+      >   currently a parking lander (no active business on it). Expires
+      >   Sept 3, 2026 — could be bought from the owner or watched for a
+      >   drop, but it is not free to register.
+      > - `howsmyhair.net` and `howsmyhair.app` — **taken**.
+      > - `howsmyhair.co` — **appears available** (no registration found).
+      > - `howsmyhair.hair` — **appears available** (the .hair TLD exists
+      >   and is on-brand).
+      > Registration status can change any day and registrars may price
+      > "premium" names higher — re-verify at the registrar at purchase
+      > time. Trademark/app-store conflict research is a separate check.
 - [ ] Keep expanding Section 10 as more cruelty-free research comes in — it's
       intentionally a living list, not a final one
 - [ ] Logo / wordmark
