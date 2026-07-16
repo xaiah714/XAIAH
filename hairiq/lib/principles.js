@@ -20,15 +20,55 @@ export const PRINCIPLES = {
     ],
   },
 
-  // 6.2 — Scalp-aware washing
+  // 6.2 / 6.10 — Scalp-aware washing & the refined sweat rule
   sweatRule: {
     id: "sweatRule",
     title: "The sweat rule",
     summary:
-      "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, wash tonight.",
+      "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, deal with it tonight.",
     body: [
-      "If you sweat that day (workout, hot day, anything), wash your hair after — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
-      "Dry shampoo is fine between washes, but it is not a substitute for washing after sweating — it only absorbs surface oil. It doesn't actually remove sweat, salt, or bacteria from the scalp.",
+      "If you sweat that day (workout, hot day, anything), don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
+      "Dry shampoo is fine between washes, but it is not a substitute here — it only absorbs surface oil. And a cool-air blow-dry at the scalp is a legit touch-up (dermatologists acknowledge it), but it only evaporates moisture; it doesn't remove salt, sweat, or bacteria either. Both are stopgaps, not wash replacements.",
+      "Sweat daily? You still don't need a full shampoo every single day — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse like a raw-sugar scalp scrub or rosemary water. Save full (and especially clarifying) washes for a few times a week.",
+    ],
+  },
+
+  // 6.11 — Shampoo is for the scalp, not the ends
+  scalpWash: {
+    id: "scalpWash",
+    title: "Shampoo is for your scalp, not your ends",
+    summary:
+      "Only the scalp actually needs washing — that's where oil, sweat, and buildup live. The lather rinsing through is enough for your lengths.",
+    body: [
+      "There are no oil glands on the hair shaft itself, so scrubbing shampoo into your ends every wash just dries them out. Wash the scalp; let the runoff handle the rest.",
+      "Exception: if the ends feel grimy or product-heavy, a roughly monthly full-length “reset” wash is fine — it's just not an every-wash need.",
+      "And wash frequency follows the scalp, not the hair: wash when the scalp feels oily, sweaty, or itchy. If it feels fine, there's no rule saying you're due.",
+    ],
+  },
+
+  // 6.12 — Conditioner: how to apply, and why it's not optional
+  conditionerWhy: {
+    id: "conditionerWhy",
+    title: "Conditioner isn't optional (and how to apply it)",
+    summary:
+      "Skipping conditioner doesn't prevent breakage — it causes it. Unconditioned hair tangles more, and tangles plus friction are exactly how hair snaps.",
+    body: [
+      "How to apply: split hair into two sections (more if it's very thick), and work conditioner from mid-lengths to ends only — never on the scalp. Needing a generous amount is normal, not overuse.",
+      "Texture changes the dose: wavy, curly, and coily hair genuinely need more conditioner than straight hair — every bend in the strand exposes more cuticle, so it absorbs (and needs) more moisture to stay smooth. For curls and coils, a wet detangling brush is a great way to spread it evenly while detangling in the same step.",
+      "What actually happens if you skip it: hair gets progressively harder to detangle, breaks more from friction, and dulls — and curly/coily hair also loses definition and frizzes faster. That's true for every hair type; textured hair just shows it soonest.",
+    ],
+  },
+
+  // 6.13 — Brushing, corrected by hair type (wet vs. dry)
+  brushing: {
+    id: "brushing",
+    title: "Wet or dry? Depends on your hair type",
+    summary:
+      "One rule for everyone: always detangle from the ends and work up toward the roots — never drag from the root down through a tangle.",
+    body: [
+      "Curly and coily hair: wet detangling only, never dry — dry brushing breaks curls and creates serious frizz. Detangle wet, with conditioner in.",
+      "Wavy hair: either works. Wet detangling is the gentle default; dry brushing is fine too if you actually want a softer, less-defined wave (it breaks up wave clumps on purpose). If brushing dry, start at the ends.",
+      "Straight hair: dry brushing is often the easier call — straight hair tangles less, and wet hair is more fragile for every hair type. If you do detangle wet, use a wide-tooth comb, gently.",
     ],
   },
   doubleWash: {

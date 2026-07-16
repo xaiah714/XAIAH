@@ -299,6 +299,15 @@ export const PRODUCTS = [
     categories: ["medicated-shampoo"],
     blurb: "Works great as one wash within a double-wash routine — just swap it in for the second wash; it doesn't have to replace your whole system.",
   },
+  {
+    id: "head-shoulders-2in1",
+    brand: "Head & Shoulders",
+    name: "Classic Clean 2-in-1",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "One of the rare good 2-in-1s — great for travel and backup washes; just don't make it your only conditioning step (spec §6.16).",
+  },
 
   // ---- 8.3 — Bond repair treatments -----------------------------------------
   {

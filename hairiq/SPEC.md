@@ -7,15 +7,16 @@
 > until then. Find/replace once confirmed.
 >
 > **Repo note:** this is the spec the app in this directory was built from
-> (latest revision received July 12, 2026 — renames the Drugstore tier to
-> "Affordable," adds §6.9 air-drying/hygral fatigue, §11.3 heat-gated
-> leave-ins, density-aware brushes in §11.2, the §6.2 double-wash
-> clarifying correction, and switches §12 email capture to self-owned
-> Postgres storage). Sections 1–12 are v1 and are implemented; Section 13
-> is the v2 roadmap and is intentionally NOT built — it needs its own
-> planning session. Products the spec says not to guess (the cruelty-free
-> boar-blend brush brand, the "sleek" spray, etc.) are NOT in the data —
-> pending exact names from Crystal per §14.
+> (latest revision received July 12, 2026, second pass — switches to the
+> saturated "groovy" palette per the §3 review, adds §6.10–6.17 education
+> content (refined sweat rule, scalp-only shampooing, conditioner
+> correction, wet-vs-dry brushing by type, towel technique, hard water,
+> 2-in-1s, biotin honesty), and the §14 breakage/pre-poo explainer).
+> Sections 1–12 are v1 and are implemented; Section 13 is the v2 roadmap
+> and is intentionally NOT built — it needs its own planning session.
+> Products the spec says not to guess (the cruelty-free boar-blend brush
+> brand, the "sleek" spray, etc.) are NOT in the data — pending exact
+> names from Crystal per §14.
 
 ## 1. What This App Does
 A quiz-based tool that takes someone's hair type, scalp condition, and goals, then generates
@@ -34,6 +35,19 @@ room to bolt on accounts/saved routines later (v2).
 - v2 note: when accounts are added, this is where Postgres + auth (e.g. NextAuth) slots in
 
 ## 3. Visual Design — Pastel Pink & Orange Theme
+> **Palette review (5 options considered):** leaning toward a more
+> saturated pink-orange-yellow direction than the original soft pastel
+> table below — "groovy/saturated/hippie fun" energy, not full pastel.
+> Recommendation: keep the general warm coral-orange/pink/yellow spirit,
+> but pull from a punchier reference palette (`#FFB74D` orange, `#FF6F91`
+> pink, `#FFD54F` yellow, `#FFABAB` salmon, `#FCE4EC` light pink) rather
+> than the softer pastel table currently below — same family of colors,
+> more saturated and distinctive. Table below is the previous pastel
+> version; treat it as superseded pending final confirmation.
+> *(Implemented: the app now runs the saturated palette; reverting to
+> pastel is a one-file token swap in `app/globals.css` +
+> `scripts/demo-template.html`.)*
+
 | Role | Color | Hex |
 |---|---|---|
 | Background | Ivory/cream | `#FFF9F4` |
@@ -253,6 +267,144 @@ into the app's logic.
   only, not touching the length or ends — can speed up root drying time
   and help reduce how quickly the scalp gets oily again, without adding
   heat exposure to the ends at all.
+
+### 6.10 Sweat Rule — Refined with Real Research
+Real feedback asked to double-check the science here, and it added
+nuance to the original blanket "wash after sweating" rule:
+- **Cool-air scalp blow-drying is a legitimate touch-up technique**,
+  acknowledged by dermatologists — but it only evaporates moisture, it
+  does NOT remove salt, sweat, or bacteria. It's a reasonable stopgap
+  between washes, not a wash replacement. Pair it with dry shampoo or a
+  plain water rinse, not as a substitute for eventually washing.
+- **For people who sweat/exercise daily:** most dermatologists don't
+  recommend a full wash every single day even then — over-washing strips
+  natural oils. Reasonable options for daily sweat: a plain water rinse
+  at the scalp, a gentle sulfate-free shampoo (not a full clarifying
+  wash), or a natural rinse alternative — a raw sugar scalp scrub rinse
+  or a rosemary water rinse both work as gentler daily options. Save full
+  shampoo washes (or clarifying washes specifically) for a few times a
+  week rather than daily, even for daily sweaters.
+
+### 6.11 Shampoo Is For the Scalp, Not the Ends
+Real feedback flagged this as commonly misunderstood and worth stating
+explicitly in the app:
+- You only need to actually **wash the scalp** — that's where oil,
+  sweat, and product buildup accumulate (there are no oil glands on the
+  hair shaft itself). Shampoo lather rinsing through the length as you
+  rinse is enough contact for the ends; you don't need to scrub shampoo
+  into the ends on every wash.
+- Exception: if ends feel grimy or product-heavy, an occasional (roughly
+  monthly) full-length "reset" wash is fine — it's just not necessary
+  every wash day the way scalp cleansing is.
+- Wash frequency in general depends on the scalp, not the hair: wash when
+  the scalp feels oily, sweaty, dirty, or itchy. If the scalp feels fine
+  (balanced, normal, not itchy), there's no requirement to wash on a
+  fixed schedule.
+
+### 6.12 Conditioner — How to Apply, and Why It's Not Optional
+Real feedback: someone in the family avoids conditioner entirely,
+believing it causes breakage — this needs direct, clear correction in
+the app, since the opposite is generally true (skipping conditioner
+tends to increase breakage risk from tangling and dryness, not reduce
+it). Cover this under the Conditioner section of results:
+- **How to apply:** split hair into two sections (more if very thick),
+  apply from mid-lengths to ends only — never on the scalp. It's normal
+  and fine to need a generous amount, especially for thicker or textured
+  hair.
+- **Texture affects how much you need:** wavy, curly, and coily hair
+  generally need more conditioner than straight hair, because the bends
+  in the hair shaft mean the cuticle is more exposed along the curl
+  pattern, so it absorbs (and needs) more moisture/product to stay
+  smooth. This isn't overuse — it's the correct amount for that texture.
+- **Distributing conditioner:** a wet detangling brush (11.2, 8.2) works
+  well for curly/coily hair to spread conditioner through evenly while
+  detangling in the same step.
+- **What happens if you skip conditioner, by hair type** — worth adding
+  under this section per hair type: hair becomes progressively harder to
+  detangle, more prone to friction-based breakage, duller, and (for
+  curly/coily specifically) loses definition and gets frizzier over time.
+  This is true across hair types, not just textured hair, though textured
+  hair shows it faster given how much more product it needs to begin with.
+
+### 6.13 Brushing — Corrected by Hair Type (wet vs. dry)
+Real feedback flagged the blanket claims here as too simple — checked
+against actual sources, here's the accurate version:
+- **Curly/coily hair: wet detangling only, never dry.** This is the one
+  clear-cut rule — brushing curls dry causes significant frizz and
+  breakage; always detangle wet, with conditioner in, using a wet
+  detangling brush (11.2).
+- **Wavy hair: can go either way.** Wet detangling works, done carefully
+  (gentler than curly since waves are less fragile, but still more
+  fragile than straight). Dry brushing is also fine for wavy hair
+  specifically if someone *wants* a softer, less-defined wave look —
+  dry brushing breaks up the wave clumps on purpose, which curly/coily
+  hair doesn't want but some wavy-hair people do. If dry brushing, start
+  from the ends and work up toward the roots.
+- **Straight hair: doesn't need wet brushing as much, and dry is often
+  easier.** Wet hair is more fragile for every hair type (not just
+  curly), but straight hair doesn't tangle as much to begin with, so
+  many experts actually recommend dry brushing for straight hair rather
+  than wet — if brushing wet at all, use a wide-tooth comb, very gently.
+  This corrects an earlier assumption that all hair types handle wet
+  brushing equally well — they don't; it's a real tradeoff, not a
+  universal green light.
+- **General technique, all types:** always start brushing/detangling
+  from the ends and work upward toward the roots — never start at the
+  root and drag down through a full tangle, which is what actually tears
+  hair out.
+
+### 6.14 Towel Technique — Why It Matters
+Real feedback asked for the "why" here, not just the tip:
+- Regular terry-cloth bath towels have large, rough loops that snag the
+  hair cuticle and create friction — that friction is what causes frizz
+  and mechanical breakage when someone rubs hair dry with a normal towel.
+- Microfiber towels and cotton t-shirts both have a smoother, tighter
+  weave — less surface friction against the cuticle, so less frizz and
+  breakage, while still absorbing water effectively (microfiber
+  especially, since it's designed for high absorbency per surface area).
+- Tie this to the existing "never sleep with wet hair" guidance (6.9,
+  6.4) for anyone dealing with breakage specifically — the friction from
+  a rough towel or from tossing and turning on wet hair compounds in the
+  same way.
+
+### 6.15 Hard Water & Filtered Showerheads
+New content area, not previously covered:
+- Hard water (high mineral content — calcium, magnesium) can leave a
+  mineral film on hair over time that makes it feel dull, dry, and harder
+  to lather or rinse clean. It's especially noticeable on bleached or
+  chemically treated hair, where the already-compromised cuticle absorbs
+  more of that mineral buildup and color can look duller or fade faster.
+- A filtered showerhead is a reasonable, one-time fix rather than an
+  ongoing product purchase — worth recommending, especially to anyone
+  with bleached or color-treated hair, or anyone in a known hard-water
+  region.
+- Consider a simple "check if your area has hard water" prompt or note,
+  since most people don't know their local water hardness off the top of
+  their head.
+
+### 6.16 2-in-1 Shampoo/Conditioners Aren't All Bad
+Correcting an oversimplified "avoid 2-in-1s" instinct:
+- 2-in-1s are only a problem if someone relies on them as their *only*
+  conditioning step — they don't condition as thoroughly as a separate
+  rinse-out conditioner, so replacing real conditioning with a 2-in-1
+  long-term isn't ideal.
+- Used occasionally (travel, quick washes, backup), they're fine. Some
+  are genuinely good — Head & Shoulders 2-in-1 (already in the affordable
+  library) and tea-tree-oil-based 2-in-1 formulas are both solid options
+  worth naming specifically rather than writing off the whole category.
+
+### 6.17 Biotin Supplements — Set Expectations Honestly
+- Biotin supplementation only meaningfully helps hair/skin/nails if
+  someone has an actual biotin deficiency — which is uncommon in people
+  eating a reasonably varied diet. For non-deficient people, extra biotin
+  generally doesn't do much; the research behind most biotin gummy
+  marketing is weak for that population.
+- Frame this factually, not as an accusation against any specific brand
+  — the point is informing people, not shaming a category: if hair
+  concerns persist despite a solid routine, the more useful move is
+  bloodwork to check for an actual deficiency (ties directly to the
+  existing bloodwork note under Thinning in Section 7) rather than
+  guessing with supplements.
 
 ## 7. Recommendation Engine — Starter Content
 Primary lookup key = answer to Q5 (Main Concern). Each concern lists a routine
@@ -845,6 +997,20 @@ as the highest-risk item.
       an approach
 
 ## 14. Open Items (fill in before/during build)
+- [x] Sanity-check the 5-min "Core" depth (Section 9) is realistic — real
+      feedback wants it honestly just leave-in + minimal steps, not
+      padded out to feel more substantial than 5 minutes actually allows
+      *(verified in build: Core wash day is exactly shampoo + conditioner
+      + leave-in, plus only the steps the chosen concern's §7 routine
+      itself requires — no framework extras appear below Standard depth)*
+- [x] For the Breakage concern specifically, add a line explaining *why*
+      pre-poo helps (6.1) — reduces mechanical friction/breakage during
+      washing — since that's the exact concern where the connection
+      matters most and shouldn't be left implicit *(implemented)*
+- [x] Confirmed: the L'Oréal EverPure Moisture 2-in-1 Spray is correctly
+      categorized as a leave-in product (8.6), not a wash-in shampoo+
+      conditioner — despite the "2-in-1" name, it's two benefits in one
+      leave-in spray. No change needed, just flagging it was checked.
 - [ ] Final app name — leaning "How's My Hair," needs an actual domain/
       availability check before committing (not yet confirmed either way)
       > **Domain check (RDAP, July 12, 2026):**

@@ -163,9 +163,13 @@ export function buildRoutine(answers) {
       phase: "washDay",
       title: "Pre-wash oil treatment (“pre-poo”)",
       frequency: "10–20 min before shampoo",
-      how: fine
-        ? "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down."
-        : "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.",
+      how:
+        (fine
+          ? "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down."
+          : "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.") +
+        (c === "breakage"
+          ? " For breakage specifically, this is the whole point: the oil cushions strands against wash-time friction — the exact mechanical stress that snaps fragile hair."
+          : ""),
       categories: ["pre-poo"],
       principleId: "prePoo",
       prefer: {
@@ -214,7 +218,7 @@ export function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A growth-supporting wash on wash days. Massage it into the scalp with fingertips — that's where it earns its keep.",
       categories: ["growth-shampoo", "strengthening-shampoo"],
-      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-thick-full-shampoo"],
         luxury: [],
@@ -229,6 +233,7 @@ export function buildRoutine(answers) {
       frequency: "Every wash",
       how: "Curls dry out fast, so keep the wash gentle: a sulfate-free shampoo (or a co-wash if your scalp isn't oily), focused on the scalp.",
       categories: ["sulfate-free"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["loreal-everpure-bond-shampoo"],
         luxury: ["pureology-strength-cure-shampoo"],
@@ -244,6 +249,7 @@ export function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A bond-strengthening wash, and be gentle: lather at the scalp, squeeze (don't scrub) the lengths.",
       categories: ["strengthening-shampoo"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-bond-shampoo", "loreal-everpure-bond-shampoo"],
         luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo", "amika-kure-shampoo"] : ["amika-kure-shampoo"],
@@ -258,6 +264,7 @@ export function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A growth-supporting wash on wash days, massaged into the scalp with fingertips.",
       categories: ["growth-shampoo", "strengthening-shampoo"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-thick-full-shampoo"],
         luxury: ["dr-groot-thickening"],
@@ -277,7 +284,7 @@ export function buildRoutine(answers) {
             ? "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends."
             : "A strengthening wash, massaged into the scalp with fingertips.",
       categories: ["strengthening-shampoo"],
-      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      principleId: "scalpWash",
       prefer: {
         drugstore: [],
         luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo"] : [],
@@ -382,12 +389,13 @@ export function buildRoutine(answers) {
     frequency: "Every wash",
     how:
       c === "breakage"
-        ? "Mid-lengths and ends, every wash. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
+        ? "Never skip this — unconditioned hair tangles, and tangles are how fragile hair snaps. Mid-lengths to ends, never the scalp. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
         : c === "curlyNew"
-          ? "Condition generously every wash — curls drink it up. This is also your detangling window (next step)."
+          ? "Condition generously every wash — curls genuinely need more than straight hair (that's correct dosing, not overuse). Mid-lengths to ends, never the scalp. This is also your detangling window (next step)."
           : answers.scalp === "oily"
-            ? "Mid-lengths and ends only — keep conditioner off the roots."
-            : "Mid-lengths and ends, every single wash.",
+            ? "Split into two sections and work it from mid-lengths to ends only — keep it off the roots. Every single wash, no skipping."
+            : "Split into two sections and work it from mid-lengths to ends — never the scalp. Every single wash; a generous amount is normal.",
+    principleId: "conditionerWhy",
     categories: ["conditioner"],
     prefer: {
       drugstore:
@@ -682,17 +690,18 @@ export function buildRoutine(answers) {
     limit: 2,
   });
 
-  // The right brush (spec §11.2) — lookup on hair type AND density: pure boar
-  // for straight fine/normal, boar+nylon blend for straight thick, wet
-  // detangling brush for any texture regardless of density.
+  // The right brush (spec §11.2 + §6.13) — lookup on hair type AND density,
+  // with wet-vs-dry guidance corrected per type: curls wet-only, wavy either
+  // way, straight usually dry. Universal rule: detangle ends-first, upward.
   if (answers.hairType === "straight" && thick) {
     steps.push({
       id: "brush",
       phase: "daily",
       title: "Brush with a boar + nylon blend",
       frequency: "Daily-ish",
-      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry hair, roots to ends.",
+      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry (wet hair is fragile for everyone — wide-tooth comb, gently, if you must), starting at the ends and working up.",
       categories: ["tool-brush-blend"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: ["crown-affair-brush"], crueltyFree: [] },
       limit: 2,
     });
@@ -702,10 +711,23 @@ export function buildRoutine(answers) {
       phase: "daily",
       title: "Brush with pure boar bristle",
       frequency: "Daily-ish",
-      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry (wet hair is fragile for everyone — wide-tooth comb, gently, if you must), starting at the ends and working up.",
       categories: ["tool-brush-boar"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: ["mason-pearson"], crueltyFree: [] },
       limit: 2,
+    });
+  } else if (answers.hairType === "wavy") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush wavy hair its way",
+      frequency: "Your call",
+      how: "Waves get both options: detangle wet with a wet brush and conditioner in (the gentle default), or brush dry if you actually want softer, less-defined waves — dry brushing breaks up wave clumps on purpose. Either way, start at the ends and work upward.",
+      categories: ["tool-brush-wet"],
+      principleId: "brushing",
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+      limit: 1,
     });
   } else {
     steps.push({
@@ -713,8 +735,9 @@ export function buildRoutine(answers) {
       phase: "daily",
       title: "Use the right brush (a wet one)",
       frequency: "Wash day only",
-      how: "Textured hair gets a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      how: "Curls and coils get a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, always from the ends up, and never brush this texture dry.",
       categories: ["tool-brush-wet"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: [], crueltyFree: [] },
       limit: 1,
     });
@@ -856,10 +879,11 @@ export function buildRoutine(answers) {
 
   notes.push({
     id: "sweat-rule",
-    title: "The sweat rule (the one non-negotiable)",
+    title: "The sweat rule (refined)",
     body: [
-      "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), wash tonight. Don't just let it air dry: sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
-      "Dry shampoo doesn't count here — it absorbs surface oil but doesn't remove sweat, salt, or bacteria from the scalp.",
+      "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), deal with it tonight — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
+      "Dry shampoo and a cool-air blow-dry at the scalp are both legit touch-ups between washes — but neither removes salt, sweat, or bacteria. They're stopgaps, not wash replacements.",
+      "Sweat every day? You still don't need a full shampoo daily — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse (raw-sugar scalp scrub, rosemary water). Save full or clarifying washes for a few times a week.",
     ],
   });
 
@@ -878,6 +902,27 @@ export function buildRoutine(answers) {
     ],
   });
 
+  // 6.15 — hard water & filtered showerheads.
+  notes.push({
+    id: "hard-water",
+    title: "Check your water before blaming your products",
+    body: [
+      colorTreated
+        ? "Hard water (high calcium/magnesium) leaves a mineral film that makes hair dull, dry, and hard to lather — and color-treated or bleached hair absorbs that buildup fastest, dulling and fading color sooner."
+        : "Hard water (high calcium/magnesium) leaves a mineral film over time that makes hair feel dull, dry, and harder to lather or rinse clean.",
+      "If you're in a hard-water area (most people don't know — a quick search for your city's water hardness settles it), a filtered showerhead is a one-time fix rather than another ongoing product, and it's especially worth it for color-treated hair.",
+    ],
+  });
+
+  // 6.16 — 2-in-1s aren't all bad.
+  notes.push({
+    id: "two-in-one",
+    title: "2-in-1s: backup, not backbone",
+    body: [
+      "2-in-1 shampoo/conditioners are only a problem when they're your ONLY conditioning — they can't condition as thoroughly as a separate rinse-out. For travel, gym bags, and quick backup washes they're genuinely fine, and some are good: Head & Shoulders 2-in-1 and tea-tree-oil-based 2-in-1 formulas are solid picks, not compromises.",
+    ],
+  });
+
   if (c === "thinning") {
     notes.push({
       id: "tight-styles",
@@ -892,6 +937,7 @@ export function buildRoutine(answers) {
       body: [
         "Sometimes the cause isn't the routine at all. The unglamorous basics — 7+ hours of sleep, staying hydrated, managing stress — show up again and again in hair-shedding research.",
         "And if shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork (iron/ferritin, vitamin D, B12, zinc, thyroid). Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.",
+        "About biotin gummies: extra biotin only meaningfully helps if you're actually deficient — which is uncommon with a reasonably varied diet. If concerns persist despite a solid routine, that bloodwork is the useful move, not guessing with supplements.",
       ],
     });
   }
@@ -905,12 +951,29 @@ export function buildRoutine(answers) {
       ],
     });
   }
+  if (c === "breakage") {
+    notes.push({
+      id: "towel",
+      title: "Your towel is part of the problem",
+      body: [
+        "Regular terry-cloth towels have big, rough loops that snag the cuticle — that friction is what turns rubbing hair dry into frizz and mechanical breakage. Microfiber (or a cotton t-shirt) has a smoother, tighter weave: far less friction, still very absorbent.",
+        "Same physics at night: tossing and turning on wet hair compounds the friction. Blot with microfiber, and never go to bed with wet hair.",
+      ],
+    });
+  }
   if (c === "slowGrowth") {
     notes.push({
       id: "trims",
       title: "Regular trims (yes, really)",
       body: [
         "Trims don't make hair grow faster — they stop breakage from erasing the growth you already got. Keeping ends healthy is how length actually accumulates.",
+      ],
+    });
+    notes.push({
+      id: "biotin",
+      title: "Honest word on biotin supplements",
+      body: [
+        "Biotin only meaningfully helps hair if you're actually deficient — uncommon with a reasonably varied diet, and the research behind most biotin-gummy marketing is weak for everyone else. If growth stays slow despite a solid routine, bloodwork for real deficiencies beats guessing with supplements.",
       ],
     });
   }

@@ -1,18 +1,19 @@
 <title>HairIQ — live demo</title>
 <style>
   :root {
-    --cream: #fff9f4;
-    --coral: #ffab91;
-    --coral-deep: #f0885f;
-    --blush: #ffd1dc;
-    --blush-deep: #f2a3b8;
-    --butter: #ffe9a8;
+    /* saturated "groovy" palette (spec §3, July 12) — names historical */
+    --cream: #fce4ec;
+    --coral: #ffb74d;
+    --coral-deep: #e65100;
+    --blush: #ffabab;
+    --blush-deep: #ff6f91;
+    --butter: #ffd54f;
     --mint: #c8e6c9;
     --mint-deep: #386641;
     --cocoa: #5a3e36;
     --cocoa-soft: #8a6b60;
-    --shadow-soft: 0 10px 26px -10px rgb(240 136 95 / 0.5);
-    --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.16);
+    --shadow-soft: 0 10px 26px -10px rgb(230 81 0 / 0.45);
+    --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.18);
     --display: "Quicksand", "Poppins", ui-rounded, "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
     --body: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", system-ui, sans-serif;
   }
@@ -55,7 +56,7 @@
   }
   .pill:hover { background: var(--coral-deep); color: var(--cream); }
   .pill:active { transform: scale(0.96); }
-  .pill[disabled] { background: rgb(255 209 220 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
+  .pill[disabled] { background: rgb(255 171 171 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
   .ghost {
     border-radius: 999px;
     padding: 1rem 1.5rem;
@@ -63,7 +64,7 @@
     font-weight: 700;
     color: var(--cocoa-soft);
   }
-  .ghost:hover { background: rgb(255 209 220 / 0.4); }
+  .ghost:hover { background: rgb(255 171 171 / 0.4); }
 
   /* landing */
   .landing {
@@ -88,7 +89,7 @@
   .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .progress-meta .label { font-family: var(--display); font-weight: 700; font-size: 0.85rem; color: var(--cocoa-soft); }
   .progress-meta .pct { font-size: 0.75rem; font-weight: 700; color: rgb(138 107 96 / 0.7); }
-  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 209 220 / 0.5); overflow: hidden; }
+  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 171 171 / 0.5); overflow: hidden; }
   .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blush-deep), var(--coral-deep)); transition: width 0.4s ease; }
   .quiz h1 { font-size: 1.9rem; line-height: 1.2; margin-top: 2rem; }
   .subtitle { margin-top: 0.5rem; color: var(--cocoa-soft); }
@@ -99,16 +100,16 @@
     padding: 1.15rem 1.25rem; box-shadow: var(--shadow-card);
     transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
   }
-  .answer:hover { border-color: rgb(242 163 184 / 0.6); }
+  .answer:hover { border-color: rgb(255 111 145 / 0.6); }
   .answer:active { transform: scale(0.98); }
-  .answer.selected { border-color: var(--coral-deep); background: rgb(255 209 220 / 0.4); }
+  .answer.selected { border-color: var(--coral-deep); background: rgb(255 171 171 / 0.4); }
   .answer .emoji { font-size: 1.5rem; }
   .answer .lab { flex: 1; }
   .answer .lab b { display: block; font-family: var(--display); font-size: 1.05rem; }
   .answer .lab small { display: block; color: var(--cocoa-soft); font-size: 0.85rem; }
   .answer .tick {
     width: 1.7rem; height: 1.7rem; flex: none; display: flex; align-items: center; justify-content: center;
-    border: 2px solid rgb(242 163 184 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
+    border: 2px solid rgb(255 111 145 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
   }
   .answer .tick.round { border-radius: 50%; }
   .answer .tick.square { border-radius: 0.5rem; }
@@ -122,15 +123,15 @@
   .results > .col > h1, .results h1 { text-align: center; font-size: 2.3rem; line-height: 1.15; margin-top: 0.5rem; text-wrap: balance; }
   .results .blurb { text-align: center; color: var(--cocoa-soft); max-width: 32rem; margin: 0.8rem auto 0; }
   .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.25rem; list-style: none; }
-  .chips li { background: rgb(255 209 220 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
-  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(255 249 244 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
-  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(242 163 184 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
+  .chips li { background: rgb(255 171 171 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
+  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(252 228 236 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
+  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(255 111 145 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
   .tab {
     flex: 1; border-radius: 999px; padding: 0.6rem 0.5rem; text-align: center;
     font-family: var(--display); font-weight: 700; font-size: 0.95rem; color: var(--cocoa-soft);
     transition: background 0.15s ease, color 0.15s ease;
   }
-  .tab:hover { background: rgb(255 209 220 / 0.4); }
+  .tab:hover { background: rgb(255 171 171 / 0.4); }
   .tab.active { background: var(--coral); color: var(--cocoa); box-shadow: var(--shadow-soft); }
   .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
   .phase { margin-top: 2.5rem; }
@@ -147,7 +148,7 @@
   .optional { font-size: 0.85rem; color: rgb(138 107 96 / 0.8); font-weight: 700; }
   .freq {
     display: inline-block; vertical-align: middle; margin-left: 0.6rem; padding: 0.1rem 0.6rem;
-    border: 1px solid rgb(242 163 184 / 0.4); background: #fff; border-radius: 999px;
+    border: 1px solid rgb(255 111 145 / 0.4); background: #fff; border-radius: 999px;
     font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cocoa-soft);
   }
   .how { margin-top: 0.5rem; font-size: 0.94rem; color: var(--cocoa-soft); }
@@ -163,15 +164,15 @@
   .prod-name { font-family: var(--display); font-weight: 700; margin-top: 0.25rem; line-height: 1.3; }
   .prod-blurb { margin-top: 0.35rem; font-size: 0.85rem; color: var(--cocoa-soft); }
   .prod-cf { margin-top: 0.5rem; font-size: 0.76rem; font-style: italic; color: var(--mint-deep); }
-  .empty { margin-top: 1rem; border: 2px dashed rgb(242 163 184 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  .empty { margin-top: 1rem; border: 2px dashed rgb(255 111 145 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
   .variants { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
-  .variant { border: 2px solid rgb(255 209 220 / 0.8); border-radius: 1rem; padding: 1rem; }
-  .variant.primary { border-color: rgb(240 136 95 / 0.8); }
+  .variant { border: 2px solid rgb(255 171 171 / 0.8); border-radius: 1rem; padding: 1rem; }
+  .variant.primary { border-color: rgb(230 81 0 / 0.8); }
   .variant-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
   .variant-head b { font-family: var(--display); font-size: 0.92rem; }
-  .vtag { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(255 209 220 / 0.6); color: var(--cocoa-soft); }
+  .vtag { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(255 171 171 / 0.6); color: var(--cocoa-soft); }
   .vtag.hot { background: var(--coral); color: var(--cocoa); }
-  details.principle { margin-top: 1rem; background: rgb(255 209 220 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
+  details.principle { margin-top: 1rem; background: rgb(255 171 171 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
   details.principle summary { cursor: pointer; list-style: none; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
   details.principle summary::-webkit-details-marker { display: none; }
   details.principle summary::after { content: "▾"; display: inline-block; margin-left: 0.35rem; transition: transform 0.2s ease; }
@@ -193,18 +194,18 @@
   .soon { position: absolute; top: -0.7rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: var(--shadow-card); }
   .paywall-note { max-width: 22rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
   .actions .retake { width: 100%; max-width: 22rem; }
-  .signup { margin-top: 3rem; background: rgb(255 209 220 / 0.3); border-radius: 1.5rem; padding: 1.5rem; }
+  .signup { margin-top: 3rem; background: rgb(255 171 171 / 0.3); border-radius: 1.5rem; padding: 1.5rem; }
   .signup h2 { font-size: 1.25rem; }
   .tier-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-  .tier-chip { border: 2px solid rgb(242 163 184 / 0.4); background: #fff; color: var(--cocoa-soft); border-radius: 999px; padding: 0.5rem 1rem; font-family: var(--display); font-weight: 700; font-size: 0.85rem; transition: all 0.15s ease; }
+  .tier-chip { border: 2px solid rgb(255 111 145 / 0.4); background: #fff; color: var(--cocoa-soft); border-radius: 999px; padding: 0.5rem 1rem; font-family: var(--display); font-weight: 700; font-size: 0.85rem; transition: all 0.15s ease; }
   .tier-chip:hover { border-color: var(--coral); }
   .tier-chip.on { border-color: var(--coral-deep); background: var(--coral); color: var(--cocoa); }
   .signup-fields { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
-  .signup-fields input { flex: 1 1 12rem; border: 2px solid rgb(242 163 184 / 0.4); border-radius: 999px; background: #fff; padding: 0.75rem 1.25rem; font: inherit; font-size: 0.9rem; color: var(--cocoa); }
+  .signup-fields input { flex: 1 1 12rem; border: 2px solid rgb(255 111 145 / 0.4); border-radius: 999px; background: #fff; padding: 0.75rem 1.25rem; font: inherit; font-size: 0.9rem; color: var(--cocoa); }
   .signup-fields input:focus { border-color: var(--coral-deep); outline: none; }
   .signup-error { margin-top: 0.5rem; font-size: 0.88rem; font-weight: 800; color: var(--coral-deep); }
   .signup-btn { margin-top: 1rem; padding: 0.85rem 2rem; font-size: 1rem; }
-  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 209 220 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
+  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 171 171 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
 <div id="app"></div>
@@ -406,15 +407,55 @@ const PRINCIPLES = {
     ],
   },
 
-  // 6.2 — Scalp-aware washing
+  // 6.2 / 6.10 — Scalp-aware washing & the refined sweat rule
   sweatRule: {
     id: "sweatRule",
     title: "The sweat rule",
     summary:
-      "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, wash tonight.",
+      "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, deal with it tonight.",
     body: [
-      "If you sweat that day (workout, hot day, anything), wash your hair after — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
-      "Dry shampoo is fine between washes, but it is not a substitute for washing after sweating — it only absorbs surface oil. It doesn't actually remove sweat, salt, or bacteria from the scalp.",
+      "If you sweat that day (workout, hot day, anything), don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
+      "Dry shampoo is fine between washes, but it is not a substitute here — it only absorbs surface oil. And a cool-air blow-dry at the scalp is a legit touch-up (dermatologists acknowledge it), but it only evaporates moisture; it doesn't remove salt, sweat, or bacteria either. Both are stopgaps, not wash replacements.",
+      "Sweat daily? You still don't need a full shampoo every single day — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse like a raw-sugar scalp scrub or rosemary water. Save full (and especially clarifying) washes for a few times a week.",
+    ],
+  },
+
+  // 6.11 — Shampoo is for the scalp, not the ends
+  scalpWash: {
+    id: "scalpWash",
+    title: "Shampoo is for your scalp, not your ends",
+    summary:
+      "Only the scalp actually needs washing — that's where oil, sweat, and buildup live. The lather rinsing through is enough for your lengths.",
+    body: [
+      "There are no oil glands on the hair shaft itself, so scrubbing shampoo into your ends every wash just dries them out. Wash the scalp; let the runoff handle the rest.",
+      "Exception: if the ends feel grimy or product-heavy, a roughly monthly full-length “reset” wash is fine — it's just not an every-wash need.",
+      "And wash frequency follows the scalp, not the hair: wash when the scalp feels oily, sweaty, or itchy. If it feels fine, there's no rule saying you're due.",
+    ],
+  },
+
+  // 6.12 — Conditioner: how to apply, and why it's not optional
+  conditionerWhy: {
+    id: "conditionerWhy",
+    title: "Conditioner isn't optional (and how to apply it)",
+    summary:
+      "Skipping conditioner doesn't prevent breakage — it causes it. Unconditioned hair tangles more, and tangles plus friction are exactly how hair snaps.",
+    body: [
+      "How to apply: split hair into two sections (more if it's very thick), and work conditioner from mid-lengths to ends only — never on the scalp. Needing a generous amount is normal, not overuse.",
+      "Texture changes the dose: wavy, curly, and coily hair genuinely need more conditioner than straight hair — every bend in the strand exposes more cuticle, so it absorbs (and needs) more moisture to stay smooth. For curls and coils, a wet detangling brush is a great way to spread it evenly while detangling in the same step.",
+      "What actually happens if you skip it: hair gets progressively harder to detangle, breaks more from friction, and dulls — and curly/coily hair also loses definition and frizzes faster. That's true for every hair type; textured hair just shows it soonest.",
+    ],
+  },
+
+  // 6.13 — Brushing, corrected by hair type (wet vs. dry)
+  brushing: {
+    id: "brushing",
+    title: "Wet or dry? Depends on your hair type",
+    summary:
+      "One rule for everyone: always detangle from the ends and work up toward the roots — never drag from the root down through a tangle.",
+    body: [
+      "Curly and coily hair: wet detangling only, never dry — dry brushing breaks curls and creates serious frizz. Detangle wet, with conditioner in.",
+      "Wavy hair: either works. Wet detangling is the gentle default; dry brushing is fine too if you actually want a softer, less-defined wave (it breaks up wave clumps on purpose). If brushing dry, start at the ends.",
+      "Straight hair: dry brushing is often the easier call — straight hair tangles less, and wet hair is more fragile for every hair type. If you do detangle wet, use a wide-tooth comb, gently.",
     ],
   },
   doubleWash: {
@@ -848,6 +889,15 @@ const PRODUCTS = [
     crueltyFree: false,
     categories: ["medicated-shampoo"],
     blurb: "Works great as one wash within a double-wash routine — just swap it in for the second wash; it doesn't have to replace your whole system.",
+  },
+  {
+    id: "head-shoulders-2in1",
+    brand: "Head & Shoulders",
+    name: "Classic Clean 2-in-1",
+    tier: "drugstore",
+    crueltyFree: false,
+    categories: ["medicated-shampoo"],
+    blurb: "One of the rare good 2-in-1s — great for travel and backup washes; just don't make it your only conditioning step (spec §6.16).",
   },
 
   // ---- 8.3 — Bond repair treatments -----------------------------------------
@@ -2262,9 +2312,13 @@ function buildRoutine(answers) {
       phase: "washDay",
       title: "Pre-wash oil treatment (“pre-poo”)",
       frequency: "10–20 min before shampoo",
-      how: fine
-        ? "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down."
-        : "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.",
+      how:
+        (fine
+          ? "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down."
+          : "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.") +
+        (c === "breakage"
+          ? " For breakage specifically, this is the whole point: the oil cushions strands against wash-time friction — the exact mechanical stress that snaps fragile hair."
+          : ""),
       categories: ["pre-poo"],
       principleId: "prePoo",
       prefer: {
@@ -2313,7 +2367,7 @@ function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A growth-supporting wash on wash days. Massage it into the scalp with fingertips — that's where it earns its keep.",
       categories: ["growth-shampoo", "strengthening-shampoo"],
-      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-thick-full-shampoo"],
         luxury: [],
@@ -2328,6 +2382,7 @@ function buildRoutine(answers) {
       frequency: "Every wash",
       how: "Curls dry out fast, so keep the wash gentle: a sulfate-free shampoo (or a co-wash if your scalp isn't oily), focused on the scalp.",
       categories: ["sulfate-free"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["loreal-everpure-bond-shampoo"],
         luxury: ["pureology-strength-cure-shampoo"],
@@ -2343,6 +2398,7 @@ function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A bond-strengthening wash, and be gentle: lather at the scalp, squeeze (don't scrub) the lengths.",
       categories: ["strengthening-shampoo"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-bond-shampoo", "loreal-everpure-bond-shampoo"],
         luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo", "amika-kure-shampoo"] : ["amika-kure-shampoo"],
@@ -2357,6 +2413,7 @@ function buildRoutine(answers) {
       frequency: "Every wash",
       how: "A growth-supporting wash on wash days, massaged into the scalp with fingertips.",
       categories: ["growth-shampoo", "strengthening-shampoo"],
+      principleId: "scalpWash",
       prefer: {
         drugstore: ["ogx-thick-full-shampoo"],
         luxury: ["dr-groot-thickening"],
@@ -2376,7 +2433,7 @@ function buildRoutine(answers) {
             ? "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends."
             : "A strengthening wash, massaged into the scalp with fingertips.",
       categories: ["strengthening-shampoo"],
-      principleId: answers.scalp === "oily" ? "doubleWash" : null,
+      principleId: "scalpWash",
       prefer: {
         drugstore: [],
         luxury: chem.includes("bleach") ? ["pureology-blonde-shampoo"] : [],
@@ -2481,12 +2538,13 @@ function buildRoutine(answers) {
     frequency: "Every wash",
     how:
       c === "breakage"
-        ? "Mid-lengths and ends, every wash. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
+        ? "Never skip this — unconditioned hair tangles, and tangles are how fragile hair snaps. Mid-lengths to ends, never the scalp. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
         : c === "curlyNew"
-          ? "Condition generously every wash — curls drink it up. This is also your detangling window (next step)."
+          ? "Condition generously every wash — curls genuinely need more than straight hair (that's correct dosing, not overuse). Mid-lengths to ends, never the scalp. This is also your detangling window (next step)."
           : answers.scalp === "oily"
-            ? "Mid-lengths and ends only — keep conditioner off the roots."
-            : "Mid-lengths and ends, every single wash.",
+            ? "Split into two sections and work it from mid-lengths to ends only — keep it off the roots. Every single wash, no skipping."
+            : "Split into two sections and work it from mid-lengths to ends — never the scalp. Every single wash; a generous amount is normal.",
+    principleId: "conditionerWhy",
     categories: ["conditioner"],
     prefer: {
       drugstore:
@@ -2781,17 +2839,18 @@ function buildRoutine(answers) {
     limit: 2,
   });
 
-  // The right brush (spec §11.2) — lookup on hair type AND density: pure boar
-  // for straight fine/normal, boar+nylon blend for straight thick, wet
-  // detangling brush for any texture regardless of density.
+  // The right brush (spec §11.2 + §6.13) — lookup on hair type AND density,
+  // with wet-vs-dry guidance corrected per type: curls wet-only, wavy either
+  // way, straight usually dry. Universal rule: detangle ends-first, upward.
   if (answers.hairType === "straight" && thick) {
     steps.push({
       id: "brush",
       phase: "daily",
       title: "Brush with a boar + nylon blend",
       frequency: "Daily-ish",
-      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry hair, roots to ends.",
+      how: "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry (wet hair is fragile for everyone — wide-tooth comb, gently, if you must), starting at the ends and working up.",
       categories: ["tool-brush-blend"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: ["crown-affair-brush"], crueltyFree: [] },
       limit: 2,
     });
@@ -2801,10 +2860,23 @@ function buildRoutine(answers) {
       phase: "daily",
       title: "Brush with pure boar bristle",
       frequency: "Daily-ish",
-      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry hair, roots to ends.",
+      how: "For fine-to-normal straight hair, a pure boar bristle brush earns its spot: it carries your scalp's natural oils down the length for shine. Brush dry (wet hair is fragile for everyone — wide-tooth comb, gently, if you must), starting at the ends and working up.",
       categories: ["tool-brush-boar"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: ["mason-pearson"], crueltyFree: [] },
       limit: 2,
+    });
+  } else if (answers.hairType === "wavy") {
+    steps.push({
+      id: "brush",
+      phase: "daily",
+      title: "Brush wavy hair its way",
+      frequency: "Your call",
+      how: "Waves get both options: detangle wet with a wet brush and conditioner in (the gentle default), or brush dry if you actually want softer, less-defined waves — dry brushing breaks up wave clumps on purpose. Either way, start at the ends and work upward.",
+      categories: ["tool-brush-wet"],
+      principleId: "brushing",
+      prefer: { drugstore: [], luxury: [], crueltyFree: [] },
+      limit: 1,
     });
   } else {
     steps.push({
@@ -2812,8 +2884,9 @@ function buildRoutine(answers) {
       phase: "daily",
       title: "Use the right brush (a wet one)",
       frequency: "Wash day only",
-      how: "Textured hair gets a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, and never brush your texture dry.",
+      how: "Curls and coils get a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, always from the ends up, and never brush this texture dry.",
       categories: ["tool-brush-wet"],
+      principleId: "brushing",
       prefer: { drugstore: [], luxury: [], crueltyFree: [] },
       limit: 1,
     });
@@ -2955,10 +3028,11 @@ function buildRoutine(answers) {
 
   notes.push({
     id: "sweat-rule",
-    title: "The sweat rule (the one non-negotiable)",
+    title: "The sweat rule (refined)",
     body: [
-      "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), wash tonight. Don't just let it air dry: sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
-      "Dry shampoo doesn't count here — it absorbs surface oil but doesn't remove sweat, salt, or bacteria from the scalp.",
+      "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), deal with it tonight — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
+      "Dry shampoo and a cool-air blow-dry at the scalp are both legit touch-ups between washes — but neither removes salt, sweat, or bacteria. They're stopgaps, not wash replacements.",
+      "Sweat every day? You still don't need a full shampoo daily — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse (raw-sugar scalp scrub, rosemary water). Save full or clarifying washes for a few times a week.",
     ],
   });
 
@@ -2977,6 +3051,27 @@ function buildRoutine(answers) {
     ],
   });
 
+  // 6.15 — hard water & filtered showerheads.
+  notes.push({
+    id: "hard-water",
+    title: "Check your water before blaming your products",
+    body: [
+      colorTreated
+        ? "Hard water (high calcium/magnesium) leaves a mineral film that makes hair dull, dry, and hard to lather — and color-treated or bleached hair absorbs that buildup fastest, dulling and fading color sooner."
+        : "Hard water (high calcium/magnesium) leaves a mineral film over time that makes hair feel dull, dry, and harder to lather or rinse clean.",
+      "If you're in a hard-water area (most people don't know — a quick search for your city's water hardness settles it), a filtered showerhead is a one-time fix rather than another ongoing product, and it's especially worth it for color-treated hair.",
+    ],
+  });
+
+  // 6.16 — 2-in-1s aren't all bad.
+  notes.push({
+    id: "two-in-one",
+    title: "2-in-1s: backup, not backbone",
+    body: [
+      "2-in-1 shampoo/conditioners are only a problem when they're your ONLY conditioning — they can't condition as thoroughly as a separate rinse-out. For travel, gym bags, and quick backup washes they're genuinely fine, and some are good: Head & Shoulders 2-in-1 and tea-tree-oil-based 2-in-1 formulas are solid picks, not compromises.",
+    ],
+  });
+
   if (c === "thinning") {
     notes.push({
       id: "tight-styles",
@@ -2991,6 +3086,7 @@ function buildRoutine(answers) {
       body: [
         "Sometimes the cause isn't the routine at all. The unglamorous basics — 7+ hours of sleep, staying hydrated, managing stress — show up again and again in hair-shedding research.",
         "And if shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork (iron/ferritin, vitamin D, B12, zinc, thyroid). Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.",
+        "About biotin gummies: extra biotin only meaningfully helps if you're actually deficient — which is uncommon with a reasonably varied diet. If concerns persist despite a solid routine, that bloodwork is the useful move, not guessing with supplements.",
       ],
     });
   }
@@ -3004,12 +3100,29 @@ function buildRoutine(answers) {
       ],
     });
   }
+  if (c === "breakage") {
+    notes.push({
+      id: "towel",
+      title: "Your towel is part of the problem",
+      body: [
+        "Regular terry-cloth towels have big, rough loops that snag the cuticle — that friction is what turns rubbing hair dry into frizz and mechanical breakage. Microfiber (or a cotton t-shirt) has a smoother, tighter weave: far less friction, still very absorbent.",
+        "Same physics at night: tossing and turning on wet hair compounds the friction. Blot with microfiber, and never go to bed with wet hair.",
+      ],
+    });
+  }
   if (c === "slowGrowth") {
     notes.push({
       id: "trims",
       title: "Regular trims (yes, really)",
       body: [
         "Trims don't make hair grow faster — they stop breakage from erasing the growth you already got. Keeping ends healthy is how length actually accumulates.",
+      ],
+    });
+    notes.push({
+      id: "biotin",
+      title: "Honest word on biotin supplements",
+      body: [
+        "Biotin only meaningfully helps hair if you're actually deficient — uncommon with a reasonably varied diet, and the research behind most biotin-gummy marketing is weak for everyone else. If growth stays slow despite a solid routine, bloodwork for real deficiencies beats guessing with supplements.",
       ],
     });
   }
@@ -3155,7 +3268,7 @@ function renderLanding() {
     <div class="rise" style="position:relative;max-width:28rem">
       <div class="logo" aria-hidden="true">💆‍♀️</div>
       <h1>Hair<span>IQ</span></h1>
-      <p class="tagline">Ten quick questions. One personalized hair routine — with picks for every budget.</p>
+      <p class="tagline">Eleven quick questions. One personalized hair routine — with picks for every budget.</p>
       <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
       <p class="fineprint">≈ 2 minutes · no account needed</p>
     </div>

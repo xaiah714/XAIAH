@@ -20,7 +20,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="mt-4 text-lg font-semibold text-cocoa-soft">
-          Ten quick questions. One personalized hair routine — with picks for every budget.
+          Eleven quick questions. One personalized hair routine — with picks for every budget.
         </p>
 
         <Link
