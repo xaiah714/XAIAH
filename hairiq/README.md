@@ -23,10 +23,12 @@ like "oily AND flaky" are first-class answers.
 
 ## Branding
 
-The circular logo lives at `public/logo.svg` (shown on the landing page)
-and `app/icon.svg` (the favicon) — currently a generated placeholder.
-**To use the real logo: replace those two files.** Any square image works;
-it renders inside a circle. No code changes needed. The wordmark renders
+The circular logo is the owner's uploaded artwork (glowing hair
+silhouette), circle-cropped with transparent corners. It lives in three
+places: `public/logo.webp` (landing page), `app/icon.png` (favicon), and
+`scripts/logo-demo.webp` (embedded into the demo at build time). **To
+update the branding, replace those files** — any square image works; it
+renders inside a circle. No code changes needed. The wordmark renders
 in Pacifico (chunky cursive), loaded via `next/font` in the app and
 embedded as a base64 woff2 in the demo (`scripts/pacifico-latin.woff2`).
 

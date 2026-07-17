@@ -94,7 +94,7 @@
     width: 6rem; height: 6rem; border-radius: 50%;
     box-shadow: var(--shadow-soft); margin: 0 auto 1.5rem;
   }
-  .logo svg { display: block; width: 100%; height: 100%; }
+  .logo img { display: block; width: 100%; height: 100%; border-radius: 50%; }
   .landing h1 { font-family: var(--title); font-weight: 400; font-size: clamp(2.3rem, 9vw, 3.4rem); line-height: 1.35; text-wrap: balance; }
   .landing h1 span { color: var(--coral-deep); }
   .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
@@ -260,24 +260,10 @@ function renderLanding() {
     <div class="blob" style="width:20rem;height:20rem;top:33%;right:-7rem;background:var(--coral);opacity:.3"></div>
     <div class="blob" style="width:18rem;height:18rem;bottom:-8rem;left:25%;background:var(--blush);opacity:.5"></div>
     <div class="rise" style="position:relative;max-width:28rem">
-      <!-- circular logo — same artwork as public/logo.svg in the app; the
-           owner's uploaded logo replaces both in one swap -->
+      <!-- circular logo — same artwork as public/logo.webp in the app;
+           scripts/logo-demo.webp is embedded here at build time -->
       <div class="logo" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-          <defs>
-            <linearGradient id="himh-g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#ff61a3"/>
-              <stop offset="1" stop-color="#ff8d61"/>
-            </linearGradient>
-          </defs>
-          <circle cx="48" cy="48" r="46" fill="url(#himh-g)"/>
-          <circle cx="48" cy="48" r="44.5" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="3"/>
-          <g fill="none" stroke="#ffffff" stroke-linecap="round">
-            <path stroke-width="6" d="M34 24 C 44 32, 24 42, 34 52 C 44 62, 28 68, 36 76"/>
-            <path stroke-width="7" d="M48 20 C 58 30, 38 42, 48 52 C 58 62, 42 70, 50 80"/>
-            <path stroke-width="6" d="M62 24 C 72 32, 52 42, 62 52 C 72 62, 56 68, 64 76"/>
-          </g>
-        </svg>
+        <img alt="" src="data:image/webp;base64,__LOGO_B64__" />
       </div>
       <h1 class="wordmark">How Is My <span>Hair</span></h1>
       <p class="tagline">Eleven quick questions. One personalized hair routine — with picks for every budget.</p>
