@@ -139,6 +139,23 @@ export function buildRoutine(answers) {
   const concern = CONCERNS[answers.concern] || CONCERNS.dryness;
   const c = answers.concern;
   const chem = Array.isArray(answers.chemical) ? answers.chemical : [];
+  // Scalp + goals are multi-select (rev 7) — normalize so old single-string
+  // answers from saved sessions keep working. Old "dry" was "Dry & flaky".
+  const scalpList = Array.isArray(answers.scalp)
+    ? answers.scalp
+    : answers.scalp
+      ? [answers.scalp]
+      : [];
+  const scalpOily = scalpList.includes("oily");
+  const scalpDry = scalpList.includes("dry");
+  const scalpFlaky = scalpList.includes("flaky");
+  const scalpSensitive = scalpList.includes("sensitive");
+  const goalList = Array.isArray(answers.goal)
+    ? answers.goal
+    : answers.goal
+      ? [answers.goal]
+      : [];
+  const goalHas = (g) => goalList.includes(g);
   const fine = answers.density === "fine" || answers.density === "unsure";
   const thick = answers.density === "thick";
   const shortHair = answers.length === "short";
@@ -203,7 +220,7 @@ export function buildRoutine(answers) {
       principleId: "doubleWash",
       prefer: {
         drugstore:
-          answers.scalp === "dry"
+          scalpDry || scalpSensitive
             ? ["cerave-anti-dandruff", "nizoral", "head-shoulders-classic"]
             : ["nizoral", "head-shoulders-classic"],
         luxury: ["oribe-serene-scalp"],
@@ -277,12 +294,11 @@ export function buildRoutine(answers) {
       phase: "washDay",
       title: "Shampoo",
       frequency: "Every wash",
-      how:
-        answers.scalp === "oily"
-          ? "Focus shampoo on the scalp, not the lengths — and when it feels heavy with product or sweat, double-wash."
-          : answers.scalp === "dry"
-            ? "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends."
-            : "A strengthening wash, massaged into the scalp with fingertips.",
+      how: scalpOily
+        ? "Focus shampoo on the scalp, not the lengths — and when it feels heavy with product or sweat, double-wash."
+        : scalpDry
+          ? "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends."
+          : "A strengthening wash, massaged into the scalp with fingertips.",
       categories: ["strengthening-shampoo"],
       principleId: "scalpWash",
       prefer: {
@@ -392,7 +408,7 @@ export function buildRoutine(answers) {
         ? "Never skip this — unconditioned hair tangles, and tangles are how fragile hair snaps. Mid-lengths to ends, never the scalp. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before."
         : c === "curlyNew"
           ? "Condition generously every wash — curls genuinely need more than straight hair (that's correct dosing, not overuse). Mid-lengths to ends, never the scalp. This is also your detangling window (next step)."
-          : answers.scalp === "oily"
+          : scalpOily
             ? "Split into two sections and work it from mid-lengths to ends only — keep it off the roots. Every single wash, no skipping."
             : "Split into two sections and work it from mid-lengths to ends — never the scalp. Every single wash; a generous amount is normal.",
     principleId: "conditionerWhy",
@@ -627,7 +643,7 @@ export function buildRoutine(answers) {
 
   // ------------------------------------------------------------- EVERY DAY --
   // Scalp massage (6.3) — daily for thinning; also for the scalp-health goal.
-  if (c === "thinning" || (answers.goal === "scalpHealth" && c !== "slowGrowth" && c !== "dandruff")) {
+  if (c === "thinning" || (goalHas("scalpHealth") && c !== "slowGrowth" && c !== "dandruff")) {
     steps.push({
       id: "scalp-massage",
       phase: "daily",
@@ -899,7 +915,7 @@ export function buildRoutine(answers) {
     body: [
       "Hair swells when wet and contracts as it dries — and hours of staying wet (sleeping on wet hair, air-drying that drags on all day) slowly weakens its internal structure. It's called hygral fatigue, and medium/high-porosity hair feels it most.",
       "So don't avoid the blow dryer on principle: a quick, protected blow-dry — low heat, diffuser, heat protectant on first — can genuinely be gentler than hours of wetness. The rule of thumb is simply “avoid hours of wet,” not a specific timer.",
-      ...(answers.scalp === "oily"
+      ...(scalpOily
         ? [
             "Oily-scalp bonus move: a partial blow-dry, pointing the dryer straight down at the roots only (never the lengths or ends), speeds up root drying and can slow how fast your scalp re-oils — with zero heat on your ends.",
           ]
@@ -1033,7 +1049,20 @@ export function buildRoutine(answers) {
     });
   }
 
-  if (answers.scalp === "sensitive") {
+  // Flaky scalp flagged without the full dandruff concern — give the
+  // medicated-rotation advice as a note instead of rebuilding the routine.
+  if (scalpFlaky && c !== "dandruff") {
+    notes.push({
+      id: "flaky-scalp",
+      title: "For the flakes you mentioned",
+      body: [
+        "Rotate a medicated shampoo (pyrithione zinc or ketoconazole — Head & Shoulders or Nizoral) into your washes about twice a week. Use it as the second wash so it reaches skin instead of sitting on buildup, and keep the water warm, never hot.",
+        "If flakes are painful, spreading, or haven't budged after a month of medicated washes, that's a dermatologist visit — not another product.",
+      ],
+    });
+  }
+
+  if (scalpSensitive) {
     notes.push({
       id: "sensitive",
       title: "Sensitive-scalp ground rules",
@@ -1090,8 +1119,12 @@ export function buildRoutine(answers) {
         optionLabel("density", answers.density) === "Not sure"
           ? "Density TBD"
           : `${optionLabel("density", answers.density)} density`,
-        `${optionLabel("scalp", answers.scalp)} scalp`,
-        optionLabel("goal", answers.goal),
+        scalpList.length > 0
+          ? `${scalpList.map((s) => optionLabel("scalp", s)).join(" + ")} scalp`
+          : "Scalp TBD",
+        ...(goalList.length > 0
+          ? [goalList.map((g) => optionLabel("goal", g)).join(" + ")]
+          : []),
         DEPTH_LABELS[depth].split(" · ")[1],
       ],
     },

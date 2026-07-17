@@ -13,6 +13,7 @@ export default function EmailSignup() {
   const [tiers, setTiers] = useState([]);
   const [status, setStatus] = useState("idle"); // idle | sending | done | error
   const [error, setError] = useState("");
+  const [welcomed, setWelcomed] = useState(false);
 
   const allSelected = tiers.length === NEWSLETTER_TIERS.length;
 
@@ -48,6 +49,7 @@ export default function EmailSignup() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
+        setWelcomed(Boolean(data.welcomed));
         setStatus("done");
       } else {
         setStatus("error");
@@ -64,6 +66,9 @@ export default function EmailSignup() {
       <section className="rounded-3xl bg-blush/30 p-6 text-center">
         <h2 className="font-display text-xl font-bold">You're in! 💌</h2>
         <p className="mt-2 text-sm font-semibold text-cocoa-soft">
+          {welcomed
+            ? "A confirmation email is on its way to your inbox (check spam the first time). "
+            : ""}
           We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime.
         </p>
       </section>

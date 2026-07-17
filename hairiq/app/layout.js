@@ -1,4 +1,4 @@
-import { Quicksand, Nunito } from "next/font/google";
+import { Quicksand, Nunito, Pacifico } from "next/font/google";
 import Script from "next/script";
 import { QuizProvider } from "@/components/QuizProvider";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -14,6 +14,14 @@ const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
   variable: "--font-nunito",
+});
+
+// Chunky cursive display face for the wordmark only (owner request) — body
+// and headings stay on Quicksand for readability.
+const pacifico = Pacifico({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-pacifico",
 });
 
 export const metadata = {
@@ -38,7 +46,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${quicksand.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${quicksand.variable} ${nunito.variable} ${pacifico.variable}`}>
       <body className="min-h-dvh antialiased">
         <QuizProvider>{children}</QuizProvider>
         <LanguageToggle />

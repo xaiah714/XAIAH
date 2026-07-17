@@ -6,6 +6,7 @@ import { isQuizComplete } from "@/lib/questions";
 import { buildRoutine } from "@/lib/recommendations";
 import { PREMIUM } from "@/lib/config";
 import { useQuiz } from "@/components/QuizProvider";
+import { usePremium } from "@/components/usePremium";
 import TierTabs from "@/components/TierTabs";
 import StepCard from "@/components/StepCard";
 import NoteCard from "@/components/NoteCard";
@@ -31,6 +32,41 @@ export default function ResultsPage() {
   useEffect(() => {
     if (routine && tier === null) setTier(routine.defaultTier);
   }, [routine, tier]);
+
+  // Premium (rev 7): Stripe Checkout → success redirect lands back here with
+  // a session_id; verify it server-side before unlocking on this device.
+  const { unlocked, saved, unlock, saveRoutine } = usePremium();
+  const [payState, setPayState] = useState("idle"); // idle | starting | unavailable | error
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("checkout")) return;
+    const sessionId = params.get("session_id");
+    window.history.replaceState(null, "", "/results"); // clean URL either way
+    if (params.get("checkout") === "success" && sessionId) {
+      fetch(`/api/checkout?session_id=${encodeURIComponent(sessionId)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.paid) unlock();
+        })
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function startCheckout() {
+    setPayState("starting");
+    try {
+      const res = await fetch("/api/checkout", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setPayState(res.status === 503 ? "unavailable" : "error");
+    } catch {
+      setPayState("error");
+    }
+  }
 
   if (!routine || tier === null) return null;
 
@@ -62,7 +98,7 @@ export default function ResultsPage() {
           {routine.summary.chips.map((chip) => (
             <li
               key={chip}
-              className="rounded-full bg-blush/60 px-3.5 py-1.5 text-xs font-extrabold text-cocoa"
+              className="rounded-full bg-butter px-3.5 py-1.5 text-xs font-extrabold text-cocoa shadow-card"
             >
               {chip}
             </li>
@@ -142,26 +178,56 @@ export default function ResultsPage() {
         )}
       </div>
 
-      {/* actions — explicit paywall per spec §13.1: lock + price, not vague copy */}
+      {/* actions — explicit paywall per spec §13.1: lock + price. One click →
+          Stripe's hosted checkout (card / Apple Pay / Google Pay) → back here
+          with a verified session → unlocked. */}
       <div className="mt-12 flex flex-col items-center gap-3">
-        <div className="relative w-full max-w-sm">
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title={PREMIUM.unlockLabel}
-            className="w-full cursor-not-allowed rounded-full bg-blush/50 px-8 py-4 font-display text-lg font-bold text-cocoa-soft/70"
-          >
-            <span aria-hidden="true" className="mr-2">🔒</span>
-            Save My Routine
-          </button>
-          <span className="absolute -top-2.5 right-4 rounded-full bg-butter px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-cocoa shadow-card">
-            🔒 {PREMIUM.unlockLabel}
-          </span>
-        </div>
-        <p className="max-w-sm text-center text-xs font-semibold text-cocoa-soft">
-          Saving routines, retake history, and more are part of premium — payments aren't live yet.
-        </p>
+        {unlocked ? (
+          <>
+            <button
+              type="button"
+              onClick={() => saveRoutine(answers)}
+              disabled={saved}
+              className={`w-full max-w-sm rounded-full px-8 py-4 font-display text-lg font-bold transition active:scale-95 ${
+                saved
+                  ? "cursor-default bg-butter text-cocoa"
+                  : "bg-coral text-cocoa shadow-soft hover:bg-coral-deep hover:text-cream"
+              }`}
+            >
+              {saved ? "Saved ✓" : "💾 Save My Routine"}
+            </button>
+            <p className="max-w-sm text-center text-xs font-semibold text-cocoa-soft">
+              {saved
+                ? "Your routine lives on the home screen now — retake the quiz any time without losing it."
+                : "Premium unlocked on this device ✨ Save your routine to reach it from the home screen."}
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="relative w-full max-w-sm">
+              <button
+                type="button"
+                onClick={startCheckout}
+                disabled={payState === "starting"}
+                title={PREMIUM.unlockLabel}
+                className="w-full rounded-full bg-blush/60 px-8 py-4 font-display text-lg font-bold text-cocoa shadow-card transition hover:bg-blush active:scale-95 disabled:cursor-wait disabled:opacity-70"
+              >
+                <span aria-hidden="true" className="mr-2">🔒</span>
+                {payState === "starting" ? "Opening secure checkout…" : "Save My Routine"}
+              </button>
+              <span className="absolute -top-2.5 right-4 rounded-full bg-butter px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-cocoa shadow-card">
+                🔒 {PREMIUM.unlockLabel}
+              </span>
+            </div>
+            <p className="max-w-sm text-center text-xs font-semibold text-cocoa-soft">
+              {payState === "unavailable"
+                ? "Payments are almost live — check back very soon!"
+                : payState === "error"
+                  ? "Couldn't start checkout — give it another try in a moment."
+                  : `One-time ${PREMIUM.priceLabel} · secure Stripe checkout · card, Apple Pay, or Google Pay.`}
+            </p>
+          </>
+        )}
         <button
           type="button"
           onClick={retake}

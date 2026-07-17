@@ -1,8 +1,9 @@
 // ---------------------------------------------------------------------------
 // HairIQ — Quiz questions (spec section 5)
-// 11 questions, one per screen. Q7 (chemical treatments) is multi-select,
-// everything else single. Edit copy freely — the quiz UI renders whatever
-// is in this file.
+// 11 questions, one per screen. Scalp (Q4), goals (Q6), and chemical
+// treatments (Q7) are multi-select — real scalps and goals overlap; an
+// `exclusive` option ("Balanced", "Just maintain", "None") clears the rest.
+// Edit copy freely — the quiz UI renders whatever is in this file.
 // ---------------------------------------------------------------------------
 
 export const QUESTIONS = [
@@ -42,11 +43,14 @@ export const QUESTIONS = [
   {
     id: "scalp",
     title: "How would you describe your scalp?",
+    subtitle: "Select all that apply — scalps overlap (oily AND flaky is common).",
+    multiSelect: true,
     options: [
       { value: "oily", label: "Oily", sublabel: "Greasy by the end of the day", emoji: "💧" },
-      { value: "dry", label: "Dry & flaky", emoji: "🏜️" },
+      { value: "dry", label: "Dry", sublabel: "Tight or itchy after washing", emoji: "🏜️" },
+      { value: "flaky", label: "Flaky", sublabel: "Visible flakes or dandruff", emoji: "❄️" },
       { value: "sensitive", label: "Sensitive or irritated", emoji: "🩹" },
-      { value: "balanced", label: "Balanced", sublabel: "No complaints", emoji: "⚖️" },
+      { value: "balanced", label: "Balanced", sublabel: "No complaints", emoji: "⚖️", exclusive: true },
     ],
   },
   {
@@ -70,14 +74,16 @@ export const QUESTIONS = [
   },
   {
     id: "goal",
-    title: "What's your main goal?",
+    title: "What are your goals?",
+    subtitle: "Select all that apply — most people are working on more than one thing.",
+    multiSelect: true,
     options: [
       { value: "growLonger", label: "Grow it longer", emoji: "🌱" },
       { value: "density", label: "Increase density", emoji: "🌳" },
       { value: "repair", label: "Repair damage", emoji: "🛠️" },
       { value: "frizz", label: "Reduce frizz", emoji: "😌" },
       { value: "scalpHealth", label: "Improve scalp health", emoji: "💆" },
-      { value: "maintain", label: "Just maintain", emoji: "✅" },
+      { value: "maintain", label: "Just maintain", emoji: "✅", exclusive: true },
     ],
   },
   {
@@ -139,7 +145,11 @@ export const QUESTIONS = [
 
 export function isAnswered(answers, question) {
   const value = answers[question.id];
-  if (question.multiSelect) return Array.isArray(value) && value.length > 0;
+  if (question.multiSelect) {
+    // Legacy sessions stored a single string before scalp/goal went
+    // multi-select — still a valid answer (the engine normalizes it).
+    return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value !== "";
+  }
   return value != null && value !== "";
 }
 

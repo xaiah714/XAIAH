@@ -9,6 +9,11 @@
 export const PREMIUM = {
   priceLabel: "$1.99",
   unlockLabel: "Unlock for $1.99",
+  // Stripe Checkout charges exactly this (unless STRIPE_PRICE_ID overrides
+  // it with a dashboard-managed Price). Keep in sync with the labels above.
+  amountCents: 199,
+  currency: "usd",
+  productName: "How Is My Hair — Premium (save your routine)",
 };
 
 // Newsletter tier topics (spec §12) — keys match the results-tab tiers.

@@ -24,7 +24,10 @@ const data = LIB_ORDER.map((file) => {
 }).join("\n\n");
 
 const template = readFileSync(join(root, "scripts", "demo-template.html"), "utf8");
-const out = template.replace("/*__HAIRIQ_DATA__*/", () => data);
+const pacifico = readFileSync(join(root, "scripts", "pacifico-latin.woff2")).toString("base64");
+const out = template
+  .replace("/*__HAIRIQ_DATA__*/", () => data)
+  .replace("__PACIFICO_B64__", () => pacifico);
 
 mkdirSync(join(root, "demo"), { recursive: true });
 writeFileSync(join(root, "demo", "index.html"), out);

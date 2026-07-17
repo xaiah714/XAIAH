@@ -5,16 +5,30 @@ routine out — broken into **Wash Day / Every Day / At Night** steps, with
 product picks across three always-available tabs: **Affordable, Luxury, and
 Cruelty-Free** (all three are pre-calculated on every result; Q11 only picks
 which tab you land on). The tier's internal data key is still `drugstore`
-(renamed to "Affordable" in the UI per spec §8.10).
+(renamed to "Affordable" in the UI per spec §8.10). Scalp (Q4), goals (Q6),
+and chemical treatments (Q7) are **multi-select** — overlapping realities
+like "oily AND flaky" are first-class answers.
 
 > v1 scope: no login — pure quiz → results, all state client-side, plus
-> the free segmented email signup (spec §12, stored in our own Postgres
-> via `POSTGRES_URL`). Results show ONE section at a time (Wash Day /
-> Daily / At Night / Tips sub-tabs) to keep the page short and scannable.
-> An 🌐 Español toggle machine-translates every screen via Google Website
-> Translator (native-Spanish copy is a future quality upgrade). The v2
-> roadmap (accounts, saved history, tracker, payments…) lives in
-> `SPEC.md` section 13 and is intentionally **not** built here.
+> the free segmented email signup (spec §12: stored in our own Postgres,
+> confirmation email + dashboard-managed newsletters via Resend) and the
+> real "$1.99 unlock" via Stripe Checkout (device-local unlock enabling
+> Save My Routine — see below). Results show ONE section at a time
+> (Wash Day / Daily / At Night / Tips sub-tabs) to keep the page short
+> and scannable. An 🌐 Español toggle machine-translates every screen via
+> Google Website Translator (native-Spanish copy is a future quality
+> upgrade). The rest of the v2 roadmap (accounts, saved history,
+> tracker…) lives in `SPEC.md` section 13 and is intentionally **not**
+> built here.
+
+## Branding
+
+The circular logo lives at `public/logo.svg` (shown on the landing page)
+and `app/icon.svg` (the favicon) — currently a generated placeholder.
+**To use the real logo: replace those two files.** Any square image works;
+it renders inside a circle. No code changes needed. The wordmark renders
+in Pacifico (chunky cursive), loaded via `next/font` in the app and
+embedded as a base64 woff2 in the demo (`scripts/pacifico-latin.woff2`).
 
 ## Run it
 
@@ -38,7 +52,9 @@ can be edited without touching components:
 | `lib/products.js` | The full product library (spec sections 6–8 + 10–11) with tier, cruelty-free status/notes, and step categories |
 | `lib/recommendations.js` | The engine: concern routines (§7), framework steps + time-based depth (§8–9), answer-driven logic (§6), length gating + brush lookup (§11) |
 | `lib/config.js` | The premium price + "Unlock for $X" paywall copy (ONE place, per §13.1) and newsletter tier topics |
-| `app/api/subscribe/route.js` | Email signup endpoint — stores to our own Postgres when a connection string is set (see below) |
+| `app/api/subscribe/route.js` | Email signup endpoint — stores to our own Postgres + sends the Resend confirmation email (see below) |
+| `lib/email.js` | Resend integration: welcome email + Audience mirror for dashboard newsletters |
+| `app/api/checkout/route.js` | Stripe Checkout for the $1.99 unlock (create + verify session) |
 | `app/` | Screens: landing → `/quiz` → `/results` |
 | `components/` | UI only — no content (`EmailSignup.js` is the §12 form) |
 | `scripts/build-demo.mjs` | Bundles the `lib/` files + a vanilla-JS shell into `demo/index.html` — a dependency-free, single-file version of the whole app for sharing |
@@ -61,7 +77,7 @@ Every step carries products for **all three tiers**, so the results tabs
 switch instantly with no recalculation. Bond repair renders as ONE step
 with a pick-one timing choice (in-shower highlighted), per the §8 callout.
 
-## Email signup (spec §12)
+## Email signup (spec §12) + delivery (rev 7)
 
 The results page ends with the free segmented newsletter form: tier topics
 (multi-select, plus an "All three" option), email, and optional ZIP. It
@@ -74,10 +90,29 @@ automatically (any Postgres works via `DATABASE_URL` — see `.env.example`);
 until one is set, signups validate but are not stored and the server logs
 a warning.
 
-Honest limit, per the spec: *sending* newsletters later needs an email
-delivery service (Resend, Postmark, etc.) with human domain/sender
-verification — a separate future task. This table, with its tier tags and
-ZIPs, is exactly the segmented list that service will import.
+Delivery is wired through **Resend** (`lib/email.js`): with
+`RESEND_API_KEY` set, every signup receives a branded confirmation email
+and is mirrored into a Resend Audience (`RESEND_AUDIENCE_ID`), so future
+newsletters are written and sent from Resend's **Broadcasts** dashboard —
+no code, unsubscribe links handled automatically. The one human step
+before real-world delivery: verify the sending domain in Resend and set
+`NEWSLETTER_FROM` (until then the resend.dev test sender only delivers to
+the account owner's inbox). Postgres stays the segmented source of truth
+(tiers + ZIP) for anything Audiences can't express.
+
+## Premium unlock (spec §13.1) — Stripe Checkout (rev 7)
+
+"Save My Routine" starts a **hosted Stripe Checkout** for the one-time
+$1.99 (`lib/config.js` is the single price source; or set
+`STRIPE_PRICE_ID` to manage the price from the Stripe dashboard). Card,
+Apple Pay, and Google Pay all appear automatically on Stripe's page.
+Flow: click → `/api/checkout` creates the session → Stripe's payment page
+→ success redirect back to `/results?session_id=…` → the API verifies the
+session is paid → the device unlocks (localStorage; accounts are §13 v2)
+→ Save My Routine persists the routine and the home screen grows a
+"View my saved routine" link. Until `STRIPE_SECRET_KEY` is set, the
+button shows a friendly "payments are almost live" note instead of a
+broken checkout.
 
 ### Cruelty-free tab
 

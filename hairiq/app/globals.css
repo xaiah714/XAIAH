@@ -17,14 +17,18 @@
   --color-butter: #ffdb61; /* yellow badge */
   --color-mint: #c8e6c9; /* cruelty-free badge (semantic, kept) */
   --color-mint-deep: #386641;
-  --color-cocoa: #5a3e36;
-  --color-cocoa-soft: #8a6b60;
+  /* Text darkened for the v3 pink background (owner request): near-black
+     dark brown. cocoa 9.9:1 and cocoa-soft 7.3:1 on the pink bg (AAA). */
+  --color-cocoa: #2e1c15;
+  --color-cocoa-soft: #4d2f24;
 
   --font-display: var(--font-quicksand), "Quicksand", "Poppins", ui-rounded, system-ui, sans-serif;
   --font-body: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
+  /* wordmark only — chunky cursive */
+  --font-title: var(--font-pacifico), "Pacifico", "Brush Script MT", cursive;
 
   --shadow-soft: 0 10px 26px -10px rgb(194 65 12 / 0.5);
-  --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.18);
+  --shadow-card: 0 6px 22px -10px rgb(46 28 21 / 0.18);
 }
 
 body {
@@ -33,10 +37,14 @@ body {
   font-family: var(--font-body);
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
+/* layered so single-purpose utilities (e.g. the wordmark's font-title)
+   can still override the default heading face */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
 /* gentle entrance for quiz question changes and results sections */

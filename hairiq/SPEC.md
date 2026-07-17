@@ -6,6 +6,30 @@
 > free — check before committing). Using placeholder "HairIQ" throughout
 > until then. Find/replace once confirmed.
 >
+> **Repo note (rev 7, July 17):** owner feedback round implemented:
+> (1) **Multi-select answers** — scalp (Q4) and goals (Q6) now allow
+> multiple picks ("oily AND flaky" etc.); "Balanced"/"Just maintain" are
+> exclusive, "Flaky" is its own option (with a medicated-rotation note
+> when picked outside the dandruff concern), and the engine + summary
+> chips accept both the new arrays and legacy single-string sessions.
+> (2) **Contrast pass** — summary chips moved from blush-on-pink to
+> butter yellow, and text tokens darkened to near-black brown
+> (#2e1c15 / #4d2f24 → 9.9:1 and 7.3:1 on the pink bg). (3) Landing got a
+> soft blurred pink↔orange gradient and the wordmark now renders in
+> Pacifico (chunky cursive; local woff2 embedded in the demo).
+> (4) The 💆 emoji was replaced by a circular logo slot —
+> `public/logo.svg` + `app/icon.svg` (favicon); the owner's uploaded logo
+> replaces those two files, no code changes. (5) **Email is wired for
+> real delivery**: signups store to Postgres AND send a Resend
+> confirmation email + mirror into a Resend Audience (newsletters then
+> ship from Resend's Broadcasts dashboard, no code) — needs the owner's
+> RESEND_API_KEY + domain verification to go live. (6) **"Unlock for
+> $1.99" is a real Stripe Checkout flow** — hosted payment page (card /
+> Apple Pay / Google Pay), server-verified success redirect, device-local
+> unlock enabling "Save My Routine" + a home-screen saved-routine link —
+> needs the owner's STRIPE_SECRET_KEY to go live. See `.env.example` for
+> the exact keys.
+>
 > **Repo note (rev 6, July 12):** name CONFIRMED as **"How Is My Hair"** —
 > renamed across all user-facing text (code identifiers unchanged). Owner
 > is registering the domain directly. Also implemented in rev 6: palette

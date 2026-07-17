@@ -7,12 +7,14 @@
 // you attach Vercel Postgres) or DATABASE_URL. Until one is set, signups
 // validate and return ok but are NOT stored (a server warning is logged).
 //
-// Honest limit (per spec): actually SENDING newsletters later needs an email
-// delivery service (Resend, Postmark, etc.) with human domain/sender
-// verification — that's a separate future task; this table is the list
-// they'll import/segment from (tiers + ZIP are stored for exactly that).
+// Sending (rev 7): when RESEND_API_KEY is set, every signup also gets a
+// confirmation/welcome email and is mirrored into a Resend Audience for
+// dashboard-managed newsletters — see lib/email.js for the owner setup.
+// Delivery still requires the owner's one-time domain verification there;
+// until the key is set, signups store fine and simply skip the email.
 
 import { Pool } from "pg";
+import { emailConfigured, sendWelcomeEmail, addToAudience } from "@/lib/email";
 
 const VALID_TIERS = ["drugstore", "luxury", "crueltyFree"];
 
@@ -69,28 +71,49 @@ export async function POST(request) {
   }
 
   const db = getPool();
+  let stored = false;
   if (!db) {
     console.warn("[subscribe] No POSTGRES_URL/DATABASE_URL configured — signup NOT stored.", { email, tiers, zip });
-    return Response.json({ ok: true, stored: false });
+  } else {
+    try {
+      await ensureTable(db);
+      // Re-signup updates preferences instead of erroring.
+      await db.query(
+        `INSERT INTO hairiq_subscribers (email, tiers, zip)
+         VALUES ($1, $2, NULLIF($3, ''))
+         ON CONFLICT (email) DO UPDATE
+           SET tiers = EXCLUDED.tiers,
+               zip = COALESCE(NULLIF(EXCLUDED.zip, ''), hairiq_subscribers.zip)`,
+        [email, tiers, zip]
+      );
+      stored = true;
+    } catch (err) {
+      console.error("[subscribe] Database error:", err.message);
+      return Response.json(
+        { ok: false, error: "Couldn't save your signup right now — try again in a bit." },
+        { status: 502 }
+      );
+    }
   }
 
-  try {
-    await ensureTable(db);
-    // Re-signup updates preferences instead of erroring.
-    await db.query(
-      `INSERT INTO hairiq_subscribers (email, tiers, zip)
-       VALUES ($1, $2, NULLIF($3, ''))
-       ON CONFLICT (email) DO UPDATE
-         SET tiers = EXCLUDED.tiers,
-             zip = COALESCE(NULLIF(EXCLUDED.zip, ''), hairiq_subscribers.zip)`,
-      [email, tiers, zip]
-    );
-    return Response.json({ ok: true, stored: true });
-  } catch (err) {
-    console.error("[subscribe] Database error:", err.message);
-    return Response.json(
-      { ok: false, error: "Couldn't save your signup right now — try again in a bit." },
-      { status: 502 }
-    );
+  // Confirmation email + Audience mirror — best-effort: a delivery hiccup
+  // must never fail a signup that's already captured.
+  let welcomed = false;
+  if (emailConfigured()) {
+    try {
+      await sendWelcomeEmail({ email, tiers });
+      welcomed = true;
+    } catch (err) {
+      console.error("[subscribe] Welcome email failed:", err.message);
+    }
+    try {
+      await addToAudience({ email });
+    } catch (err) {
+      console.error("[subscribe] Audience add failed:", err.message);
+    }
+  } else {
+    console.warn("[subscribe] No RESEND_API_KEY — confirmation email skipped.");
   }
+
+  return Response.json({ ok: true, stored, welcomed });
 }
