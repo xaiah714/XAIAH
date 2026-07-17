@@ -25,11 +25,20 @@ export default function ResultsPage() {
   const routine = useMemo(() => (complete ? buildRoutine(answers) : null), [complete, answers]);
 
   const [tier, setTier] = useState(null);
+  // One phase visible at a time (rev 6): kills the endless-scroll feel and
+  // matches the one-thing-per-screen rule. "tips" holds the Good-to-know notes.
+  const [phase, setPhase] = useState("washDay");
   useEffect(() => {
     if (routine && tier === null) setTier(routine.defaultTier);
   }, [routine, tier]);
 
   if (!routine || tier === null) return null;
+
+  const phaseTabs = [
+    ...routine.phases.map((p) => ({ id: p.id, title: p.title, emoji: p.emoji })),
+    { id: "tips", title: "Tips", emoji: "💡" },
+  ];
+  const activePhase = routine.phases.find((p) => p.id === phase) || null;
 
   function retake() {
     reset();
@@ -37,7 +46,7 @@ export default function ResultsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 pb-16 pt-10">
+    <main className="mx-auto w-full max-w-2xl px-6 pb-16 pt-16 sm:pt-10">
       {/* summary header */}
       <header className="animate-rise text-center">
         <p className="font-display text-sm font-bold uppercase tracking-widest text-coral-deep">
@@ -61,9 +70,37 @@ export default function ResultsPage() {
         </ul>
       </header>
 
-      {/* tier tabs — always live, all three pre-calculated */}
+      {/* tier tabs (pre-calculated) + phase tabs, one sticky block */}
       <div className="sticky top-0 z-10 -mx-6 mt-8 bg-cream/95 px-6 py-3 backdrop-blur-sm">
         <TierTabs activeTier={tier} onChange={setTier} />
+        <div
+          role="tablist"
+          aria-label="Routine section"
+          className="mt-2.5 flex w-full gap-1.5"
+        >
+          {phaseTabs.map((pt) => {
+            const active = pt.id === phase;
+            return (
+              <button
+                key={pt.id}
+                role="tab"
+                aria-selected={active}
+                type="button"
+                onClick={() => setPhase(pt.id)}
+                className={`min-h-11 flex-1 whitespace-nowrap rounded-full px-1 py-2 font-display text-[13px] font-bold leading-tight transition active:scale-95 sm:text-sm ${
+                  active
+                    ? "bg-cocoa text-cream shadow-card"
+                    : "bg-white/80 text-cocoa-soft hover:bg-blush/40"
+                }`}
+              >
+                <span aria-hidden="true" className="hidden sm:inline">
+                  {pt.emoji}{" "}
+                </span>
+                {pt.title}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {tier === "crueltyFree" ? (
         <p className="mt-3 text-center text-xs font-semibold text-cocoa-soft">
@@ -72,45 +109,38 @@ export default function ResultsPage() {
         </p>
       ) : null}
 
-      {/* routine phases */}
-      <div className="mt-8 space-y-10">
-        {routine.phases.map((phase) =>
-          phase.steps.length === 0 ? null : (
-            <section key={phase.id} className="animate-rise">
-              <div className="flex items-baseline gap-3">
-                <h2 className="font-display text-2xl font-bold">
-                  <span aria-hidden="true" className="mr-2">
-                    {phase.emoji}
-                  </span>
-                  {phase.title}
-                </h2>
-              </div>
-              {phase.intro ? (
-                <p className="mt-2 text-sm font-semibold leading-relaxed text-cocoa-soft">
-                  {phase.intro}
-                </p>
-              ) : null}
-              <ol className="mt-4 space-y-4">
-                {phase.steps.map((step, i) => (
-                  <StepCard key={step.id} step={step} index={i + 1} activeTier={tier} />
-                ))}
-              </ol>
-            </section>
-          )
+      {/* one routine section at a time — Wash Day / Daily / At Night / Tips */}
+      <div className="mt-6">
+        {activePhase ? (
+          <section key={activePhase.id} className="animate-rise">
+            <h2 className="font-display text-2xl font-bold">
+              <span aria-hidden="true" className="mr-2">
+                {activePhase.emoji}
+              </span>
+              {activePhase.title}
+            </h2>
+            {activePhase.intro ? (
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-cocoa-soft">
+                {activePhase.intro}
+              </p>
+            ) : null}
+            <ol className="mt-4 space-y-4">
+              {activePhase.steps.map((step, i) => (
+                <StepCard key={step.id} step={step} index={i + 1} activeTier={tier} />
+              ))}
+            </ol>
+          </section>
+        ) : (
+          <section key="tips" className="animate-rise">
+            <h2 className="font-display text-2xl font-bold">💡 Good to know</h2>
+            <div className="mt-4 space-y-4">
+              {routine.notes.map((note) => (
+                <NoteCard key={note.id} note={note} />
+              ))}
+            </div>
+          </section>
         )}
       </div>
-
-      {/* good-to-know notes */}
-      {routine.notes.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="font-display text-2xl font-bold">💡 Good to know</h2>
-          <div className="mt-4 space-y-4">
-            {routine.notes.map((note) => (
-              <NoteCard key={note.id} note={note} />
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       {/* actions — explicit paywall per spec §13.1: lock + price, not vague copy */}
       <div className="mt-12 flex flex-col items-center gap-3">
@@ -149,7 +179,7 @@ export default function ResultsPage() {
 
       {/* disclaimer */}
       <footer className="mt-10 border-t border-blush/70 pt-6 text-center text-xs font-semibold leading-relaxed text-cocoa-soft">
-        HairIQ gives cosmetic styling guidance, not medical treatment. Persistent scalp issues —
+        How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues —
         anything painful, spreading, or unresponsive to over-the-counter care — deserve a
         dermatologist visit rather than a routine change.
       </footer>

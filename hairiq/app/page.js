@@ -15,8 +15,8 @@ export default function LandingPage() {
           <span aria-hidden="true">💆‍♀️</span>
         </div>
 
-        <h1 className="font-display text-5xl font-bold tracking-tight">
-          Hair<span className="text-coral-deep">IQ</span>
+        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl" style={{ textWrap: "balance" }}>
+          How Is My <span className="text-coral-deep">Hair</span>
         </h1>
 
         <p className="mt-4 text-lg font-semibold text-cocoa-soft">

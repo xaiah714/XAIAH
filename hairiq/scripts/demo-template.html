@@ -1,18 +1,19 @@
-<title>HairIQ — live demo</title>
+<title>How Is My Hair — live demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root {
     /* saturated "groovy" palette (spec §3, July 12) — names historical */
-    --cream: #fce4ec;
-    --coral: #ffb74d;
-    --coral-deep: #e65100;
-    --blush: #ffabab;
-    --blush-deep: #ff6f91;
-    --butter: #ffd54f;
+    --cream: #ffb4d5;
+    --coral: #ff8d61;
+    --coral-deep: #c2410c;
+    --blush: #ffa1cb;
+    --blush-deep: #ff61a3;
+    --butter: #ffdb61;
     --mint: #c8e6c9;
     --mint-deep: #386641;
     --cocoa: #5a3e36;
     --cocoa-soft: #8a6b60;
-    --shadow-soft: 0 10px 26px -10px rgb(230 81 0 / 0.45);
+    --shadow-soft: 0 10px 26px -10px rgb(194 65 12 / 0.5);
     --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.18);
     --display: "Quicksand", "Poppins", ui-rounded, "Arial Rounded MT Bold", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
     --body: "Nunito", ui-rounded, "Hiragino Maru Gothic ProN", system-ui, sans-serif;
@@ -56,7 +57,7 @@
   }
   .pill:hover { background: var(--coral-deep); color: var(--cream); }
   .pill:active { transform: scale(0.96); }
-  .pill[disabled] { background: rgb(255 171 171 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
+  .pill[disabled] { background: rgb(255 161 203 / 0.5); color: rgb(138 107 96 / 0.6); box-shadow: none; cursor: not-allowed; }
   .ghost {
     border-radius: 999px;
     padding: 1rem 1.5rem;
@@ -64,7 +65,7 @@
     font-weight: 700;
     color: var(--cocoa-soft);
   }
-  .ghost:hover { background: rgb(255 171 171 / 0.4); }
+  .ghost:hover { background: rgb(255 161 203 / 0.4); }
 
   /* landing */
   .landing {
@@ -79,7 +80,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 2.8rem; box-shadow: var(--shadow-soft); margin: 0 auto 1.5rem;
   }
-  .landing h1 { font-size: 3rem; letter-spacing: -0.02em; }
+  .landing h1 { font-size: clamp(2.1rem, 9vw, 3rem); letter-spacing: -0.02em; text-wrap: balance; }
   .landing h1 span { color: var(--coral-deep); }
   .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
   .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(138 107 96 / 0.8); }
@@ -89,8 +90,8 @@
   .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .progress-meta .label { font-family: var(--display); font-weight: 700; font-size: 0.85rem; color: var(--cocoa-soft); }
   .progress-meta .pct { font-size: 0.75rem; font-weight: 700; color: rgb(138 107 96 / 0.7); }
-  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 171 171 / 0.5); overflow: hidden; }
-  .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blush-deep), var(--coral-deep)); transition: width 0.4s ease; }
+  .track { height: 0.75rem; border-radius: 999px; background: rgb(255 161 203 / 0.5); overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blush-deep), var(--coral)); transition: width 0.4s ease; }
   .quiz h1 { font-size: 1.9rem; line-height: 1.2; margin-top: 2rem; }
   .subtitle { margin-top: 0.5rem; color: var(--cocoa-soft); }
   .answers { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; flex: 1; }
@@ -100,16 +101,16 @@
     padding: 1.15rem 1.25rem; box-shadow: var(--shadow-card);
     transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
   }
-  .answer:hover { border-color: rgb(255 111 145 / 0.6); }
+  .answer:hover { border-color: rgb(255 97 163 / 0.6); }
   .answer:active { transform: scale(0.98); }
-  .answer.selected { border-color: var(--coral-deep); background: rgb(255 171 171 / 0.4); }
+  .answer.selected { border-color: var(--coral-deep); background: rgb(255 161 203 / 0.4); }
   .answer .emoji { font-size: 1.5rem; }
   .answer .lab { flex: 1; }
   .answer .lab b { display: block; font-family: var(--display); font-size: 1.05rem; }
   .answer .lab small { display: block; color: var(--cocoa-soft); font-size: 0.85rem; }
   .answer .tick {
     width: 1.7rem; height: 1.7rem; flex: none; display: flex; align-items: center; justify-content: center;
-    border: 2px solid rgb(255 111 145 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
+    border: 2px solid rgb(255 97 163 / 0.5); background: #fff; font-size: 0.8rem; font-weight: 900;
   }
   .answer .tick.round { border-radius: 50%; }
   .answer .tick.square { border-radius: 0.5rem; }
@@ -123,16 +124,26 @@
   .results > .col > h1, .results h1 { text-align: center; font-size: 2.3rem; line-height: 1.15; margin-top: 0.5rem; text-wrap: balance; }
   .results .blurb { text-align: center; color: var(--cocoa-soft); max-width: 32rem; margin: 0.8rem auto 0; }
   .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.25rem; list-style: none; }
-  .chips li { background: rgb(255 171 171 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
-  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(252 228 236 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
-  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(255 111 145 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
+  .chips li { background: rgb(255 161 203 / 0.6); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; }
+  .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(255 180 213 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
+  .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(255 97 163 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
   .tab {
-    flex: 1; border-radius: 999px; padding: 0.6rem 0.5rem; text-align: center;
-    font-family: var(--display); font-weight: 700; font-size: 0.95rem; color: var(--cocoa-soft);
+    flex: 1; min-height: 2.75rem; white-space: nowrap; border-radius: 999px; padding: 0.6rem 0.25rem; text-align: center;
+    font-family: var(--display); font-weight: 700; font-size: 13px; line-height: 1.2; color: var(--cocoa-soft);
     transition: background 0.15s ease, color 0.15s ease;
   }
-  .tab:hover { background: rgb(255 171 171 / 0.4); }
+  @media (min-width: 640px) { .tab { font-size: 0.95rem; padding: 0.6rem 0.5rem; } }
+  @media (max-width: 639px) { .tab .tab-emoji, .subtab .tab-emoji { display: none; } }
+  .tab:hover { background: rgb(255 161 203 / 0.4); }
   .tab.active { background: var(--coral); color: var(--cocoa); box-shadow: var(--shadow-soft); }
+  .subtabs { display: flex; gap: 0.35rem; margin-top: 0.6rem; }
+  .subtab {
+    flex: 1; min-height: 2.75rem; white-space: nowrap; border-radius: 999px; padding: 0.45rem 0.25rem;
+    font-family: var(--display); font-weight: 700; font-size: 13px; line-height: 1.2;
+    color: var(--cocoa-soft); background: rgb(255 255 255 / 0.8); transition: background 0.15s ease, color 0.15s ease;
+  }
+  .subtab:hover { background: rgb(255 161 203 / 0.4); }
+  .subtab.active { background: var(--cocoa); color: var(--cream); box-shadow: var(--shadow-card); }
   .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
   .phase { margin-top: 2.5rem; }
   .phase h2 { font-size: 1.6rem; }
@@ -148,7 +159,7 @@
   .optional { font-size: 0.85rem; color: rgb(138 107 96 / 0.8); font-weight: 700; }
   .freq {
     display: inline-block; vertical-align: middle; margin-left: 0.6rem; padding: 0.1rem 0.6rem;
-    border: 1px solid rgb(255 111 145 / 0.4); background: #fff; border-radius: 999px;
+    border: 1px solid rgb(255 97 163 / 0.4); background: #fff; border-radius: 999px;
     font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cocoa-soft);
   }
   .how { margin-top: 0.5rem; font-size: 0.94rem; color: var(--cocoa-soft); }
@@ -164,16 +175,16 @@
   .prod-name { font-family: var(--display); font-weight: 700; margin-top: 0.25rem; line-height: 1.3; }
   .prod-blurb { margin-top: 0.35rem; font-size: 0.85rem; color: var(--cocoa-soft); }
   .prod-cf { margin-top: 0.5rem; font-size: 0.76rem; font-style: italic; color: var(--mint-deep); }
-  .empty { margin-top: 1rem; border: 2px dashed rgb(255 111 145 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
+  .empty { margin-top: 1rem; border: 2px dashed rgb(255 97 163 / 0.4); border-radius: 1rem; padding: 1rem; font-size: 0.88rem; color: var(--cocoa-soft); }
   .variants { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
-  .variant { border: 2px solid rgb(255 171 171 / 0.8); border-radius: 1rem; padding: 1rem; }
+  .variant { border: 2px solid rgb(255 161 203 / 0.8); border-radius: 1rem; padding: 1rem; }
   .variant.primary { border-color: rgb(230 81 0 / 0.8); }
   .variant-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
   .variant-head b { font-family: var(--display); font-size: 0.92rem; }
-  .vtag { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(255 171 171 / 0.6); color: var(--cocoa-soft); }
+  .vtag { border-radius: 999px; padding: 0.12rem 0.6rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: rgb(255 161 203 / 0.6); color: var(--cocoa-soft); }
   .vtag.hot { background: var(--coral); color: var(--cocoa); }
-  details.principle { margin-top: 1rem; background: rgb(255 171 171 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
-  details.principle summary { cursor: pointer; list-style: none; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
+  details.principle { margin-top: 1rem; background: rgb(255 161 203 / 0.25); border-radius: 1rem; padding: 0.8rem 1rem; }
+  details.principle summary { cursor: pointer; list-style: none; display: flex; align-items: center; min-height: 2.75rem; font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--coral-deep); }
   details.principle summary::-webkit-details-marker { display: none; }
   details.principle summary::after { content: "▾"; display: inline-block; margin-left: 0.35rem; transition: transform 0.2s ease; }
   details.principle[open] summary::after { transform: rotate(180deg); }
@@ -194,18 +205,18 @@
   .soon { position: absolute; top: -0.7rem; right: 1rem; background: var(--butter); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: var(--shadow-card); }
   .paywall-note { max-width: 22rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
   .actions .retake { width: 100%; max-width: 22rem; }
-  .signup { margin-top: 3rem; background: rgb(255 171 171 / 0.3); border-radius: 1.5rem; padding: 1.5rem; }
+  .signup { margin-top: 3rem; background: rgb(255 161 203 / 0.3); border-radius: 1.5rem; padding: 1.5rem; }
   .signup h2 { font-size: 1.25rem; }
   .tier-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-  .tier-chip { border: 2px solid rgb(255 111 145 / 0.4); background: #fff; color: var(--cocoa-soft); border-radius: 999px; padding: 0.5rem 1rem; font-family: var(--display); font-weight: 700; font-size: 0.85rem; transition: all 0.15s ease; }
+  .tier-chip { min-height: 2.75rem; border: 2px solid rgb(255 97 163 / 0.4); background: #fff; color: var(--cocoa-soft); border-radius: 999px; padding: 0.5rem 1rem; font-family: var(--display); font-weight: 700; font-size: 0.85rem; transition: all 0.15s ease; }
   .tier-chip:hover { border-color: var(--coral); }
   .tier-chip.on { border-color: var(--coral-deep); background: var(--coral); color: var(--cocoa); }
   .signup-fields { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
-  .signup-fields input { flex: 1 1 12rem; border: 2px solid rgb(255 111 145 / 0.4); border-radius: 999px; background: #fff; padding: 0.75rem 1.25rem; font: inherit; font-size: 0.9rem; color: var(--cocoa); }
+  .signup-fields input { flex: 1 1 12rem; border: 2px solid rgb(255 97 163 / 0.4); border-radius: 999px; background: #fff; padding: 0.75rem 1.25rem; font: inherit; font-size: 0.9rem; color: var(--cocoa); }
   .signup-fields input:focus { border-color: var(--coral-deep); outline: none; }
   .signup-error { margin-top: 0.5rem; font-size: 0.88rem; font-weight: 800; color: var(--coral-deep); }
   .signup-btn { margin-top: 1rem; padding: 0.85rem 2rem; font-size: 1rem; }
-  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 171 171 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
+  footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 161 203 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
 <div id="app"></div>
@@ -220,6 +231,7 @@ const app = document.getElementById("app");
 const state = {
   screen: "landing", idx: 0, answers: {}, tier: null, routine: null,
   signupTiers: [], signupEmail: "", signupZip: "", signupError: "", signedUp: false,
+  phase: "washDay",
 };
 
 function esc(s) {
@@ -234,7 +246,7 @@ function renderLanding() {
     <div class="blob" style="width:18rem;height:18rem;bottom:-8rem;left:25%;background:var(--blush);opacity:.5"></div>
     <div class="rise" style="position:relative;max-width:28rem">
       <div class="logo" aria-hidden="true">💆‍♀️</div>
-      <h1>Hair<span>IQ</span></h1>
+      <h1 class="wordmark">How Is My <span>Hair</span></h1>
       <p class="tagline">Eleven quick questions. One personalized hair routine — with picks for every budget.</p>
       <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
       <p class="fineprint">≈ 2 minutes · no account needed</p>
@@ -309,7 +321,7 @@ function principleBlock(id) {
   const body = pr.body.map((p) => `<p>${esc(p)}</p>`).join("");
   return `
   <details class="principle">
-    <summary>Why this works</summary>
+    <summary>${esc(pr.linkLabel || "Why this works")}</summary>
     <div class="principle-body"><p>${esc(pr.summary)}</p>${steps}${options}${body}</div>
   </details>`;
 }
@@ -366,24 +378,28 @@ function renderResults() {
   const tabs = TIER_KEYS.map((key) => {
     const meta = TIER_META[key];
     return `<button class="tab${key === tier ? " active" : ""}" role="tab" aria-selected="${key === tier}" data-action="tier" data-value="${key}">
-      <span aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
+      <span class="tab-emoji" aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
   }).join("");
 
-  const phases = r.phases
-    .filter((ph) => ph.steps.length)
+  const subtabs = [...r.phases.map((ph) => ({ id: ph.id, title: ph.title, emoji: ph.emoji })), { id: "tips", title: "Tips", emoji: "💡" }]
     .map(
-      (ph) => `
-      <section class="phase rise">
-        <h2><span aria-hidden="true">${ph.emoji}</span> ${esc(ph.title)}</h2>
-        ${ph.intro ? `<p class="intro">${esc(ph.intro)}</p>` : ""}
-        <ol class="steps">${ph.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
-      </section>`
+      (pt) => `<button type="button" role="tab" aria-selected="${pt.id === state.phase}" class="subtab${pt.id === state.phase ? " active" : ""}" data-action="phase" data-value="${pt.id}"><span class="tab-emoji" aria-hidden="true">${pt.emoji} </span>${esc(pt.title)}</button>`
     )
     .join("");
 
-  const notes = r.notes
-    .map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`)
-    .join("");
+  const active = r.phases.find((ph) => ph.id === state.phase);
+  const phases = active
+    ? `
+      <section class="phase rise">
+        <h2><span aria-hidden="true">${active.emoji}</span> ${esc(active.title)}</h2>
+        ${active.intro ? `<p class="intro">${esc(active.intro)}</p>` : ""}
+        <ol class="steps">${active.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
+      </section>`
+    : `
+      <section class="phase rise">
+        <h2>💡 Good to know</h2>
+        ${r.notes.map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`).join("")}
+      </section>`;
 
   return `
   <main class="results">
@@ -394,10 +410,12 @@ function renderResults() {
         <p class="blurb">${esc(r.summary.blurb)}</p>
         <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
       </header>
-      <div class="tabs-wrap"><div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div></div>
+      <div class="tabs-wrap">
+        <div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div>
+        <div class="subtabs" role="tablist" aria-label="Routine section">${subtabs}</div>
+      </div>
       ${tier === "crueltyFree" ? `<p class="cf-note">🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.</p>` : ""}
       ${phases}
-      <section class="notes"><h2>💡 Good to know</h2>${notes}</section>
       <div class="actions">
         <div class="save-wrap">
           <button class="pill" disabled aria-disabled="true" title="${esc(PREMIUM.unlockLabel)}">🔒 Save My Routine</button>
@@ -408,10 +426,10 @@ function renderResults() {
       </div>
       ${renderSignup()}
       <footer>
-        HairIQ gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
+        How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
         spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
         <br /><br />
-        Live demo — same quiz data &amp; recommendation engine as the HairIQ app (v1).
+        Live demo — same quiz data &amp; recommendation engine as the How Is My Hair app (v1).
       </footer>
     </div>
   </main>`;
@@ -515,6 +533,10 @@ app.addEventListener("click", (e) => {
     readSignupFields();
     state.tier = el.dataset.value;
     render();
+  } else if (action === "phase") {
+    readSignupFields();
+    state.phase = el.dataset.value;
+    render();
   } else if (action === "signup-tier") {
     readSignupFields();
     const v = el.dataset.value;
@@ -543,6 +565,7 @@ app.addEventListener("click", (e) => {
     state.answers = {};
     state.routine = null;
     state.idx = 0;
+    state.phase = "washDay";
     state.screen = "quiz";
     render();
   }

@@ -56,7 +56,7 @@ export default function QuizPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-6 pb-10 pt-8">
+    <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-6 pb-10 pt-16 sm:pt-8">
       <ProgressBar current={idx + 1} total={QUESTIONS.length} />
 
       <div key={question.id} className="animate-rise mt-8 flex-1">

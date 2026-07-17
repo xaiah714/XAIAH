@@ -89,7 +89,7 @@ export default function EmailSignup() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => toggleTier(tier.value)}
-                className={`rounded-full border-2 px-4 py-2 font-display text-sm font-bold transition active:scale-95 ${
+                className={`min-h-11 rounded-full border-2 px-4 py-2 font-display text-sm font-bold transition active:scale-95 ${
                   selected ? "border-coral-deep bg-coral text-cocoa" : "border-blush-deep/40 bg-white text-cocoa-soft hover:border-coral"
                 }`}
               >
@@ -101,7 +101,7 @@ export default function EmailSignup() {
             type="button"
             aria-pressed={allSelected}
             onClick={toggleAll}
-            className={`rounded-full border-2 px-4 py-2 font-display text-sm font-bold transition active:scale-95 ${
+            className={`min-h-11 rounded-full border-2 px-4 py-2 font-display text-sm font-bold transition active:scale-95 ${
               allSelected ? "border-coral-deep bg-coral text-cocoa" : "border-blush-deep/40 bg-white text-cocoa-soft hover:border-coral"
             }`}
           >

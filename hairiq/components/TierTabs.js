@@ -20,11 +20,11 @@ export default function TierTabs({ activeTier, onChange }) {
             aria-selected={active}
             type="button"
             onClick={() => onChange(key)}
-            className={`flex-1 rounded-full px-2 py-2.5 font-display text-sm font-bold transition active:scale-95 sm:text-base ${
+            className={`min-h-11 flex-1 whitespace-nowrap rounded-full px-1 py-2.5 font-display text-[13px] font-bold leading-tight transition active:scale-95 sm:px-2 sm:text-base ${
               active ? "bg-coral text-cocoa shadow-soft" : "text-cocoa-soft hover:bg-blush/40"
             }`}
           >
-            <span aria-hidden="true" className="mr-1">
+            <span aria-hidden="true" className="mr-1 hidden sm:inline">
               {meta.emoji}
             </span>
             {meta.label}

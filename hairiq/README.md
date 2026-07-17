@@ -1,4 +1,4 @@
-# HairIQ
+# How Is My Hair
 
 Quiz-based hair care routine builder. Eleven questions in, one personalized
 routine out — broken into **Wash Day / Every Day / At Night** steps, with
@@ -7,11 +7,14 @@ Cruelty-Free** (all three are pre-calculated on every result; Q11 only picks
 which tab you land on). The tier's internal data key is still `drugstore`
 (renamed to "Affordable" in the UI per spec §8.10).
 
-> v1 scope: no login, no database — pure quiz → results, all state
-> client-side, plus the free segmented email signup (spec §12, wired to a
-> third-party provider via env vars). The v2 roadmap (accounts, saved
-> history, tracker, payments…) lives in `SPEC.md` section 13 and is
-> intentionally **not** built here.
+> v1 scope: no login — pure quiz → results, all state client-side, plus
+> the free segmented email signup (spec §12, stored in our own Postgres
+> via `POSTGRES_URL`). Results show ONE section at a time (Wash Day /
+> Daily / At Night / Tips sub-tabs) to keep the page short and scannable.
+> An 🌐 Español toggle machine-translates every screen via Google Website
+> Translator (native-Spanish copy is a future quality upgrade). The v2
+> roadmap (accounts, saved history, tracker, payments…) lives in
+> `SPEC.md` section 13 and is intentionally **not** built here.
 
 ## Run it
 
@@ -86,7 +89,6 @@ via Leaping Bunny / PETA before launch.
 
 ## Before launch (open items from the spec)
 
-- Final app name ("HairIQ" is a placeholder — find/replace + `app/layout.js` metadata + logo in `app/page.js`)
 - Logo/wordmark + domain
 - Product list review (availability/formulations) + cruelty-free re-verification
 - Keep expanding the section-10 cruelty-free library in `lib/products.js`
@@ -95,5 +97,5 @@ via Leaping Bunny / PETA before launch.
 
 Accounts/saved routines slot in at `components/QuizProvider.js` (currently
 sessionStorage) — swap its storage for an API without touching screens.
-Postgres + auth (e.g. NextAuth) + Stripe per spec §12; see §12.7 for the
+Postgres + auth (e.g. NextAuth) + Stripe per spec §13; see §13.7 for the
 suggested build order.

@@ -6,12 +6,15 @@
    churn; only the values changed. To revert to pastel, swap values here and
    in scripts/demo-template.html. */
 @theme {
-  --color-cream: #fce4ec; /* background — light pink */
-  --color-coral: #ffb74d; /* primary CTA — punchy orange */
-  --color-coral-deep: #e65100; /* hover / accent text — burnt orange */
-  --color-blush: #ffabab; /* soft fills — salmon */
-  --color-blush-deep: #ff6f91; /* borders / gradient — saturated pink */
-  --color-butter: #ffd54f; /* yellow badge */
+  /* Palette v3 — owner-picked (rev 6): pink bg + true orange CTAs + hot pink
+     accents. #ff61a3 and #ff8d61 straight from the owner; coral-deep darkened
+     to #c2410c so accent text stays readable on white cards. */
+  --color-cream: #ffb4d5; /* background — pink */
+  --color-coral: #ff8d61; /* primary CTA — orange (less yellow) */
+  --color-coral-deep: #c2410c; /* hover / accent text — deep burnt orange */
+  --color-blush: #ffa1cb; /* soft fills — light pink between bg and accent */
+  --color-blush-deep: #ff61a3; /* borders / gradient — THE pink */
+  --color-butter: #ffdb61; /* yellow badge */
   --color-mint: #c8e6c9; /* cruelty-free badge (semantic, kept) */
   --color-mint-deep: #386641;
   --color-cocoa: #5a3e36;
@@ -20,7 +23,7 @@
   --font-display: var(--font-quicksand), "Quicksand", "Poppins", ui-rounded, system-ui, sans-serif;
   --font-body: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
 
-  --shadow-soft: 0 10px 26px -10px rgb(230 81 0 / 0.45);
+  --shadow-soft: 0 10px 26px -10px rgb(194 65 12 / 0.5);
   --shadow-card: 0 6px 22px -10px rgb(90 62 54 / 0.18);
 }
 
@@ -74,4 +77,16 @@ details.principle[open] summary::after {
   outline: 3px solid var(--color-coral);
   outline-offset: 2px;
   border-radius: 0.5rem;
+}
+
+/* Google Translate widget: hide its banner/tooltip chrome — the Español
+   toggle drives it via cookie, so none of Google's UI should show. */
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+body > .skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0 !important;
 }

@@ -6,8 +6,22 @@
 > free — check before committing). Using placeholder "HairIQ" throughout
 > until then. Find/replace once confirmed.
 >
-> **Repo note:** this is the spec the app in this directory was built from
-> (latest revision received July 12, 2026, second pass — switches to the
+> **Repo note (rev 6, July 12):** name CONFIRMED as **"How Is My Hair"** —
+> renamed across all user-facing text (code identifiers unchanged). Owner
+> is registering the domain directly. Also implemented in rev 6: palette
+> v3 (owner-picked #ffb4d5 / #ff8d61 / #ff61a3 / #ffdb61), results split
+> into Wash Day / Daily / At Night / Tips sub-tabs (kills the endless
+> scroll), K18 recommended in every tab with its own step-by-step
+> instructions expander (dry-hands + scrunch steps added), scalp-massage
+> why/science, wavy two-option brushing, water-alone washing correction,
+> Elvive Miracle Hair Serum (Elixir Ultime dupe) + Dove Bond Shield
+> 10-in-1 night oils, satin (affordable) vs mulberry silk (luxury)
+> pillowcase split with bonnet science, 2-in-1 shampoo-only correction
+> (H&S Tea Tree), 🌐 Español machine-translation toggle, and a measured
+> responsive audit (viewport meta, 375–1536px, 44px tap targets, no
+> overflow) on both app and demo.
+>
+> Previous revision note: (July 12, second pass — switches to the
 > saturated "groovy" palette per the §3 review, adds §6.10–6.17 education
 > content (refined sweat rule, scalp-only shampooing, conditioner
 > correction, wet-vs-dry brushing by type, towel technique, hard water,
@@ -44,8 +58,10 @@ room to bolt on accounts/saved routines later (v2).
 > than the softer pastel table currently below — same family of colors,
 > more saturated and distinctive. Table below is the previous pastel
 > version; treat it as superseded pending final confirmation.
-> *(Implemented: the app now runs the saturated palette; reverting to
-> pastel is a one-file token swap in `app/globals.css` +
+> *(Implemented, then superseded by rev 6: the app now runs the owner's
+> palette v3 — bg `#ffb4d5`, orange `#ff8d61`, pink `#ff61a3`, yellow
+> `#ffdb61`, with `#c2410c` burnt orange for accent text so it stays
+> readable. Any palette change is a token swap in `app/globals.css` +
 > `scripts/demo-template.html`.)*
 
 | Role | Color | Hex |
@@ -1011,8 +1027,9 @@ as the highest-risk item.
       categorized as a leave-in product (8.6), not a wash-in shampoo+
       conditioner — despite the "2-in-1" name, it's two benefits in one
       leave-in spray. No change needed, just flagging it was checked.
-- [ ] Final app name — leaning "How's My Hair," needs an actual domain/
-      availability check before committing (not yet confirmed either way)
+- [x] Final app name — **CONFIRMED: "How Is My Hair"** (renamed in all
+      user-facing text; owner is registering the domain directly — RDAP
+      findings below kept for reference)
       > **Domain check (RDAP, July 12, 2026):**
       > - `howsmyhair.com` — **taken**: registered Sept 2019 via Dynadot,
       >   currently a parking lander (no active business on it). Expires

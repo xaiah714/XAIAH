@@ -29,7 +29,7 @@ export const PRINCIPLES = {
     body: [
       "If you sweat that day (workout, hot day, anything), don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.",
       "Dry shampoo is fine between washes, but it is not a substitute here — it only absorbs surface oil. And a cool-air blow-dry at the scalp is a legit touch-up (dermatologists acknowledge it), but it only evaporates moisture; it doesn't remove salt, sweat, or bacteria either. Both are stopgaps, not wash replacements.",
-      "Sweat daily? You still don't need a full shampoo every single day — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse like a raw-sugar scalp scrub or rosemary water. Save full (and especially clarifying) washes for a few times a week.",
+      "Sweat daily? You still don't need a deep clean every day — but don't rely on plain water either; water alone doesn't really remove sweat, salt, or oil. The daily move is a gentle sulfate-free shampoo (one wash is enough on a light-sweat day — save double-washing for heavy buildup), or a gentler natural option like a raw-sugar scalp scrub or a rosemary-vinegar rinse. Keep clarifying washes to a few times a week.",
     ],
   },
 
@@ -67,7 +67,7 @@ export const PRINCIPLES = {
       "One rule for everyone: always detangle from the ends and work up toward the roots — never drag from the root down through a tangle.",
     body: [
       "Curly and coily hair: wet detangling only, never dry — dry brushing breaks curls and creates serious frizz. Detangle wet, with conditioner in.",
-      "Wavy hair: either works. Wet detangling is the gentle default; dry brushing is fine too if you actually want a softer, less-defined wave (it breaks up wave clumps on purpose). If brushing dry, start at the ends.",
+      "Wavy hair: two beautiful options. Option one — right out of the shower, brush your leave-in through towel-dried damp hair to spread the product (waves don't need to brush conditioner through in the shower like curls do; waiting until damp can mean less breakage). Option two — dry brush from the ends up for fluffy, voluminous waves, or on day 2–3 to detangle mid-lengths and stretch more days between washes.",
       "Straight hair: dry brushing is often the easier call — straight hair tangles less, and wet hair is more fragile for every hair type. If you do detangle wet, use a wide-tooth comb, gently.",
     ],
   },
@@ -82,40 +82,44 @@ export const PRINCIPLES = {
     ],
   },
 
-  // 6.3 — Scalp massage
+  // 6.3 — Scalp massage: the why + fingertips vs. brush
   scalpMassage: {
     id: "scalpMassage",
-    title: "Scalp massage, done right",
-    summary: "Fingertips, never nails — about 10 minutes a day.",
+    title: "Why scalp massage actually works",
+    summary:
+      "It's about blood flow: massage boosts circulation to the follicles, which carries more oxygen and nutrients to where hair is actually built.",
     body: [
-      "Fingertip massage (never nails) is the default technique: small circles across the whole scalp for about 10 minutes.",
-      "A cheap wood or bamboo-style scalp massage brush (about $10 for a multi-pack on Amazon) is a nice upgrade — it helps distribute product, gently exfoliates buildup, and the added stimulation may support scalp circulation.",
+      "The science, simply: hair grows from follicles fed by tiny blood vessels. Massaging increases local blood flow and gently stretches the skin, which signals the follicle cells themselves — small studies of daily massage found measurably thicker hair after a few months. The catch: consistency is everything. Ten minutes daily beats an hour once a week.",
+      "Fingertips vs. a brush: fingertips (never nails — nails scratch and cause tiny tears) let you feel the pressure and hit every spot. A wood or bamboo scalp brush covers more ground with less hand fatigue, spreads oils and serums evenly, and gently exfoliates buildup while it stimulates. Both work — fingertips for precision, brush for convenience and exfoliation. Pick whichever you'll actually do every day.",
     ],
   },
 
   // 6.4 — Nighttime protection
   nightProtection: {
     id: "nightProtection",
-    title: "Why a night routine matters",
+    title: "Why the bonnet (and the braid) actually matter",
     summary:
-      "Friction and movement while you sleep cause mechanical breakage, dryness, and frizz over time — worth a dedicated night step, especially for long hair.",
+      "You move a lot in your sleep — hours of hair rubbing on fabric and on itself is real, cumulative breakage and frizz.",
     body: [
-      "Protective styling for sleep: a loose braid plus a silk/satin bonnet or pillowcase works for straight and wavy hair. For curly or coily hair, a loose, high “pineapple” pony protects the curl pattern overnight.",
-      "This works for any hair type — just adjust the styling step to your texture.",
+      "The pillowcase handles part of it: a smooth satin or silk surface cuts friction where your head rests. But hair still rubs against itself and drags across fabric as you turn. A bonnet (or a loose braid) contains the hair — strand-on-strand friction drops, moisture stays in, and longer hair keeps its shape. Short hair can get away with the pillowcase alone; the longer your hair, the more the bonnet earns its spot.",
+      "Fabric tiers, same physics: satin is the affordable version (around $10), mulberry silk is the luxury one — smoother and cooler, but the friction science is identical.",
+      "Styling for sleep: a loose braid + bonnet/pillowcase for straight and wavy hair; a loose, high “pineapple” pony for curls and coils so the pattern survives the night.",
     ],
   },
 
-  // 6.5 — K18 correct usage
+  // 6.5 — K18 correct usage (rendered as its own "instructions" expander,
+  // not under "why this works" — owner feedback, rev 6)
   k18: {
     id: "k18",
-    title: "How to use K18 correctly",
+    title: "K18 instructions — step by step",
+    linkLabel: "K18 instructions — step by step",
     summary:
-      "K18 Leave-In Molecular Repair Hair Mask is the staple bond-repair pick — but a lot of people use it wrong and waste product. Here's the right way.",
+      "K18 is a luxury product that's worth it even on a budget — science-backed, and nobody has successfully duped it. A little goes far, so use it right:",
     steps: [
       "Shampoo — and skip your regular rinse-out conditioner this wash (it can block the treatment from working).",
-      "Towel-dry until damp, not dripping.",
-      "Rub 1–3 pumps between your palms first so it distributes evenly before touching your hair — this avoids over-applying and wasting product.",
-      "Apply from mid-lengths to ends, working upward. Avoid the scalp.",
+      "Towel-dry your hair until damp — and dry your HANDS too. K18 only emulsifies (turns thick, white, and creamy) in dry palms; on wet hands it just slides around and does less.",
+      "Rub 1–3 pumps between your dry palms until it's creamy, so it spreads evenly before touching your hair.",
+      "Apply from mid-lengths to ends, working upward — avoid the scalp — then SCRUNCH it in. Scrunching presses the product into the strands, and it works for every hair type, even straight.",
       "Leave it for 4 minutes.",
     ],
     options: {

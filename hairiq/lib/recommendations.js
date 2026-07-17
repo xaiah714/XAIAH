@@ -65,7 +65,7 @@ const WASH_INTROS = {
   daily: "You wash daily — keep the everyday wash gentle, and save the heavier treatments for one or two designated “full” wash days a week.",
   everyOther: "You wash every other day — wash days come around often, so rotate the extras across them instead of doing everything every time.",
   twiceWeek: "You wash about twice a week — treat each wash day as a mini reset and give the treatment steps room to work.",
-  weekly: "You wash weekly (or less) — make that one wash day count, and lean on the Every Day column to keep your scalp happy in between.",
+  weekly: "You wash weekly (or less) — make that one wash day count, and lean on the Daily tab to keep your scalp happy in between.",
 };
 
 function optionLabel(questionId, value) {
@@ -320,7 +320,7 @@ export function buildRoutine(answers) {
 
   // Bond repair (8.1 / 8.3 / 8.5) — one step, pick one timing.
   const bondPrefer = {
-    drugstore: ["loreal-everpure-bond-concentrate", "nym-tough-love-treatment"],
+    drugstore: ["k18-mask", "loreal-everpure-bond-concentrate", "nym-tough-love-treatment"],
     luxury: ["k18-mask"],
     crueltyFree: ["k18-mask", "olaplex-no3"],
   };
@@ -331,7 +331,7 @@ export function buildRoutine(answers) {
       title: c === "breakage" ? "Bond-repair treatment — pick ONE timing" : "Bond treatment — pick ONE timing",
       optional: c !== "breakage",
       frequency: "Weekly · K18 every few weeks",
-      how: "Bond repair is one step with three possible timings — not three separate steps, so don't stack all of them. In-shower is the standard starting point for most people; before- or after-shower are alternatives if a mid-shower step doesn't fit your routine (or an occasional extra boost on top if you want more). If you go with K18, follow the steps below so you don't waste product.",
+      how: "Bond repair is one step with three possible timings — not three separate steps, so don't stack all of them. In-shower is the standard starting point; before- or after-shower are alternatives if a mid-shower step doesn't fit. Our top pick is K18 in every tab — yes, even Affordable: it's the one luxury splurge that's earned it (science-backed, never duped). Full instructions below.",
       principleId: "k18",
       variants: [
         {
@@ -374,7 +374,7 @@ export function buildRoutine(answers) {
       title: c === "breakage" ? "Bond-repair treatment" : "Bond treatment",
       optional: c !== "breakage",
       frequency: "Weekly · K18 every few weeks",
-      how: "One bond builder, weekly or as needed — in the shower, right after shampoo and before conditioner. If you go with K18, use it right — the steps below save you from wasting product (most people do).",
+      how: "One bond builder, weekly or as needed — in the shower, right after shampoo and before conditioner. Our top pick is K18 in every tab, even Affordable: it's the one luxury splurge that's earned it (science-backed, never duped). It's pricey but a bottle lasts months — full instructions below.",
       categories: ["bond-treatment"],
       principleId: "k18",
       prefer: bondPrefer,
@@ -456,7 +456,7 @@ export function buildRoutine(answers) {
       how: "A monthly protein treatment keeps strands strong enough to hold onto their length — growth you don't break off is growth you keep.",
       categories: ["protein-treatment"],
       prefer: {
-        drugstore: ["cer100-protein"],
+        drugstore: ["cer100-protein", "k18-mask"],
         luxury: ["k18-mask"],
         crueltyFree: ["k18-mask"],
       },
@@ -809,14 +809,14 @@ export function buildRoutine(answers) {
     phase: "nightly",
     title: "Night serum + a light oil",
     frequency: "Nightly",
-    how: "Work a night serum through mid-lengths and ends, then seal with a drop of lightweight oil. Your hair repairs while you sleep instead of rubbing itself dry.",
+    how: "Two-layer night step: serum first (hydrates and repairs), then a drop of lightweight oil over it (seals it in). Your hair recovers overnight instead of rubbing itself dry.",
     categories: ["night-treatment"],
     prefer: {
-      drugstore: ["loreal-midnight-serum"],
+      drugstore: ["loreal-midnight-serum", "loreal-miracle-serum", "dove-bond-shield-10in1"],
       luxury: ["kerastase-8h-night", "crown-affair-overnight"],
       crueltyFree: ["amika-midnight-mender"],
     },
-    limit: 2,
+    limit: 3,
   });
 
   // Scalp serum at night — thinning (3–4×/week) and slow growth (nightly massage).
@@ -871,6 +871,11 @@ export function buildRoutine(answers) {
         : "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.",
     categories: ["tool-night"],
     principleId: "nightProtection",
+    prefer: {
+      drugstore: ["satin-pillowcase"],
+      luxury: ["silk-pillowcase"],
+      crueltyFree: ["satin-pillowcase"],
+    },
     limit: 1,
   });
 
@@ -883,7 +888,7 @@ export function buildRoutine(answers) {
     body: [
       "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), deal with it tonight — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.",
       "Dry shampoo and a cool-air blow-dry at the scalp are both legit touch-ups between washes — but neither removes salt, sweat, or bacteria. They're stopgaps, not wash replacements.",
-      "Sweat every day? You still don't need a full shampoo daily — over-washing strips natural oils. Gentler daily options: a plain water rinse at the scalp, a gentle sulfate-free shampoo, or a natural rinse (raw-sugar scalp scrub, rosemary water). Save full or clarifying washes for a few times a week.",
+      "Sweat every day? You still don't need a deep clean daily — but plain water alone won't cut it either (it doesn't remove sweat, salt, or oil). Use a gentle sulfate-free shampoo — one wash is enough on light-sweat days — or a gentler natural option like a raw-sugar scalp scrub or rosemary-vinegar rinse. Keep clarifying washes to a few times a week.",
     ],
   });
 
@@ -917,9 +922,10 @@ export function buildRoutine(answers) {
   // 6.16 — 2-in-1s aren't all bad.
   notes.push({
     id: "two-in-one",
-    title: "2-in-1s: backup, not backbone",
+    title: "2-in-1s: fine as a shampoo, bad as your conditioner",
     body: [
-      "2-in-1 shampoo/conditioners are only a problem when they're your ONLY conditioning — they can't condition as thoroughly as a separate rinse-out. For travel, gym bags, and quick backup washes they're genuinely fine, and some are good: Head & Shoulders 2-in-1 and tea-tree-oil-based 2-in-1 formulas are solid picks, not compromises.",
+      "2-in-1s are only a problem when they do BOTH jobs — using one as your conditioner replacement long-term shortchanges your hair. Used purely as a shampoo, they're fine.",
+      "Standout: Head & Shoulders Tea Tree 2-in-1 is a genuinely good medicated wash for dandruff and itchy scalps. If medicated shampoo ever feels too intense, make it just the SECOND wash of a double-wash day instead of both washes.",
     ],
   });
 
@@ -1059,7 +1065,7 @@ export function buildRoutine(answers) {
     },
     {
       id: "daily",
-      title: "Every Day",
+      title: "Daily",
       emoji: "☀️",
       intro: null,
       steps: built.filter((s) => s.phase === "daily"),

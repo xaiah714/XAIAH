@@ -6,8 +6,8 @@ function PrincipleDetails({ principleId }) {
   if (!principle) return null;
   return (
     <details className="principle mt-4 rounded-2xl bg-blush/25 px-4 py-3">
-      <summary className="font-display text-sm font-bold text-coral-deep">
-        Why this works
+      <summary className="flex min-h-11 items-center font-display text-sm font-bold text-coral-deep">
+        {principle.linkLabel || "Why this works"}
       </summary>
       <div className="mt-3 space-y-2.5 text-sm font-semibold leading-relaxed text-cocoa">
         <p>{principle.summary}</p>

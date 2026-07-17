@@ -19,7 +19,7 @@ export default function ProgressBar({ current, total }) {
         className="h-3 w-full overflow-hidden rounded-full bg-blush/50"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blush-deep to-coral-deep transition-all duration-500 ease-out"
+          className="h-full rounded-full bg-gradient-to-r from-blush-deep to-coral transition-all duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>
