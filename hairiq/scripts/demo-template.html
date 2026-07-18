@@ -99,6 +99,19 @@
   .landing h1 span { color: var(--coral-deep); }
   .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
   .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(77 47 36 / 0.85); }
+  /* 🌐 Español toggle — absolute (not fixed) so it scrolls away instead of
+     colliding with the sticky tabs, same as the app */
+  #lang-toggle {
+    position: absolute; top: 0.75rem; right: 0.75rem; z-index: 50;
+    display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem;
+    border: 2px solid rgb(255 97 163 / 0.6); border-radius: 999px;
+    background: rgb(255 255 255 / 0.95); padding: 0.5rem 1rem;
+    font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--cocoa);
+    box-shadow: var(--shadow-card); cursor: pointer;
+  }
+  #lang-toggle:hover { border-color: var(--coral-deep); }
+  .also { margin-top: 0.6rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: var(--coral-deep); }
+  .paywall-note.hot { color: var(--coral-deep); font-weight: 800; }
 
   /* quiz */
   .quiz { display: flex; flex-direction: column; min-height: 100dvh; padding-top: 2rem; padding-bottom: 2.5rem; }
@@ -234,6 +247,7 @@
   footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 161 203 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
+<button id="lang-toggle" type="button" aria-label="Traducir al español">🌐 <span>Español</span></button>
 <div id="app"></div>
 
 <script>
@@ -246,12 +260,45 @@ const app = document.getElementById("app");
 const state = {
   screen: "landing", idx: 0, answers: {}, tier: null, routine: null,
   signupTiers: [], signupEmail: "", signupZip: "", signupError: "", signedUp: false,
-  phase: "washDay",
+  phase: "washDay", lang: "en", unlockClicked: false,
 };
+try { if (localStorage.getItem("himh-demo-lang") === "es") state.lang = "es"; } catch {}
 
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+
+// 🌐 Español (rev 8): the artifact sandbox can't load Google Translate, so
+// the demo carries its own translations — lib/i18n-es.js maps every exact
+// English string to Spanish. Unmatched strings (product blurbs, brand
+// names) fall back to English on purpose.
+function t(s) {
+  if (state.lang !== "es" || !s) return s;
+  const hit = ES[s];
+  if (hit) return hit;
+  // composed summary chips: "Oily + Flaky scalp", "Grow it longer + Repair damage"
+  const scalpChip = s.match(/^(.+) scalp$/);
+  if (scalpChip) {
+    const parts = scalpChip[1].split(" + ").map((x) => (ES[x] || x).toLowerCase());
+    return "Cuero cabelludo " + parts.join(" + ");
+  }
+  if (s.includes(" + ")) return s.split(" + ").map((x) => t(x)).join(" + ");
+  return s;
+}
+
+const langBtn = document.getElementById("lang-toggle");
+function syncLangBtn() {
+  langBtn.querySelector("span").textContent = state.lang === "es" ? "English" : "Español";
+  langBtn.setAttribute("aria-label", state.lang === "es" ? "Switch to English" : "Traducir al español");
+}
+langBtn.addEventListener("click", () => {
+  state.lang = state.lang === "es" ? "en" : "es";
+  try { localStorage.setItem("himh-demo-lang", state.lang); } catch {}
+  readSignupFields();
+  syncLangBtn();
+  render();
+});
+syncLangBtn();
 
 function renderLanding() {
   return `
@@ -266,9 +313,9 @@ function renderLanding() {
         <img alt="" src="data:image/webp;base64,__LOGO_B64__" />
       </div>
       <h1 class="wordmark">How Is My <span>Hair</span></h1>
-      <p class="tagline">Eleven quick questions. One personalized hair routine — with picks for every budget.</p>
-      <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
-      <p class="fineprint">≈ 2 minutes · no account needed</p>
+      <p class="tagline">${esc(t("Eleven quick questions. One personalized hair routine — with picks for every budget."))}</p>
+      <div style="margin-top:2.2rem"><button class="pill" data-action="start">${esc(t("Take the Quiz"))}</button></div>
+      <p class="fineprint">${esc(t("≈ 2 minutes · no account needed"))}</p>
     </div>
   </main>`;
 }
@@ -286,7 +333,7 @@ function renderQuiz() {
       return `
       <button class="answer${selected ? " selected" : ""}" aria-pressed="${selected}" data-action="pick" data-value="${esc(o.value)}">
         <span class="emoji" aria-hidden="true">${o.emoji || ""}</span>
-        <span class="lab"><b>${esc(o.label)}</b>${o.sublabel ? `<small>${esc(o.sublabel)}</small>` : ""}</span>
+        <span class="lab"><b>${esc(t(o.label))}</b>${o.sublabel ? `<small>${esc(t(o.sublabel))}</small>` : ""}</span>
         <span class="tick ${q.multiSelect ? "square" : "round"}" aria-hidden="true">${selected ? "✓" : ""}</span>
       </button>`;
     })
@@ -296,7 +343,7 @@ function renderQuiz() {
   <main class="quiz col">
     <div>
       <div class="progress-meta">
-        <span class="label">Question ${state.idx + 1} of ${QUESTIONS.length}</span>
+        <span class="label">${state.lang === "es" ? `Pregunta ${state.idx + 1} de ${QUESTIONS.length}` : `Question ${state.idx + 1} of ${QUESTIONS.length}`}</span>
         <span class="pct">${pct}%</span>
       </div>
       <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="${QUESTIONS.length}" aria-valuenow="${state.idx + 1}">
@@ -304,21 +351,21 @@ function renderQuiz() {
       </div>
     </div>
     <div class="rise" style="flex:1;display:flex;flex-direction:column">
-      <h1>${esc(q.title)}</h1>
-      ${q.subtitle ? `<p class="subtitle">${esc(q.subtitle)}</p>` : ""}
-      <div class="answers" role="group" aria-label="${esc(q.title)}">${cards}</div>
+      <h1>${esc(t(q.title))}</h1>
+      ${q.subtitle ? `<p class="subtitle">${esc(t(q.subtitle))}</p>` : ""}
+      <div class="answers" role="group" aria-label="${esc(t(q.title))}">${cards}</div>
     </div>
     <nav>
-      <button class="ghost" data-action="back">← Back</button>
-      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${isLast ? "See my results ✨" : "Next"}</button>
+      <button class="ghost" data-action="back">${esc(t("← Back"))}</button>
+      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${esc(t(isLast ? "See my results ✨" : "Next"))}</button>
     </nav>
   </main>`;
 }
 
 function productCard(p, tier) {
   const badges =
-    (p.tags && p.tags.includes("new") ? `<span class="badge butter">New</span>` : "") +
-    (p.crueltyFree ? `<span class="badge mint">Cruelty-Free</span>` : "");
+    (p.tags && p.tags.includes("new") ? `<span class="badge butter">${esc(t("New"))}</span>` : "") +
+    (p.crueltyFree ? `<span class="badge mint">${esc(t("Cruelty-Free"))}</span>` : "");
   return `
   <div class="prod">
     <div class="prod-top"><span class="brand">${esc(p.brand)}</span><span class="badges">${badges}</span></div>
@@ -331,17 +378,17 @@ function productCard(p, tier) {
 function principleBlock(id) {
   const pr = getPrinciple(id);
   if (!pr) return "";
-  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "";
+  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(t(s))}</li>`).join("")}</ol>` : "";
   const options = pr.options
-    ? `<p>${esc(pr.options.intro)}</p><div class="choices">${pr.options.choices
-        .map((ch) => `<div class="choice"><b>${esc(ch.label)}</b><p>${esc(ch.text)}</p></div>`)
+    ? `<p>${esc(t(pr.options.intro))}</p><div class="choices">${pr.options.choices
+        .map((ch) => `<div class="choice"><b>${esc(t(ch.label))}</b><p>${esc(t(ch.text))}</p></div>`)
         .join("")}</div>`
     : "";
-  const body = pr.body.map((p) => `<p>${esc(p)}</p>`).join("");
+  const body = pr.body.map((p) => `<p>${esc(t(p))}</p>`).join("");
   return `
   <details class="principle">
-    <summary>${esc(pr.linkLabel || "Why this works")}</summary>
-    <div class="principle-body"><p>${esc(pr.summary)}</p>${steps}${options}${body}</div>
+    <summary>${esc(t(pr.linkLabel || "Why this works"))}</summary>
+    <div class="principle-body"><p>${esc(t(pr.summary))}</p>${steps}${options}${body}</div>
   </details>`;
 }
 
@@ -359,11 +406,11 @@ function stepCard(step, index, tier) {
           const inner = vp.length
             ? `<div class="prods">${vp.map((p) => productCard(p, tier)).join("")}</div>`
             : v.emptyText
-              ? `<div class="empty">${esc(v.emptyText)}</div>`
+              ? `<div class="empty">${esc(t(v.emptyText))}</div>`
               : "";
           return `<div class="variant${primary ? " primary" : ""}">
-            <div class="variant-head"><b>${esc(v.label)}</b>${v.tag ? `<span class="vtag${primary ? " hot" : ""}">${esc(v.tag)}</span>` : ""}</div>
-            ${v.note ? `<p class="how">${esc(v.note)}</p>` : ""}
+            <div class="variant-head"><b>${esc(t(v.label))}</b>${v.tag ? `<span class="vtag${primary ? " hot" : ""}">${esc(t(v.tag))}</span>` : ""}</div>
+            ${v.note ? `<p class="how">${esc(t(v.note))}</p>` : ""}
             ${inner}</div>`;
         })
         .join("") +
@@ -372,7 +419,7 @@ function stepCard(step, index, tier) {
     productHtml = products.length
       ? `<div class="prods">${products.map((p) => productCard(p, tier)).join("")}</div>`
       : step.emptyText
-        ? `<div class="empty">${esc(step.emptyText)}</div>`
+        ? `<div class="empty">${esc(t(step.emptyText))}</div>`
         : "";
   }
   return `
@@ -380,10 +427,10 @@ function stepCard(step, index, tier) {
     <div class="step-head">
       <span class="step-num" aria-hidden="true">${index}</span>
       <div>
-        <h3>${esc(step.title)}</h3>
-        ${step.optional ? `<span class="optional">(optional)</span>` : ""}
-        ${step.frequency ? `<span class="freq">${esc(step.frequency)}</span>` : ""}
-        <p class="how">${esc(step.how)}</p>
+        <h3>${esc(t(step.title))}</h3>
+        ${step.optional ? `<span class="optional">${esc(t("(optional)"))}</span>` : ""}
+        ${step.frequency ? `<span class="freq">${esc(t(step.frequency))}</span>` : ""}
+        <p class="how">${esc(t(step.how))}</p>
       </div>
     </div>
     ${productHtml}
@@ -397,12 +444,12 @@ function renderResults() {
   const tabs = TIER_KEYS.map((key) => {
     const meta = TIER_META[key];
     return `<button class="tab${key === tier ? " active" : ""}" role="tab" aria-selected="${key === tier}" data-action="tier" data-value="${key}">
-      <span class="tab-emoji" aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
+      <span class="tab-emoji" aria-hidden="true">${meta.emoji}</span> ${esc(t(meta.label))}</button>`;
   }).join("");
 
   const subtabs = [...r.phases.map((ph) => ({ id: ph.id, title: ph.title, emoji: ph.emoji })), { id: "tips", title: "Tips", emoji: "💡" }]
     .map(
-      (pt) => `<button type="button" role="tab" aria-selected="${pt.id === state.phase}" class="subtab${pt.id === state.phase ? " active" : ""}" data-action="phase" data-value="${pt.id}"><span class="tab-emoji" aria-hidden="true">${pt.emoji} </span>${esc(pt.title)}</button>`
+      (pt) => `<button type="button" role="tab" aria-selected="${pt.id === state.phase}" class="subtab${pt.id === state.phase ? " active" : ""}" data-action="phase" data-value="${pt.id}"><span class="tab-emoji" aria-hidden="true">${pt.emoji} </span>${esc(t(pt.title))}</button>`
     )
     .join("");
 
@@ -410,45 +457,47 @@ function renderResults() {
   const phases = active
     ? `
       <section class="phase rise">
-        <h2><span aria-hidden="true">${active.emoji}</span> ${esc(active.title)}</h2>
-        ${active.intro ? `<p class="intro">${esc(active.intro)}</p>` : ""}
+        <h2><span aria-hidden="true">${active.emoji}</span> ${esc(t(active.title))}</h2>
+        ${active.intro ? `<p class="intro">${esc(t(active.intro))}</p>` : ""}
         <ol class="steps">${active.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
       </section>`
     : `
       <section class="phase rise">
-        <h2>💡 Good to know</h2>
-        ${r.notes.map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`).join("")}
+        <h2>${esc(t("💡 Good to know"))}</h2>
+        ${r.notes.map((n) => `<div class="note"><h3>${esc(t(n.title))}</h3>${n.body.map((p) => `<p>${esc(t(p))}</p>`).join("")}</div>`).join("")}
       </section>`;
 
   return `
   <main class="results">
     <div class="col">
       <header class="rise">
-        <p class="eyebrow">Your routine is ready ✨</p>
-        <h1>${esc(r.summary.headline)}</h1>
-        <p class="blurb">${esc(r.summary.blurb)}</p>
-        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
+        <p class="eyebrow">${esc(t("Your routine is ready ✨"))}</p>
+        <h1>${esc(t(r.summary.headline))}</h1>
+        <p class="blurb">${esc(t(r.summary.blurb))}</p>
+        ${r.summary.also && r.summary.also.length ? `<p class="also">${esc(t("Also folded in:"))} ${r.summary.also.map((a) => esc(t(a))).join(" · ")}</p>` : ""}
+        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(t(c))}</li>`).join("")}</ul>
       </header>
       <div class="tabs-wrap">
         <div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div>
         <div class="subtabs" role="tablist" aria-label="Routine section">${subtabs}</div>
       </div>
-      ${tier === "crueltyFree" ? `<p class="cf-note">🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.</p>` : ""}
+      ${tier === "crueltyFree" ? `<p class="cf-note">${esc(t("🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy."))}</p>` : ""}
       ${phases}
       <div class="actions">
         <div class="save-wrap">
-          <button class="pill" disabled aria-disabled="true" title="${esc(PREMIUM.unlockLabel)}">🔒 Save My Routine</button>
-          <span class="soon">🔒 ${esc(PREMIUM.unlockLabel)}</span>
+          <button class="pill" data-action="unlock" title="${esc(t(PREMIUM.unlockLabel))}">🔒 ${esc(t("Save My Routine"))}</button>
+          <span class="soon">🔒 ${esc(t(PREMIUM.unlockLabel))}</span>
         </div>
-        <p class="paywall-note">In the full app this opens a secure Stripe checkout (card, Apple Pay, Google Pay) and unlocks routine saving — payments are switched off in this shareable demo.</p>
-        <button class="pill retake" data-action="retake">Retake Quiz</button>
+        <p class="paywall-note${state.unlockClicked ? " hot" : ""}">${esc(t(state.unlockClicked
+          ? "This shareable demo can't take payments — on the live site this button opens a secure Stripe checkout (card, Apple Pay, Google Pay) and your routine unlocks right after."
+          : "In the full app this opens a secure Stripe checkout (card, Apple Pay, Google Pay) and unlocks routine saving — payments are switched off in this shareable demo."))}</p>
+        <button class="pill retake" data-action="retake">${esc(t("Retake Quiz"))}</button>
       </div>
       ${renderSignup()}
       <footer>
-        How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
-        spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
+        ${esc(t("How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful, spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change."))}
         <br /><br />
-        Live demo — same quiz data &amp; recommendation engine as the How Is My Hair app (v1).
+        ${esc(t("Live demo — same quiz data & recommendation engine as the How Is My Hair app (v1)."))}
       </footer>
     </div>
   </main>`;
@@ -461,29 +510,29 @@ function renderSignup() {
   if (state.signedUp) {
     return `
     <section class="signup">
-      <h2>You're in! 💌</h2>
-      <p class="how">We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime.
-      <em>(Demo build — signups aren't stored yet.)</em></p>
+      <h2>${esc(t("You're in! 💌"))}</h2>
+      <p class="how">${esc(t("We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime."))}
+      <em>${esc(t("(Demo build — signups aren't stored yet.)"))}</em></p>
     </section>`;
   }
   const chips = NEWSLETTER_TIERS.map(
-    (t) => `<button type="button" class="tier-chip${state.signupTiers.includes(t.value) ? " on" : ""}" aria-pressed="${state.signupTiers.includes(t.value)}" data-action="signup-tier" data-value="${t.value}">${esc(t.label)}</button>`
+    (tier) => `<button type="button" class="tier-chip${state.signupTiers.includes(tier.value) ? " on" : ""}" aria-pressed="${state.signupTiers.includes(tier.value)}" data-action="signup-tier" data-value="${tier.value}">${esc(t(tier.label))}</button>`
   ).join("");
   const allOn = state.signupTiers.length === NEWSLETTER_TIERS.length;
   return `
   <section class="signup" aria-label="Email signup">
-    <h2>Get new products, treatments, and deals sent to you 💌</h2>
-    <p class="how">Free, and segmented to what you actually care about — pick one, two, or all three.</p>
+    <h2>${esc(t("Get new products, treatments, and deals sent to you 💌"))}</h2>
+    <p class="how">${esc(t("Free, and segmented to what you actually care about — pick one, two, or all three."))}</p>
     <div class="tier-chips">${chips}
-      <button type="button" class="tier-chip${allOn ? " on" : ""}" aria-pressed="${allOn}" data-action="signup-all">All three ✨</button>
+      <button type="button" class="tier-chip${allOn ? " on" : ""}" aria-pressed="${allOn}" data-action="signup-all">${esc(t("All three ✨"))}</button>
     </div>
     <div class="signup-fields">
       <input id="signup-email" type="email" placeholder="you@example.com" aria-label="Email address" value="${esc(state.signupEmail || "")}" />
-      <input id="signup-zip" type="text" inputmode="numeric" placeholder="ZIP (optional)" aria-label="ZIP code (optional)" value="${esc(state.signupZip || "")}" />
+      <input id="signup-zip" type="text" inputmode="numeric" placeholder="${esc(t("ZIP (optional)"))}" aria-label="ZIP code (optional)" value="${esc(state.signupZip || "")}" />
     </div>
-    <p class="how" style="font-size:.78rem">ZIP just helps us point you to options in your area — no location tracking.</p>
-    ${state.signupError ? `<p class="signup-error">${esc(state.signupError)}</p>` : ""}
-    <button type="button" class="pill signup-btn" data-action="signup-submit">Sign me up</button>
+    <p class="how" style="font-size:.78rem">${esc(t("ZIP just helps us point you to options in your area — no location tracking."))}</p>
+    ${state.signupError ? `<p class="signup-error">${esc(t(state.signupError))}</p>` : ""}
+    <button type="button" class="pill signup-btn" data-action="signup-submit">${esc(t("Sign me up"))}</button>
   </section>`;
 }
 
@@ -580,11 +629,16 @@ app.addEventListener("click", (e) => {
       state.signedUp = true;
     }
     render();
+  } else if (action === "unlock") {
+    // demo can't charge — respond honestly instead of doing nothing
+    state.unlockClicked = true;
+    render();
   } else if (action === "retake") {
     state.answers = {};
     state.routine = null;
     state.idx = 0;
     state.phase = "washDay";
+    state.unlockClicked = false;
     state.screen = "quiz";
     render();
   }

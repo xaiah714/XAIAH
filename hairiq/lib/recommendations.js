@@ -134,7 +134,57 @@ function makeStep(def) {
   };
 }
 
+// Concerns are multi-select (rev 8). One concern = exactly the old behavior.
+// Several = build each concern's routine and merge: the highest-priority
+// pick is the skeleton (its shampoo/headline/etc. win on collisions), the
+// others contribute their unique steps and notes. Priority puts the
+// routine-defining concerns first: medicated dandruff washing changes the
+// whole wash system, thinning/breakage add treatment steps, styling and
+// finishing concerns layer on top.
+const CONCERN_PRIORITY = ["dandruff", "thinning", "breakage", "curlyNew", "dryness", "frizz", "slowGrowth"];
+
 export function buildRoutine(answers) {
+  const raw = Array.isArray(answers.concern)
+    ? answers.concern
+    : answers.concern
+      ? [answers.concern]
+      : [];
+  const ordered = CONCERN_PRIORITY.filter((x) => raw.includes(x));
+  if (ordered.length <= 1) {
+    return buildSingleRoutine({ ...answers, concern: ordered[0] || "dryness" });
+  }
+
+  const [primary, ...rest] = ordered;
+  const base = buildSingleRoutine({ ...answers, concern: primary });
+  const seenSteps = new Set(base.phases.flatMap((p) => p.steps.map((s) => s.id)));
+  const seenNotes = new Set(base.notes.map((n) => n.id));
+  for (const extraConcern of rest) {
+    const extra = buildSingleRoutine({ ...answers, concern: extraConcern });
+    for (const phase of base.phases) {
+      const extraPhase = extra.phases.find((p) => p.id === phase.id);
+      if (!extraPhase) continue;
+      for (const step of extraPhase.steps) {
+        if (seenSteps.has(step.id)) continue;
+        seenSteps.add(step.id);
+        phase.steps.push(step);
+      }
+    }
+    for (const note of extra.notes) {
+      if (seenNotes.has(note.id)) continue;
+      seenNotes.add(note.id);
+      base.notes.push(note);
+    }
+  }
+  // Every concern pushes steps in the same framework sequence, so the
+  // recorded construction index lines merged steps back into wash order.
+  for (const phase of base.phases) phase.steps.sort((a, b) => a.order - b.order);
+
+  base.summary.concernLabel = ordered.map((x) => CONCERNS[x].label).join(" + ");
+  base.summary.also = rest.map((x) => CONCERNS[x].label);
+  return base;
+}
+
+function buildSingleRoutine(answers) {
   const depth = DEPTHS[answers.time] || 2;
   const concern = CONCERNS[answers.concern] || CONCERNS.dryness;
   const c = answers.concern;
@@ -1083,7 +1133,9 @@ export function buildRoutine(answers) {
   }
 
   // ------------------------------------------------------------- ASSEMBLE --
-  const built = steps.map(makeStep);
+  // `order` = framework construction index, used to re-sort merged
+  // multi-concern routines back into wash order (see buildRoutine).
+  const built = steps.map((def, i) => ({ ...makeStep(def), order: i }));
   const phases = [
     {
       id: "washDay",
@@ -1113,6 +1165,7 @@ export function buildRoutine(answers) {
       headline: concern.headline,
       blurb: concern.blurb,
       concernLabel: concern.label,
+      also: [],
       chips: [
         optionLabel("hairType", answers.hairType),
         `${optionLabel("length", answers.length)} length`,

@@ -94,6 +94,11 @@ export default function ResultsPage() {
         <p className="mx-auto mt-3 max-w-lg text-base font-semibold text-cocoa-soft">
           {routine.summary.blurb}
         </p>
+        {routine.summary.also && routine.summary.also.length > 0 ? (
+          <p className="mx-auto mt-2 max-w-lg text-sm font-bold text-coral-deep">
+            Also folded in: {routine.summary.also.join(" · ")}
+          </p>
+        ) : null}
         <ul className="mt-5 flex flex-wrap justify-center gap-2">
           {routine.summary.chips.map((chip) => (
             <li

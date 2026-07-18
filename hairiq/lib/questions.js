@@ -55,8 +55,10 @@ export const QUESTIONS = [
   },
   {
     id: "concern",
-    title: "What's your main hair concern?",
-    subtitle: "Pick the one that bugs you most — it drives your whole routine.",
+    title: "What are your main hair concerns?",
+    subtitle:
+      "Select all that apply — your plan covers every one you pick, led by the most routine-defining.",
+    multiSelect: true,
     options: [
       { value: "thinning", label: "Thinning or density loss", emoji: "🍂" },
       { value: "dryness", label: "Dryness or damage", emoji: "🥀" },

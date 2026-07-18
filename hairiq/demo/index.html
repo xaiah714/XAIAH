@@ -99,6 +99,19 @@
   .landing h1 span { color: var(--coral-deep); }
   .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
   .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(77 47 36 / 0.85); }
+  /* 🌐 Español toggle — absolute (not fixed) so it scrolls away instead of
+     colliding with the sticky tabs, same as the app */
+  #lang-toggle {
+    position: absolute; top: 0.75rem; right: 0.75rem; z-index: 50;
+    display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem;
+    border: 2px solid rgb(255 97 163 / 0.6); border-radius: 999px;
+    background: rgb(255 255 255 / 0.95); padding: 0.5rem 1rem;
+    font-family: var(--display); font-weight: 700; font-size: 0.9rem; color: var(--cocoa);
+    box-shadow: var(--shadow-card); cursor: pointer;
+  }
+  #lang-toggle:hover { border-color: var(--coral-deep); }
+  .also { margin-top: 0.6rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: var(--coral-deep); }
+  .paywall-note.hot { color: var(--coral-deep); font-weight: 800; }
 
   /* quiz */
   .quiz { display: flex; flex-direction: column; min-height: 100dvh; padding-top: 2rem; padding-bottom: 2.5rem; }
@@ -234,6 +247,7 @@
   footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 161 203 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
+<button id="lang-toggle" type="button" aria-label="Traducir al español">🌐 <span>Español</span></button>
 <div id="app"></div>
 
 <script>
@@ -262,6 +276,622 @@ const NEWSLETTER_TIERS = [
   { value: "luxury", label: "Luxury picks" },
   { value: "crueltyFree", label: "Cruelty-free finds" },
 ];
+
+
+// ===== lib/i18n-es.js =====
+// ---------------------------------------------------------------------------
+// Español dictionary (rev 8) — every user-facing string reachable in the
+// demo, keyed by the EXACT English source string. Used by the demo's 🌐
+// Español toggle (the artifact sandbox can't load Google Translate, so the
+// demo carries its own translations); the deployed app can adopt it later
+// as the native-Spanish upgrade over machine translation.
+//
+// Rules: brand/product names, K18, LOC/LCO stay in English (proper nouns /
+// established acronyms). Voice: casual "tú", neutral Latin American Spanish.
+// Product card blurbs are intentionally not translated yet (v1 limit).
+// ---------------------------------------------------------------------------
+
+const ES = {
+  // ---- landing + shared chrome ----
+  "Eleven quick questions. One personalized hair routine — with picks for every budget.":
+    "Once preguntas rápidas. Una rutina de cabello personalizada — con opciones para todo presupuesto.",
+  "Take the Quiz": "Haz el quiz",
+  "≈ 2 minutes · no account needed": "≈ 2 minutos · sin cuenta",
+  "← Back": "← Atrás",
+  "Next": "Siguiente",
+  "See my results ✨": "Ver mis resultados ✨",
+  "Your routine is ready ✨": "Tu rutina está lista ✨",
+  "💡 Good to know": "💡 Bueno saberlo",
+  "Tips": "Consejos",
+  "Why this works": "Por qué funciona",
+  "Retake Quiz": "Repetir el quiz",
+  "🔒 Save My Routine": "🔒 Guardar mi rutina",
+  "Unlock for $1.99": "Desbloquear por $1.99",
+  "Save My Routine": "Guardar mi rutina",
+  "New": "Nuevo",
+  "(optional)": "(opcional)",
+  "Live demo — same quiz data & recommendation engine as the How Is My Hair app (v1).":
+    "Demo en vivo — los mismos datos del quiz y el mismo motor de recomendaciones que la app de How Is My Hair (v1).",
+  "Affordable": "Económico",
+  "Cruelty-Free": "Libre de crueldad",
+  "Wash Day": "Día de lavado",
+  "At Night": "De noche",
+  "Also folded in:": "También incluimos:",
+  "In the full app this opens a secure Stripe checkout (card, Apple Pay, Google Pay) and unlocks routine saving — payments are switched off in this shareable demo.":
+    "En la app completa este botón abre un pago seguro de Stripe (tarjeta, Apple Pay, Google Pay) y desbloquea guardar tu rutina — los pagos están desactivados en esta demo compartible.",
+  "This shareable demo can't take payments — on the live site this button opens a secure Stripe checkout (card, Apple Pay, Google Pay) and your routine unlocks right after.":
+    "Esta demo compartible no puede cobrar pagos — en el sitio real este botón abre un pago seguro de Stripe (tarjeta, Apple Pay, Google Pay) y tu rutina se desbloquea al instante.",
+  "🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.":
+    "🐰 Certificado o verificado de forma independiente como libre de crueldad — en todos los precios. Las certificaciones cambian; verifica en Leaping Bunny o PETA antes de comprar.",
+  "How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful, spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.":
+    "How Is My Hair ofrece orientación cosmética de peinado, no tratamiento médico. Los problemas persistentes del cuero cabelludo — algo doloroso, que se extiende o que no mejora con productos de venta libre — merecen una visita al dermatólogo, no un cambio de rutina.",
+
+  // ---- signup ----
+  "Get new products, treatments, and deals sent to you 💌": "Recibe nuevos productos, tratamientos y ofertas 💌",
+  "Free, and segmented to what you actually care about — pick one, two, or all three.":
+    "Gratis, y segmentado a lo que de verdad te importa — elige uno, dos o los tres.",
+  "Affordable deals": "Ofertas económicas",
+  "Luxury picks": "Selección de lujo",
+  "Cruelty-free finds": "Hallazgos libres de crueldad",
+  "All three ✨": "Los tres ✨",
+  "Sign me up": "Suscribirme",
+  "ZIP (optional)": "Código postal (opcional)",
+  "ZIP just helps us point you to options in your area — no location tracking.":
+    "El código postal solo nos ayuda a sugerirte opciones en tu zona — sin rastreo de ubicación.",
+  "You're in! 💌": "¡Ya estás dentro! 💌",
+  "We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime.":
+    "Solo te enviaremos lo que elegiste — nuevos productos, tratamientos y ofertas. Cancela cuando quieras.",
+  "(Demo build — signups aren't stored yet.)": "(Versión demo — las suscripciones aún no se guardan.)",
+  "That email doesn't look quite right.": "Ese correo no se ve del todo bien.",
+  "Pick at least one topic — or grab all three.": "Elige al menos un tema — o llévate los tres.",
+  "ZIP should be 5 digits (or leave it blank).": "El código postal debe tener 5 dígitos (o déjalo vacío).",
+
+  // ---- questions ----
+  "What's your hair type?": "¿Cuál es tu tipo de cabello?",
+  "Go with how it dries naturally, no products.": "Guíate por cómo se seca al natural, sin productos.",
+  "Straight": "Lacio",
+  "Wavy": "Ondulado",
+  "Curly": "Rizado",
+  "Coily": "Muy rizado / afro",
+  "How dense is your hair?": "¿Qué tan denso es tu cabello?",
+  "Think about how much hair you have overall, not the width of each strand.":
+    "Piensa en cuánto cabello tienes en total, no en el grosor de cada hebra.",
+  "Fine": "Fino",
+  "Medium": "Medio",
+  "Thick": "Grueso",
+  "Not sure": "No sé",
+  "New to this — totally fine": "Nuevo en esto — no pasa nada",
+  "How long is your hair?": "¿Qué tan largo es tu cabello?",
+  "Some steps only earn their keep past a certain length.":
+    "Algunos pasos solo valen la pena a partir de cierto largo.",
+  "Short": "Corto",
+  "Above the shoulders": "Por encima de los hombros",
+  "Shoulder to mid-back": "De los hombros a media espalda",
+  "Long": "Largo",
+  "Mid-back to waist": "De media espalda a la cintura",
+  "Extra long": "Extra largo",
+  "Past the waist": "Más abajo de la cintura",
+  "How would you describe your scalp?": "¿Cómo describirías tu cuero cabelludo?",
+  "Select all that apply — scalps overlap (oily AND flaky is common).":
+    "Marca todo lo que aplique — se combinan (graso Y con caspa es común).",
+  "Oily": "Graso",
+  "Greasy by the end of the day": "Grasoso al final del día",
+  "Dry": "Seco",
+  "Tight or itchy after washing": "Tirante o con picazón después de lavar",
+  "Flaky": "Con caspa",
+  "Visible flakes or dandruff": "Escamas visibles o caspa",
+  "Sensitive or irritated": "Sensible o irritado",
+  "Balanced": "Equilibrado",
+  "No complaints": "Sin quejas",
+  "What are your main hair concerns?": "¿Cuáles son tus principales preocupaciones?",
+  "Select all that apply — your plan covers every one you pick, led by the most routine-defining.":
+    "Marca todas las que apliquen — tu plan cubre cada una, empezando por la que más define la rutina.",
+  "Thinning or density loss": "Pérdida de densidad o afinamiento",
+  "Dryness or damage": "Resequedad o daño",
+  "Frizz": "Frizz",
+  "Breakage & split ends": "Quiebre y puntas abiertas",
+  "Dandruff or flaking": "Caspa o descamación",
+  "Slow growth": "Crecimiento lento",
+  "New to curly or wavy hair": "Nueva en cabello rizado u ondulado",
+  "I need a styling routine": "Necesito una rutina de peinado",
+  "What are your goals?": "¿Cuáles son tus metas?",
+  "Select all that apply — most people are working on more than one thing.":
+    "Marca todas las que apliquen — la mayoría trabaja en más de una cosa.",
+  "Grow it longer": "Dejarlo crecer",
+  "Increase density": "Aumentar densidad",
+  "Repair damage": "Reparar daño",
+  "Reduce frizz": "Reducir el frizz",
+  "Improve scalp health": "Mejorar el cuero cabelludo",
+  "Just maintain": "Solo mantener",
+  "Any chemical treatments?": "¿Algún tratamiento químico?",
+  "Select all that apply. (Purple shampoo and other color-depositing products don't count — they only coat the outside of the hair, they don't chemically change it.)":
+    "Marca todo lo que aplique. (El shampoo morado y otros productos que depositan color no cuentan — solo recubren el exterior del cabello, no lo cambian químicamente.)",
+  "Salon color, no bleach": "Tinte de salón, sin decoloración",
+  "Bleached": "Decolorado",
+  "Box dye at home, no bleach": "Tinte de caja en casa, sin decoloración",
+  "Relaxed or permed": "Alaciado (relajante) o permanente",
+  "Keratin or smoothing treatment": "Keratina o alisado",
+  "None": "Ninguno",
+  "How often do you heat style?": "¿Con qué frecuencia usas calor?",
+  "Blow dryer, flat iron, curling iron — any hot tool counts.":
+    "Secadora, plancha, rizadora — cualquier herramienta caliente cuenta.",
+  "Daily": "A diario",
+  "A few times a week": "Varias veces por semana",
+  "Rarely or never": "Rara vez o nunca",
+  "How often do you wash your hair?": "¿Cada cuánto lavas tu cabello?",
+  "Every other day": "Un día sí, un día no",
+  "Twice a week": "Dos veces por semana",
+  "Weekly or less": "Una vez por semana o menos",
+  "How much time do you have for a routine?": "¿Cuánto tiempo tienes para una rutina?",
+  "Be honest — a routine you'll actually do beats a perfect one you won't.":
+    "Sé honesta — una rutina que sí harás le gana a una perfecta que no.",
+  "5 min or less": "5 min o menos",
+  "10–15 min": "10–15 min",
+  "20+ min": "20+ min",
+  "What matters most in product picks?": "¿Qué importa más al elegir productos?",
+  "This just sets which tab you land on — you can always flip between all three.":
+    "Esto solo define en qué pestaña empiezas — siempre puedes cambiar entre las tres.",
+  "Budget-friendly": "Económico",
+  "Affordable picks": "Opciones accesibles",
+  "Luxury": "Lujo",
+  "Treat-yourself picks": "Para consentirte",
+  "Cruelty-free": "Libre de crueldad",
+  "Certified & verified brands": "Marcas certificadas y verificadas",
+
+  // ---- principles ----
+  "Pre-wash oil treatment (“pre-poo”)": "Aceite antes del lavado (“pre-poo”)",
+  "Why coconut oil specifically: its fatty-acid structure lets it actually penetrate into the hair shaft rather than just sitting on the surface — the main reason it's the most-recommended pre-poo oil in the hair-science world. Oils like argan work more on the surface (great for shine and smoothness) but don't penetrate the same way.":
+    "Por qué el aceite de coco: su estructura de ácidos grasos le permite penetrar de verdad en la hebra en lugar de quedarse en la superficie — la razón principal de que sea el aceite pre-poo más recomendado por la ciencia capilar. Aceites como el de argán trabajan más en la superficie (geniales para brillo y suavidad) pero no penetran igual.",
+  "Buy a hair-specific coconut oil product, not the cooking jar. Hair-formulated versions are processed to be lighter and spread more easily, so they don't leave the waxy buildup that solid, unrefined cooking-grade coconut oil can.":
+    "Compra un aceite de coco formulado para el cabello, no el frasco de cocina. Las versiones capilares son más ligeras y se distribuyen mejor, así que no dejan el residuo ceroso que puede dejar el aceite de coco sólido sin refinar.",
+  "Fine or low-porosity hair? Use a lighter hand — or start with the weightless mist version — so it doesn't get weighed down. Argan oil is a good lighter alternative if coconut oil ever feels too heavy.":
+    "¿Cabello fino o de baja porosidad? Usa poca cantidad — o empieza con la versión en bruma ligera — para no apelmazarlo. El aceite de argán es una buena alternativa más ligera si el de coco se siente pesado.",
+  "The sweat rule": "La regla del sudor",
+  "If you sweat that day (workout, hot day, anything), don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours can lead to buildup, odor, and irritation.":
+    "Si sudaste ese día (ejercicio, calor, lo que sea), no dejes que solo se seque al aire. El sudor, el sebo y la sal acumulados por horas en el cuero cabelludo pueden causar residuos, mal olor e irritación.",
+  "Dry shampoo is fine between washes, but it is not a substitute here — it only absorbs surface oil. And a cool-air blow-dry at the scalp is a legit touch-up (dermatologists acknowledge it), but it only evaporates moisture; it doesn't remove salt, sweat, or bacteria either. Both are stopgaps, not wash replacements.":
+    "El shampoo en seco está bien entre lavados, pero aquí no sustituye nada — solo absorbe la grasa superficial. Y secar el cuero cabelludo con aire frío es un retoque válido (los dermatólogos lo reconocen), pero solo evapora la humedad; tampoco quita sal, sudor ni bacterias. Ambos son parches, no reemplazos del lavado.",
+  "Sweat daily? You still don't need a deep clean every day — but don't rely on plain water either; water alone doesn't really remove sweat, salt, or oil. The daily move is a gentle sulfate-free shampoo (one wash is enough on a light-sweat day — save double-washing for heavy buildup), or a gentler natural option like a raw-sugar scalp scrub or a rosemary-vinegar rinse. Keep clarifying washes to a few times a week.":
+    "¿Sudas a diario? Aun así no necesitas una limpieza profunda cada día — pero tampoco confíes solo en el agua; el agua sola no quita realmente el sudor, la sal ni la grasa. El movimiento diario es un shampoo suave sin sulfatos (un solo lavado basta en días de sudor ligero — guarda el doble lavado para cuando haya mucha acumulación), o una opción natural más suave como una exfoliación con azúcar sin refinar o un enjuague de romero y vinagre. Limita los lavados clarificantes a unas pocas veces por semana.",
+  "Shampoo is for your scalp, not your ends": "El shampoo es para el cuero cabelludo, no para las puntas",
+  "There are no oil glands on the hair shaft itself, so scrubbing shampoo into your ends every wash just dries them out. Wash the scalp; let the runoff handle the rest.":
+    "La hebra del cabello no tiene glándulas de grasa, así que tallar shampoo en las puntas en cada lavado solo las reseca. Lava el cuero cabelludo; deja que la espuma que baja haga el resto.",
+  "Exception: if the ends feel grimy or product-heavy, a roughly monthly full-length “reset” wash is fine — it's just not an every-wash need.":
+    "Excepción: si las puntas se sienten sucias o cargadas de producto, un lavado completo de “reinicio” más o menos mensual está bien — solo no es necesario en cada lavado.",
+  "And wash frequency follows the scalp, not the hair: wash when the scalp feels oily, sweaty, or itchy. If it feels fine, there's no rule saying you're due.":
+    "Y la frecuencia de lavado la marca el cuero cabelludo, no el cabello: lava cuando se sienta graso, sudado o con picazón. Si se siente bien, no hay regla que diga que ya toca.",
+  "Conditioner isn't optional (and how to apply it)": "El acondicionador no es opcional (y cómo aplicarlo)",
+  "How to apply: split hair into two sections (more if it's very thick), and work conditioner from mid-lengths to ends only — never on the scalp. Needing a generous amount is normal, not overuse.":
+    "Cómo aplicarlo: divide el cabello en dos secciones (más si es muy grueso) y trabaja el acondicionador solo de medios a puntas — nunca en el cuero cabelludo. Necesitar una cantidad generosa es normal, no exceso.",
+  "Texture changes the dose: wavy, curly, and coily hair genuinely need more conditioner than straight hair — every bend in the strand exposes more cuticle, so it absorbs (and needs) more moisture to stay smooth. For curls and coils, a wet detangling brush is a great way to spread it evenly while detangling in the same step.":
+    "La textura cambia la dosis: el cabello ondulado, rizado y afro necesita genuinamente más acondicionador que el lacio — cada curva de la hebra expone más cutícula, así que absorbe (y necesita) más hidratación para mantenerse suave. Para rizos, un cepillo desenredante en húmedo es ideal para repartirlo parejo mientras desenredas en el mismo paso.",
+  "What actually happens if you skip it: hair gets progressively harder to detangle, breaks more from friction, and dulls — and curly/coily hair also loses definition and frizzes faster. That's true for every hair type; textured hair just shows it soonest.":
+    "Qué pasa si lo saltas: el cabello se vuelve cada vez más difícil de desenredar, se quiebra más por fricción y pierde brillo — y el rizado además pierde definición y se esponja más rápido. Aplica a todo tipo de cabello; el texturizado solo lo muestra antes.",
+  "Wet or dry? Depends on your hair type": "¿Húmedo o seco? Depende de tu tipo de cabello",
+  "Curly and coily hair: wet detangling only, never dry — dry brushing breaks curls and creates serious frizz. Detangle wet, with conditioner in.":
+    "Cabello rizado y afro: desenreda solo en húmedo, nunca en seco — cepillar en seco rompe los rizos y crea mucho frizz. Desenreda mojado, con el acondicionador puesto.",
+  "Wavy hair: two beautiful options. Option one — right out of the shower, brush your leave-in through towel-dried damp hair to spread the product (waves don't need to brush conditioner through in the shower like curls do; waiting until damp can mean less breakage). Option two — dry brush from the ends up for fluffy, voluminous waves, or on day 2–3 to detangle mid-lengths and stretch more days between washes.":
+    "Cabello ondulado: dos opciones hermosas. Opción uno — al salir de la ducha, cepilla tu leave-in en el cabello húmedo (secado con toalla) para repartir el producto (las ondas no necesitan cepillar el acondicionador dentro de la ducha como los rizos; esperar a que esté húmedo puede significar menos quiebre). Opción dos — cepilla en seco desde las puntas hacia arriba para ondas esponjadas con volumen, o en el día 2–3 para desenredar los medios y estirar más días entre lavados.",
+  "Straight hair: dry brushing is often the easier call — straight hair tangles less, and wet hair is more fragile for every hair type. If you do detangle wet, use a wide-tooth comb, gently.":
+    "Cabello lacio: cepillar en seco suele ser lo más práctico — el lacio se enreda menos, y el cabello mojado es más frágil en todos los tipos. Si desenredas en húmedo, usa un peine de dientes anchos, con suavidad.",
+  "Double-washing, explained": "El doble lavado, explicado",
+  "The first wash breaks down surface buildup. The second is the one that actually cleanses the scalp — and it's when a medicated or treatment shampoo does its real work, so always use those as the second wash.":
+    "El primer lavado disuelve la acumulación superficial. El segundo es el que de verdad limpia el cuero cabelludo — y es cuando un shampoo medicado o de tratamiento hace su verdadero trabajo, así que úsalos siempre como segundo lavado.",
+  "One correction people get wrong: if your first wash is a clarifying shampoo, do NOT clarify twice. That squeaky-clean, stripped feeling means it already worked — follow it with a hydrating, non-clarifying shampoo for the second wash instead, so you cleanse without over-stripping.":
+    "Una corrección que muchos hacen mal: si tu primer lavado es con shampoo clarificante, NO clarifiques dos veces. Esa sensación de limpieza rechinante significa que ya funcionó — sigue con un shampoo hidratante, no clarificante, para el segundo lavado, y así limpias sin resecar de más.",
+  "Why scalp massage actually works": "Por qué el masaje capilar sí funciona",
+  "The science, simply: hair grows from follicles fed by tiny blood vessels. Massaging increases local blood flow and gently stretches the skin, which signals the follicle cells themselves — small studies of daily massage found measurably thicker hair after a few months. The catch: consistency is everything. Ten minutes daily beats an hour once a week.":
+    "La ciencia, en simple: el cabello crece de folículos alimentados por vasos sanguíneos diminutos. Masajear aumenta el flujo de sangre local y estira suavemente la piel, lo que estimula a las propias células del folículo — pequeños estudios de masaje diario midieron cabello más grueso tras unos meses. El truco: la constancia lo es todo. Diez minutos diarios le ganan a una hora una vez por semana.",
+  "Fingertips vs. a brush: fingertips (never nails — nails scratch and cause tiny tears) let you feel the pressure and hit every spot. A wood or bamboo scalp brush covers more ground with less hand fatigue, spreads oils and serums evenly, and gently exfoliates buildup while it stimulates. Both work — fingertips for precision, brush for convenience and exfoliation. Pick whichever you'll actually do every day.":
+    "¿Yemas o cepillo?: las yemas (nunca las uñas — las uñas rayan y causan microlesiones) te dejan sentir la presión y llegar a cada punto. Un cepillo de madera o bambú para cuero cabelludo cubre más área con menos cansancio, reparte aceites y serums de manera pareja, y exfolia suavemente mientras estimula. Ambos funcionan — yemas para precisión, cepillo para comodidad y exfoliación. Elige el que de verdad harás todos los días.",
+  "Why the bonnet (and the braid) actually matter": "Por qué el gorro (y la trenza) sí importan",
+  "The pillowcase handles part of it: a smooth satin or silk surface cuts friction where your head rests. But hair still rubs against itself and drags across fabric as you turn. A bonnet (or a loose braid) contains the hair — strand-on-strand friction drops, moisture stays in, and longer hair keeps its shape. Short hair can get away with the pillowcase alone; the longer your hair, the more the bonnet earns its spot.":
+    "La funda resuelve una parte: una superficie lisa de satén o seda reduce la fricción donde apoyas la cabeza. Pero el cabello igual se frota contra sí mismo y se arrastra por la tela cuando te mueves. Un gorro (o una trenza floja) contiene el cabello — baja la fricción entre hebras, la hidratación se queda dentro y el cabello largo conserva su forma. El corto se salva con la funda sola; cuanto más largo el cabello, más se gana el gorro su lugar.",
+  "Fabric tiers, same physics: satin is the affordable version (around $10), mulberry silk is the luxury one — smoother and cooler, but the friction science is identical.":
+    "Telas por nivel, misma física: el satén es la versión económica (unos $10), la seda de morera es la de lujo — más lisa y fresca, pero la ciencia de la fricción es idéntica.",
+  "Styling for sleep: a loose braid + bonnet/pillowcase for straight and wavy hair; a loose, high “pineapple” pony for curls and coils so the pattern survives the night.":
+    "Peinado para dormir: trenza floja + gorro/funda para cabello lacio y ondulado; una coleta alta y floja tipo “piña” para rizos, para que el patrón sobreviva la noche.",
+  "K18 instructions — step by step": "Instrucciones de K18 — paso a paso",
+  "Shampoo — and skip your regular rinse-out conditioner this wash (it can block the treatment from working).":
+    "Lava con shampoo — y salta tu acondicionador de enjuague habitual en este lavado (puede bloquear el tratamiento).",
+  "Towel-dry your hair until damp — and dry your HANDS too. K18 only emulsifies (turns thick, white, and creamy) in dry palms; on wet hands it just slides around and does less.":
+    "Seca tu cabello con toalla hasta dejarlo húmedo — y sécate LAS MANOS también. K18 solo emulsiona (se vuelve espeso, blanco y cremoso) en palmas secas; en manos mojadas solo resbala y hace menos.",
+  "Rub 1–3 pumps between your dry palms until it's creamy, so it spreads evenly before touching your hair.":
+    "Frota 1–3 dosis entre tus palmas secas hasta que esté cremoso, para que se reparta parejo antes de tocar tu cabello.",
+  "Apply from mid-lengths to ends, working upward — avoid the scalp — then SCRUNCH it in. Scrunching presses the product into the strands, and it works for every hair type, even straight.":
+    "Aplica de medios a puntas, subiendo — evita el cuero cabelludo — y luego APRIETA (scrunch). El scrunch presiona el producto dentro de las hebras, y funciona para todo tipo de cabello, incluso lacio.",
+  "Leave it for 4 minutes.": "Déjalo actuar 4 minutos.",
+  "Summer sun & your hair": "El sol de verano y tu cabello",
+  "The easy fix isn't another 'before going outside' product to remember — just let a UV leave-in replace your regular leave-in for the whole summer. Worn every day, it covers sun, salt, and chlorine without adding a step.":
+    "La solución fácil no es otro producto que recordar “antes de salir” — simplemente deja que un leave-in con UV reemplace tu leave-in habitual todo el verano. Usado a diario, cubre sol, sal y cloro sin agregar un paso.",
+  "A heads-up about box dye": "Un aviso sobre el tinte de caja",
+  "Before any future bleach or salon color: use a clarifying/chelating shampoo (e.g., L'Oréal Metal Detox) for a few washes first, and always mention your box dye history to your stylist so they can strand-test.":
+    "Antes de cualquier decoloración o tinte de salón futuro: usa un shampoo clarificante/quelante (p. ej., L'Oréal Metal Detox) durante algunos lavados, y siempre cuéntale a tu estilista tu historial de tinte de caja para que haga prueba de mechón.",
+  "The LOC / LCO method": "El método LOC / LCO",
+  "L — Liquid: water or a water-based leave-in, to actually hydrate the hair.":
+    "L — Líquido: agua o un leave-in a base de agua, para hidratar de verdad el cabello.",
+  "O — Oil: a lightweight oil applied next, to seal that moisture in.":
+    "O — Aceite (oil): un aceite ligero después, para sellar esa hidratación.",
+  "C — Cream: a heavier cream or butter on top, to lock everything in and add definition.":
+    "C — Crema: una crema o manteca más pesada encima, para fijar todo y dar definición.",
+  "LOC order (oil before cream) tends to work better for low-porosity hair — the cuticle lies flatter, so a lighter oil layer first prevents product from just sitting on top.":
+    "El orden LOC (aceite antes que crema) suele funcionar mejor en cabello de baja porosidad — la cutícula está más cerrada, así que una capa ligera de aceite primero evita que el producto se quede encima.",
+  "LCO order (cream before oil) tends to work better for high-porosity hair — bleached, damaged, or rough-feeling hair is usually higher porosity, and the heavier cream needs an oil layer on top to actually hold.":
+    "El orden LCO (crema antes que aceite) suele funcionar mejor en cabello de alta porosidad — el decolorado, dañado o áspero suele ser más poroso, y la crema pesada necesita una capa de aceite encima para que de verdad se quede.",
+  "If you're doing everything right and still thinning": "Si haces todo bien y aun así se afina",
+  "Aim for 7+ hours of sleep, stay hydrated, and find a stress outlet that actually works for you — all three show up again and again in hair-shedding research.":
+    "Apunta a 7+ horas de sueño, mantente hidratada y encuentra una salida al estrés que de verdad te funcione — las tres aparecen una y otra vez en la investigación sobre caída del cabello.",
+  "If shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork: iron/ferritin, vitamin D, B12, zinc, and thyroid are the usual suspects. Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.":
+    "Si la caída es repentina, en parches o persistente, vale la pena pedirle a un médico análisis de sangre: hierro/ferritina, vitamina D, B12, zinc y tiroides son los sospechosos habituales. No es un diagnóstico — solo vale revisarlo para no pelear contra una deficiencia con shampoo.",
+  "A note on scalp health": "Una nota sobre el cuero cabelludo",
+  "Persistent scalp issues — anything painful, spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit, not just a routine change.":
+    "Los problemas persistentes del cuero cabelludo — algo doloroso, que se extiende o que no mejora con productos de venta libre — merecen una visita al dermatólogo, no solo un cambio de rutina.",
+
+  // ---- summaries ----
+  "Your plan for fuller-feeling hair": "Tu plan para un cabello con más cuerpo",
+  "Scalp-first: daily massage, night serums, and growth-supporting washes — with zero tension on the hairline.":
+    "Primero el cuero cabelludo: masaje diario, serums de noche y lavados que apoyan el crecimiento — con cero tensión en la línea del cabello.",
+  "Your plan for softer, healthier hair": "Tu plan para un cabello más suave y sano",
+  "Moisture in, moisture kept: pre-wash oil, a weekly deep mask, and a leave-in every single wash day.":
+    "Hidratación que entra y se queda: aceite antes del lavado, mascarilla profunda semanal y leave-in cada día de lavado.",
+  "Your plan for smooth, calm hair": "Tu plan para un cabello liso y en calma",
+  "Frizz is thirst plus friction — so we hydrate in layers (LOC/LCO), dry gently, and then keep hands off.":
+    "El frizz es sed más fricción — así que hidratamos en capas (LOC/LCO), secamos con cuidado y luego no lo tocamos.",
+  "Your plan for stronger hair": "Tu plan para un cabello más fuerte",
+  "Bond repair on wash days, silk at night, and gentle detangling — strength is built in the details.":
+    "Reparación de enlaces los días de lavado, seda de noche y desenredado suave — la fuerza se construye en los detalles.",
+  "Your plan for a calm, flake-free scalp": "Tu plan para un cuero cabelludo en calma y sin caspa",
+  "Medicated washes done the right way (as the second wash), weekly exfoliation, and no hot water on the scalp.":
+    "Lavados medicados bien hechos (como segundo lavado), exfoliación semanal y nada de agua caliente en el cuero cabelludo.",
+  "Your plan for length that sticks around": "Tu plan para un largo que sí se queda",
+  "Nightly scalp massage, growth serum, and monthly protein — plus trims so breakage stops erasing your progress.":
+    "Masaje capilar cada noche, serum de crecimiento y proteína mensual — más despuntes para que el quiebre deje de borrar tu progreso.",
+  "Your starter curl routine": "Tu rutina inicial para rizos",
+  "The beginner-proof version: sulfate-free washing, styling on soaking-wet hair, plopping, and day-2 refreshes.":
+    "La versión a prueba de principiantes: lavado sin sulfatos, peinado con el cabello empapado, “plopping” y refrescado en el día 2.",
+  "Core routine · 5 min or less": "Rutina esencial · 5 min o menos",
+  "Standard routine · 10–15 min": "Rutina estándar · 10–15 min",
+  "Full routine · 20+ min": "Rutina completa · 20+ min",
+
+  // ---- chips ----
+  "Long length": "Largo: largo",
+  "Short length": "Largo: corto",
+  "Medium length": "Largo: medio",
+  "Extra long length": "Largo: extra largo",
+  "Fine density": "Densidad fina",
+  "Medium density": "Densidad media",
+  "Thick density": "Densidad gruesa",
+  "Density TBD": "Densidad por definir",
+  "Dry scalp": "Cuero cabelludo seco",
+  "Balanced scalp": "Cuero cabelludo equilibrado",
+  "Oily + Flaky scalp": "Cuero cabelludo graso + con caspa",
+  "Dry + Sensitive or irritated scalp": "Cuero cabelludo seco + sensible",
+  "Repair damage + Improve scalp health": "Reparar daño + mejorar el cuero cabelludo",
+  "Increase density + Reduce frizz": "Aumentar densidad + reducir el frizz",
+
+  // ---- wash-frequency intros ----
+  "You wash daily — keep the everyday wash gentle, and save the heavier treatments for one or two designated “full” wash days a week.":
+    "Lavas a diario — mantén el lavado diario suave, y guarda los tratamientos pesados para uno o dos días de lavado “completo” por semana.",
+  "You wash every other day — wash days come around often, so rotate the extras across them instead of doing everything every time.":
+    "Lavas un día sí y un día no — los días de lavado llegan seguido, así que rota los extras entre ellos en lugar de hacerlo todo cada vez.",
+  "You wash about twice a week — treat each wash day as a mini reset and give the treatment steps room to work.":
+    "Lavas unas dos veces por semana — trata cada día de lavado como un mini reinicio y dales espacio a los tratamientos para trabajar.",
+  "You wash weekly (or less) — make that one wash day count, and lean on the Daily tab to keep your scalp happy in between.":
+    "Lavas una vez por semana (o menos) — haz que ese día cuente, y apóyate en la pestaña Diario para mantener feliz tu cuero cabelludo entre lavados.",
+
+  // ---- steps: titles, how, frequencies ----
+  "Every wash": "En cada lavado",
+  "Every wash day": "Cada día de lavado",
+  "Nightly": "Cada noche",
+  "1×/week": "1×/semana",
+  "1×/month": "1×/mes",
+  "3–4 nights/week": "3–4 noches/semana",
+  "10 min daily": "10 min al día",
+  "Daily-ish": "Casi a diario",
+  "As needed": "Cuando haga falta",
+  "As you like": "A tu gusto",
+  "All day": "Todo el día",
+  "All summer": "Todo el verano",
+  "Your call": "Tú decides",
+  "Wash day only": "Solo el día de lavado",
+  "Day 2–3": "Día 2–3",
+  "Dry or tangly days": "Días de pelo seco o enredado",
+  "Before hot tools": "Antes de usar calor",
+  "After styling": "Después de peinar",
+  "10–20 min before shampoo": "10–20 min antes del shampoo",
+  "In shower": "En la ducha",
+  "Before shower": "Antes de la ducha",
+  "After shower": "Después de la ducha",
+  "Start here": "Empieza aquí",
+  "Alternative": "Alternativa",
+
+  "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down.":
+    "Una capa ligera de aceite de medios a puntas antes del shampoo — usa poca cantidad (o la bruma ligera) para no apelmazar el cabello fino.",
+  "A light coat of oil on mid-lengths and ends before you shampoo — use a light hand (or the weightless mist) so fine hair doesn't get weighed down. For breakage specifically, this is the whole point: the oil cushions strands against wash-time friction — the exact mechanical stress that snaps fragile hair.":
+    "Una capa ligera de aceite de medios a puntas antes del shampoo — usa poca cantidad (o la bruma ligera) para no apelmazar el cabello fino. Para el quiebre, este es justo el punto: el aceite amortigua las hebras contra la fricción del lavado — el estrés mecánico exacto que rompe el cabello frágil.",
+  "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash.":
+    "Cubre de medios a puntas con aceite 10–20+ minutos antes del shampoo — amortigua el cabello contra la fricción y el quiebre durante el lavado.",
+  "Coat mid-lengths and ends with oil 10–20+ minutes before you shampoo — it cushions hair against friction and breakage during the wash. For breakage specifically, this is the whole point: the oil cushions strands against wash-time friction — the exact mechanical stress that snaps fragile hair.":
+    "Cubre de medios a puntas con aceite 10–20+ minutos antes del shampoo — amortigua el cabello contra la fricción y el quiebre durante el lavado. Para el quiebre, este es justo el punto: el aceite amortigua las hebras contra la fricción del lavado — el estrés mecánico exacto que rompe el cabello frágil.",
+  "No luxury-tier pre-poo in the library yet — the OGX coconut oils (Drugstore tab) are the science-backed pick here regardless of budget.":
+    "Aún no hay pre-poo de lujo en la biblioteca — los aceites de coco OGX (pestaña Económico) son la opción respaldada por la ciencia sin importar el presupuesto.",
+  "Shampoo": "Shampoo",
+  "Shampoo — growth support": "Shampoo — apoyo al crecimiento",
+  "Shampoo — bond strengthening": "Shampoo — refuerzo de enlaces",
+  "Shampoo — gentle daily, medicated 2×/week": "Shampoo — suave a diario, medicado 2×/semana",
+  "Wash — sulfate-free shampoo or co-wash": "Lavado — shampoo sin sulfatos o co-wash",
+  "A growth-supporting wash on wash days. Massage it into the scalp with fingertips — that's where it earns its keep.":
+    "Un lavado que apoya el crecimiento en los días de lavado. Masajéalo en el cuero cabelludo con las yemas — ahí es donde vale la pena.",
+  "A growth-supporting wash on wash days, massaged into the scalp with fingertips.":
+    "Un lavado que apoya el crecimiento, masajeado en el cuero cabelludo con las yemas.",
+  "A strengthening wash, massaged into the scalp with fingertips.":
+    "Un lavado fortalecedor, masajeado en el cuero cabelludo con las yemas.",
+  "A bond-strengthening wash, and be gentle: lather at the scalp, squeeze (don't scrub) the lengths.":
+    "Un lavado que refuerza los enlaces, y con suavidad: haz espuma en el cuero cabelludo y aprieta (no talles) los largos.",
+  "Focus shampoo on the scalp, not the lengths — and when it feels heavy with product or sweat, double-wash.":
+    "Concentra el shampoo en el cuero cabelludo, no en los largos — y cuando se sienta cargado de producto o sudor, haz doble lavado.",
+  "Massage into the scalp and let the runoff clean the lengths — no need to scrub dry ends.":
+    "Masajea el cuero cabelludo y deja que la espuma que baja limpie los largos — no hace falta tallar las puntas secas.",
+  "Alternate a gentle shampoo with a medicated one about twice a week. When your scalp feels heavy, double-wash: gentle first to break down buildup, medicated second so it can actually treat the scalp. Keep the water warm — never hot — on an irritated scalp.":
+    "Alterna un shampoo suave con uno medicado unas dos veces por semana. Cuando el cuero cabelludo se sienta cargado, doble lavado: suave primero para disolver residuos, medicado después para que de verdad trate la piel. Mantén el agua tibia — nunca caliente — en un cuero cabelludo irritado.",
+  "Curls dry out fast, so keep the wash gentle: a sulfate-free shampoo (or a co-wash if your scalp isn't oily), focused on the scalp.":
+    "Los rizos se resecan rápido, así que lava con suavidad: un shampoo sin sulfatos (o un co-wash si tu cuero cabelludo no es graso), concentrado en la raíz.",
+  "Clarifying wash (swap in)": "Lavado clarificante (en rotación)",
+  "Once a week, swap your regular shampoo for a clarifying one — it resets product and hard-water buildup so everything else works better. If you double-wash that day, clarify only once: follow it with a hydrating, non-clarifying shampoo for the second wash.":
+    "Una vez por semana, cambia tu shampoo habitual por uno clarificante — reinicia la acumulación de producto y de agua dura para que todo lo demás funcione mejor. Si ese día haces doble lavado, clarifica solo una vez: sigue con un shampoo hidratante, no clarificante, en el segundo lavado.",
+  "Once a week, swap in a clarifying shampoo to reset buildup. With box dye in your history, make it a chelating formula (like Metal Detox) — see the note below about your next color appointment. If you double-wash that day, clarify only once: follow it with a hydrating, non-clarifying shampoo for the second wash.":
+    "Una vez por semana, usa un shampoo clarificante para reiniciar la acumulación. Con tinte de caja en tu historial, que sea una fórmula quelante (como Metal Detox) — mira la nota de abajo sobre tu próxima cita de color. Si ese día haces doble lavado, clarifica solo una vez: sigue con un shampoo hidratante, no clarificante, en el segundo lavado.",
+  "Bond treatment": "Tratamiento de enlaces",
+  "Bond treatment — pick ONE timing": "Tratamiento de enlaces — elige UN momento",
+  "Bond-repair treatment": "Tratamiento reparador de enlaces",
+  "Bond-repair treatment — pick ONE timing": "Tratamiento reparador de enlaces — elige UN momento",
+  "One bond builder, weekly or as needed — in the shower, right after shampoo and before conditioner. Our top pick is K18 in every tab, even Affordable: it's the one luxury splurge that's earned it (science-backed, never duped). It's pricey but a bottle lasts months — full instructions below.":
+    "Un reparador de enlaces, semanal o según necesites — en la ducha, justo después del shampoo y antes del acondicionador. Nuestra elección número uno es K18 en todas las pestañas, incluso Económico: es el único lujo que se lo ha ganado (respaldado por la ciencia, sin dupe real). Es caro pero un frasco dura meses — instrucciones completas abajo.",
+  "Bond repair is one step with three possible timings — not three separate steps, so don't stack all of them. In-shower is the standard starting point; before- or after-shower are alternatives if a mid-shower step doesn't fit. Our top pick is K18 in every tab — yes, even Affordable: it's the one luxury splurge that's earned it (science-backed, never duped). Full instructions below.":
+    "La reparación de enlaces es UN paso con tres momentos posibles — no tres pasos separados, así que no los acumules. En la ducha es el punto de partida estándar; antes o después de la ducha son alternativas si un paso a media ducha no te acomoda. Nuestra elección número uno es K18 en todas las pestañas — sí, incluso Económico: es el único lujo que se lo ha ganado (respaldado por la ciencia, sin dupe real). Instrucciones completas abajo.",
+  "Weekly · K18 every few weeks": "Semanal · K18 cada pocas semanas",
+  "Right after shampoo, before conditioner — the standard starting point.":
+    "Justo después del shampoo, antes del acondicionador — el punto de partida estándar.",
+  "Apply at least 10 minutes before washing — same job, earlier timing (Olaplex No.3 is literally designed this way).":
+    "Aplica al menos 10 minutos antes de lavar — mismo trabajo, momento más temprano (Olaplex No.3 está literalmente diseñado así).",
+  "On damp hair, then wait 10 minutes before any other product.":
+    "En cabello húmedo, y espera 10 minutos antes de cualquier otro producto.",
+  "No pick in this tab for this timing — go with the in-shower option.":
+    "No hay opción en esta pestaña para este momento — usa la opción en la ducha.",
+  "Protein treatment": "Tratamiento de proteína",
+  "A monthly protein treatment keeps strands strong enough to hold onto their length — growth you don't break off is growth you keep.":
+    "Un tratamiento de proteína mensual mantiene las hebras lo bastante fuertes para conservar su largo — el crecimiento que no se rompe es crecimiento que te quedas.",
+  "Condition": "Acondicionador",
+  "Split into two sections and work it from mid-lengths to ends only — keep it off the roots. Every single wash, no skipping.":
+    "Divide en dos secciones y trabájalo solo de medios a puntas — lejos de la raíz. En cada lavado, sin saltarlo.",
+  "Split into two sections and work it from mid-lengths to ends — never the scalp. Every single wash; a generous amount is normal.":
+    "Divide en dos secciones y trabájalo de medios a puntas — nunca en el cuero cabelludo. En cada lavado; una cantidad generosa es normal.",
+  "Never skip this — unconditioned hair tangles, and tangles are how fragile hair snaps. Mid-lengths to ends, never the scalp. On K18 washes, conditioner comes back in after the treatment window — see the K18 steps — not before.":
+    "Nunca lo saltes — el cabello sin acondicionador se enreda, y los enredos son la forma en que el cabello frágil se rompe. De medios a puntas, nunca en el cuero cabelludo. En lavados con K18, el acondicionador vuelve después de la ventana del tratamiento — mira los pasos de K18 — no antes.",
+  "Condition generously every wash — curls genuinely need more than straight hair (that's correct dosing, not overuse). Mid-lengths to ends, never the scalp. This is also your detangling window (next step).":
+    "Acondiciona generosamente en cada lavado — los rizos necesitan genuinamente más que el cabello lacio (es la dosis correcta, no exceso). De medios a puntas, nunca en el cuero cabelludo. Esta es también tu ventana para desenredar (siguiente paso).",
+  "Deep conditioning mask": "Mascarilla de hidratación profunda",
+  "15–20 minutes with a shower cap or warm towel over it — the warmth helps it actually absorb instead of sitting on top.":
+    "15–20 minutos con gorro de ducha o toalla tibia encima — el calor ayuda a que de verdad se absorba en lugar de quedarse encima.",
+  "Gloss or mask add-on": "Extra: gloss o mascarilla",
+  "Pick 1–2 conditioning layers per wash — gloss + conditioner, gloss + mask, or conditioner + mask all combine fine.":
+    "Elige 1–2 capas acondicionadoras por lavado — gloss + acondicionador, gloss + mascarilla, o acondicionador + mascarilla combinan bien.",
+  "Detangle while the conditioner is in": "Desenreda con el acondicionador puesto",
+  "Fingers or a wide-tooth comb, working from the ends up — never brush curls once they're dry. Rinse when you're through it.":
+    "Dedos o peine de dientes anchos, de las puntas hacia arriba — nunca cepilles los rizos ya secos. Enjuaga al terminar.",
+  "Leave-in conditioner + heat protectant": "Leave-in + protector de calor",
+  "Apply liberally to damp hair, every wash day — and never let a hot tool touch bare hair.":
+    "Aplica generosamente en cabello húmedo, cada día de lavado — y nunca dejes que una herramienta caliente toque el cabello sin protección.",
+  "Apply liberally to damp hair, every wash day. This is the step that makes everything else look better.":
+    "Aplica generosamente en cabello húmedo, cada día de lavado. Este es el paso que hace que todo lo demás se vea mejor.",
+  "Everyday leave-in conditioner": "Leave-in de todos los días",
+  "Since hot tools aren't your thing, skip the heat-protectant sprays entirely — a moisturizing everyday leave-in on damp hair is all this step needs.":
+    "Como el calor no es lo tuyo, olvídate de los sprays protectores — un leave-in hidratante de uso diario en cabello húmedo es todo lo que este paso necesita.",
+  "Apply liberally to soaking-wet hair — this is the L (liquid) of your LCO layers.":
+    "Aplica generosamente con el cabello empapado — esta es la L (líquido) de tus capas LCO.",
+  "Apply liberally to soaking-wet hair — this is the L (liquid) of your LOC layers.":
+    "Aplica generosamente con el cabello empapado — esta es la L (líquido) de tus capas LOC.",
+  "Lock in moisture — LCO layers": "Sella la hidratación — capas LCO",
+  "Lock in moisture — LOC layers": "Sella la hidratación — capas LOC",
+  "Frizz is hair searching the air for moisture — beat it to the punch. On damp hair, layer in LCO order (leave-in → cream → oil) — bleached or chemically treated hair is usually higher porosity, so the oil goes on top to hold everything in.":
+    "El frizz es cabello buscando humedad en el aire — gánale la partida. En cabello húmedo, aplica en orden LCO (leave-in → crema → aceite) — el cabello decolorado o tratado químicamente suele ser más poroso, así que el aceite va encima para retenerlo todo.",
+  "Frizz is hair searching the air for moisture — beat it to the punch. On damp hair, layer in LOC order (leave-in → oil → cream) — a light oil layer first works best unless your hair is very porous.":
+    "El frizz es cabello buscando humedad en el aire — gánale la partida. En cabello húmedo, aplica en orden LOC (leave-in → aceite → crema) — una capa ligera de aceite primero funciona mejor salvo que tu cabello sea muy poroso.",
+  "Style soaking wet — LCO layers": "Peina con el cabello empapado — capas LCO",
+  "Style soaking wet — LOC layers": "Peina con el cabello empapado — capas LOC",
+  "While hair is still soaking wet, layer in LCO order (leave-in → cream → oil) — bleached or chemically treated hair is usually higher porosity, so the oil goes on top to hold everything in. Scrunch upward to encourage the pattern.":
+    "Con el cabello aún empapado, aplica en orden LCO (leave-in → crema → aceite) — el cabello decolorado o tratado suele ser más poroso, así que el aceite va encima para retenerlo todo. Haz scrunch hacia arriba para animar el patrón.",
+  "While hair is still soaking wet, layer in LOC order (leave-in → oil → cream) — a light oil layer first works best unless your hair is very porous. Scrunch upward to encourage the pattern.":
+    "Con el cabello aún empapado, aplica en orden LOC (leave-in → aceite → crema) — una capa ligera de aceite primero funciona mejor salvo que tu cabello sea muy poroso. Haz scrunch hacia arriba para animar el patrón.",
+  "Dry gently": "Seca con cuidado",
+  "Blot and scrunch with a microfiber towel or a t-shirt — rough terry towels rough up the cuticle and undo everything you just did.":
+    "Seca a toques y con scrunch usando una toalla de microfibra o una camiseta — las toallas ásperas de felpa levantan la cutícula y deshacen todo lo que acabas de hacer.",
+  "Plop, then air-dry or diffuse": "“Plopping”, y luego aire o difusor",
+  "Wrap curls up in a microfiber towel or old t-shirt for 10–15 minutes (“plopping”), then air-dry or diffuse on low heat. No rough terry towels, no touching while it dries.":
+    "Envuelve los rizos en una toalla de microfibra o camiseta vieja por 10–15 minutos (“plopping”), y luego seca al aire o con difusor a baja temperatura. Nada de toallas ásperas, ni tocar mientras seca.",
+  "Hands off once it's dry": "Manos fuera cuando esté seco",
+  "Every touch roughs the cuticle back up and reintroduces frizz. Style it damp, then leave it alone — seriously, this one's free and it works.":
+    "Cada tocada vuelve a levantar la cutícula y trae de vuelta el frizz. Péinalo húmedo y luego déjalo en paz — en serio, este es gratis y funciona.",
+  "Refresh, don't re-wash": "Refresca, no vuelvas a lavar",
+  "Mist curls with water plus a small amount of your leave-in, scrunch, and go. No new products needed — it's the same leave-in from wash day.":
+    "Rocía los rizos con agua más un poco de tu leave-in, haz scrunch y listo. No necesitas productos nuevos — es el mismo leave-in del día de lavado.",
+  "Define your texture": "Define tu textura",
+  "A curl cream or styler on damp hair, scrunched up and left alone to dry — LCO layering applies here too.":
+    "Una crema para rizos o estilizador en cabello húmedo, con scrunch y sin tocarlo hasta que seque — las capas LCO también aplican aquí.",
+  "Styling": "Peinado",
+  "Whatever your look calls for — texture, volume, or shape. Any order, personal preference.":
+    "Lo que pida tu look — textura, volumen o forma. En cualquier orden, a tu gusto.",
+  "Volume styling": "Peinado con volumen",
+  "Lift at the roots: mousse on damp roots before drying, or a texture spray once dry. Style away from tension on the hairline.":
+    "Levanta desde la raíz: mousse en raíces húmedas antes de secar, o spray de textura ya en seco. Peina sin tensión en la línea del cabello.",
+  "Scalp massage": "Masaje capilar",
+  "Fingertips, never nails — small circles across the whole scalp. A cheap scalp brush makes the habit easier to keep.":
+    "Yemas, nunca uñas — círculos pequeños por todo el cuero cabelludo. Un cepillo barato para cuero cabelludo hace el hábito más fácil de mantener.",
+  "Scalp exfoliation": "Exfoliación del cuero cabelludo",
+  "Once a week, a scalp scrub (or a scalp brush used in the shower) lifts flakes and buildup so the medicated washes can reach skin.":
+    "Una vez por semana, un exfoliante capilar (o un cepillo de cuero cabelludo en la ducha) levanta escamas y residuos para que los lavados medicados lleguen a la piel.",
+  "Seal it in": "Séllalo",
+  "A few drops of serum or lightweight oil on the ends only — fine hair wants finish, not weight.":
+    "Unas gotas de serum o aceite ligero solo en las puntas — el cabello fino quiere acabado, no peso.",
+  "Mid-week moisture": "Hidratación a media semana",
+  "When hair feels dry or tangly between washes, smooth a little oil or an overnight treatment through the ends.":
+    "Cuando el cabello se sienta seco o enredado entre lavados, alisa un poco de aceite o un tratamiento de noche por las puntas.",
+  "Dry shampoo between washes": "Shampoo en seco entre lavados",
+  "Great for greasy roots between washes — but it only absorbs surface oil. If you sweat today, actually wash tonight (see the sweat rule below).":
+    "Genial para raíces grasosas entre lavados — pero solo absorbe la grasa superficial. Si hoy sudaste, lava de verdad esta noche (mira la regla del sudor abajo).",
+  "Make your leave-in a UV one for summer": "Haz tu leave-in uno con UV en verano",
+  "Sun can visibly shift color-treated hair over one summer. No extra step needed — just let a UV leave-in replace your regular leave-in until fall, worn every day.":
+    "El sol puede cambiar visiblemente el cabello teñido en un solo verano. Sin pasos extra — solo deja que un leave-in con UV reemplace tu leave-in habitual hasta el otoño, usado a diario.",
+  "A summer of sun can change the color and texture of your ends. No extra step needed — just let a UV leave-in replace your regular leave-in until fall.":
+    "Un verano de sol puede cambiar el color y la textura de tus puntas. Sin pasos extra — solo deja que un leave-in con UV reemplace tu leave-in habitual hasta el otoño.",
+  "Heat protectant before every hot tool": "Protector de calor antes de cada herramienta caliente",
+  "Every pass of a hot tool on bare hair is cumulative damage — this is the one product never to skip. Try to sneak in a couple of heat-free days a week, too.":
+    "Cada pasada de calor sobre cabello sin proteger es daño acumulado — este es el único producto que nunca se salta. Intenta colar un par de días sin calor a la semana, también.",
+  "Any day a hot tool comes out between washes, a heat protectant goes on first.":
+    "Cualquier día que salga una herramienta caliente entre lavados, primero va el protector de calor.",
+  "Brush wavy hair its way": "Cepilla las ondas a su manera",
+  "Waves get both options: detangle wet with a wet brush and conditioner in (the gentle default), or brush dry if you actually want softer, less-defined waves — dry brushing breaks up wave clumps on purpose. Either way, start at the ends and work upward.":
+    "Las ondas tienen ambas opciones: desenreda en húmedo con cepillo y acondicionador puesto (la opción suave por defecto), o cepilla en seco si quieres ondas más suaves y menos definidas — cepillar en seco rompe los grupos de ondas a propósito. En ambos casos, empieza por las puntas y sube.",
+  "Brush with a boar + nylon blend": "Cepillo mixto de jabalí + nailon",
+  "Thick straight hair wants a boar + nylon blend: the boar distributes your scalp's natural oils for shine, and the nylon pins actually get through the density. Brush dry (wet hair is fragile for everyone — wide-tooth comb, gently, if you must), starting at the ends and working up.":
+    "El cabello lacio y grueso quiere un cepillo mixto de jabalí + nailon: el jabalí reparte los aceites naturales del cuero cabelludo para dar brillo, y las púas de nailon sí atraviesan la densidad. Cepilla en seco (el cabello mojado es frágil para todos — peine de dientes anchos, con suavidad, si es necesario), empezando por las puntas y subiendo.",
+  "Use the right brush (a wet one)": "Usa el cepillo correcto (uno para mojado)",
+  "Curls and coils get a wet detangling brush at any density — flexible bristles that work through knots without snapping strands. Use it on wet hair with conditioner in, always from the ends up, and never brush this texture dry.":
+    "Rizos y afros usan cepillo desenredante en húmedo a cualquier densidad — cerdas flexibles que deshacen nudos sin romper hebras. Úsalo en cabello mojado con acondicionador, siempre de puntas hacia arriba, y nunca cepilles esta textura en seco.",
+  "Trim every 8–10 weeks": "Despunta cada 8–10 semanas",
+  "Split ends travel upward — a regular dusting keeps damage from climbing the strand. It feels counterproductive when you want length; it isn't.":
+    "Las puntas abiertas suben — un despunte regular evita que el daño trepe por la hebra. Se siente contraproducente cuando quieres largo; no lo es.",
+  "Regular trims (yes, really)": "Despuntes regulares (sí, en serio)",
+  "Trims don't make hair grow faster — they stop breakage from erasing the growth you already got. Keeping ends healthy is how length actually accumulates.":
+    "Los despuntes no hacen crecer el cabello más rápido — evitan que el quiebre borre el crecimiento que ya lograste. Mantener las puntas sanas es como el largo de verdad se acumula.",
+  "Night serum + a light oil": "Serum de noche + un aceite ligero",
+  "Two-layer night step: serum first (hydrates and repairs), then a drop of lightweight oil over it (seals it in). Your hair recovers overnight instead of rubbing itself dry.":
+    "Paso nocturno de dos capas: serum primero (hidrata y repara), y una gota de aceite ligero encima (lo sella). Tu cabello se recupera de noche en lugar de frotarse hasta resecarse.",
+  "Scalp serum": "Serum para el cuero cabelludo",
+  "A few drops along the part lines, massaged in for a minute with fingertips. Consistency beats quantity here.":
+    "Unas gotas a lo largo de las líneas de la raya, masajeadas un minuto con las yemas. Aquí la constancia le gana a la cantidad.",
+  "10-min scalp massage with oil": "Masaje capilar de 10 min con aceite",
+  "Fingertips (never nails) or a scalp brush, working a growth oil or serum into the scalp for about 10 minutes. This is the anchor habit of the whole routine.":
+    "Yemas (nunca uñas) o un cepillo de cuero cabelludo, trabajando un aceite o serum de crecimiento por unos 10 minutos. Este es el hábito ancla de toda la rutina.",
+  "Loose braid + silk or satin": "Trenza floja + seda o satén",
+  "A loose braid stops overnight tangling, and a silk/satin pillowcase or bonnet cuts the friction that causes breakage and frizz.":
+    "Una trenza floja evita los enredos nocturnos, y una funda o gorro de seda/satén reduce la fricción que causa quiebre y frizz.",
+  "Silk or satin pillowcase": "Funda de seda o satén",
+  "Short hair gets off easy here — no braiding or pineapple needed. A silk/satin pillowcase (or bonnet) alone cuts the overnight friction that causes breakage and frizz.":
+    "El cabello corto la tiene fácil aquí — sin trenzas ni piña. Una funda de seda/satén (o gorro) por sí sola reduce la fricción nocturna que causa quiebre y frizz.",
+  "Pineapple + silk or satin": "Piña + seda o satén",
+  "Gather curls into a loose, high “pineapple” pony to protect the pattern overnight, and sleep on silk or satin (pillowcase or bonnet).":
+    "Recoge los rizos en una coleta alta y floja tipo “piña” para proteger el patrón de noche, y duerme sobre seda o satén (funda o gorro).",
+
+  // ---- notes ----
+  "The sweat rule (refined)": "La regla del sudor (afinada)",
+  "Wash whenever works for you — there's no “correct” schedule. But if you sweat today (workout, hot day, anything), deal with it tonight — don't just let it air dry. Sweat, sebum, and salt sitting on the scalp for hours lead to buildup, odor, and irritation.":
+    "Lava cuando te acomode — no existe un horario “correcto”. Pero si hoy sudaste (ejercicio, calor, lo que sea), resuélvelo esta noche — no dejes que solo se seque al aire. El sudor, el sebo y la sal por horas en el cuero cabelludo causan residuos, mal olor e irritación.",
+  "Dry shampoo and a cool-air blow-dry at the scalp are both legit touch-ups between washes — but neither removes salt, sweat, or bacteria. They're stopgaps, not wash replacements.":
+    "El shampoo en seco y el aire frío de la secadora en el cuero cabelludo son retoques válidos entre lavados — pero ninguno quita sal, sudor ni bacterias. Son parches, no reemplazos del lavado.",
+  "Sweat every day? You still don't need a deep clean daily — but plain water alone won't cut it either (it doesn't remove sweat, salt, or oil). Use a gentle sulfate-free shampoo — one wash is enough on light-sweat days — or a gentler natural option like a raw-sugar scalp scrub or rosemary-vinegar rinse. Keep clarifying washes to a few times a week.":
+    "¿Sudas todos los días? Aun así no necesitas limpieza profunda diaria — pero el agua sola tampoco alcanza (no quita sudor, sal ni grasa). Usa un shampoo suave sin sulfatos — un solo lavado basta en días de sudor ligero — o una opción natural más suave como exfoliante de azúcar sin refinar o enjuague de romero y vinagre. Limita los lavados clarificantes a unas pocas veces por semana.",
+  "Air-drying isn't automatically “healthier”": "Secar al aire no es automáticamente “más sano”",
+  "Hair swells when wet and contracts as it dries — and hours of staying wet (sleeping on wet hair, air-drying that drags on all day) slowly weakens its internal structure. It's called hygral fatigue, and medium/high-porosity hair feels it most.":
+    "El cabello se hincha mojado y se contrae al secarse — y horas de humedad (dormir con el pelo mojado, un secado al aire que dura todo el día) debilitan lentamente su estructura interna. Se llama fatiga higral, y el cabello de porosidad media/alta la siente más.",
+  "So don't avoid the blow dryer on principle: a quick, protected blow-dry — low heat, diffuser, heat protectant on first — can genuinely be gentler than hours of wetness. The rule of thumb is simply “avoid hours of wet,” not a specific timer.":
+    "Así que no evites la secadora por principio: un secado rápido y protegido — baja temperatura, difusor, protector de calor primero — puede ser genuinamente más gentil que horas de humedad. La regla es simplemente “evita horas de mojado”, no un cronómetro específico.",
+  "Oily-scalp bonus move: a partial blow-dry, pointing the dryer straight down at the roots only (never the lengths or ends), speeds up root drying and can slow how fast your scalp re-oils — with zero heat on your ends.":
+    "Truco extra para cuero cabelludo graso: un secado parcial, apuntando la secadora directo a las raíces (nunca a los largos ni puntas), acelera el secado de la raíz y puede retrasar lo rápido que se vuelve a engrasar — con cero calor en tus puntas.",
+  "Check your water before blaming your products": "Revisa tu agua antes de culpar a tus productos",
+  "Hard water (high calcium/magnesium) leaves a mineral film that makes hair dull, dry, and hard to lather — and color-treated or bleached hair absorbs that buildup fastest, dulling and fading color sooner.":
+    "El agua dura (alta en calcio/magnesio) deja una película mineral que apaga el cabello, lo reseca y dificulta hacer espuma — y el cabello teñido o decolorado absorbe esa acumulación más rápido, apagando y desvaneciendo el color antes.",
+  "Hard water (high calcium/magnesium) leaves a mineral film over time that makes hair feel dull, dry, and harder to lather or rinse clean.":
+    "El agua dura (alta en calcio/magnesio) va dejando una película mineral que hace que el cabello se sienta apagado, seco y más difícil de enjabonar o enjuagar.",
+  "If you're in a hard-water area (most people don't know — a quick search for your city's water hardness settles it), a filtered showerhead is a one-time fix rather than another ongoing product, and it's especially worth it for color-treated hair.":
+    "Si vives en zona de agua dura (la mayoría no lo sabe — una búsqueda rápida de la dureza del agua de tu ciudad lo resuelve), una regadera con filtro es un arreglo de una sola vez en lugar de otro producto permanente, y vale especialmente la pena para cabello teñido.",
+  "2-in-1s: fine as a shampoo, bad as your conditioner": "Los 2-en-1: bien como shampoo, mal como tu acondicionador",
+  "2-in-1s are only a problem when they do BOTH jobs — using one as your conditioner replacement long-term shortchanges your hair. Used purely as a shampoo, they're fine.":
+    "Los 2-en-1 solo son un problema cuando hacen AMBOS trabajos — usarlos como reemplazo del acondicionador a largo plazo le queda corto a tu cabello. Usados puramente como shampoo, están bien.",
+  "Standout: Head & Shoulders Tea Tree 2-in-1 is a genuinely good medicated wash for dandruff and itchy scalps. If medicated shampoo ever feels too intense, make it just the SECOND wash of a double-wash day instead of both washes.":
+    "Destacado: el 2-en-1 de árbol de té de Head & Shoulders es un lavado medicado genuinamente bueno para caspa y picazón. Si el shampoo medicado se siente muy intenso, úsalo solo como el SEGUNDO lavado de un día de doble lavado, no en ambos.",
+  "Skip the tight hairstyles": "Evita los peinados apretados",
+  "Slicked-back ponies and tight braids pull on exactly the hairline you're trying to protect. Keep styles loose while you rebuild density.":
+    "Las coletas tirantes y las trenzas apretadas jalan exactamente la línea del cabello que intentas proteger. Mantén los peinados sueltos mientras recuperas densidad.",
+  "Sometimes the cause isn't the routine at all. The unglamorous basics — 7+ hours of sleep, staying hydrated, managing stress — show up again and again in hair-shedding research.":
+    "A veces la causa no es la rutina. Lo básico sin glamour — 7+ horas de sueño, hidratarte, manejar el estrés — aparece una y otra vez en la investigación sobre caída del cabello.",
+  "And if shedding is sudden, patchy, or persistent, it's worth asking a doctor about bloodwork (iron/ferritin, vitamin D, B12, zinc, thyroid). Not a diagnosis — just worth checking so you're not fighting a nutrient gap with shampoo.":
+    "Y si la caída es repentina, en parches o persistente, vale la pena pedir análisis de sangre (hierro/ferritina, vitamina D, B12, zinc, tiroides). No es un diagnóstico — solo vale revisarlo para no pelear contra una deficiencia con shampoo.",
+  "About biotin gummies: extra biotin only meaningfully helps if you're actually deficient — which is uncommon with a reasonably varied diet. If concerns persist despite a solid routine, that bloodwork is the useful move, not guessing with supplements.":
+    "Sobre las gomitas de biotina: la biotina extra solo ayuda de forma significativa si de verdad tienes deficiencia — algo poco común con una dieta razonablemente variada. Si el problema persiste pese a una buena rutina, el análisis de sangre es la jugada útil, no adivinar con suplementos.",
+  "Bleached hair plays by porosity rules": "El cabello decolorado se rige por la porosidad",
+  "Bleached hair is usually high-porosity — it drinks moisture in and loses it just as fast. That's why your layering order is LCO (cream before oil), and why bond treatments should be a fixture in your routine, not a treat.":
+    "El cabello decolorado suele ser de alta porosidad — bebe la hidratación y la pierde igual de rápido. Por eso tu orden de capas es LCO (crema antes que aceite), y por eso los tratamientos de enlaces deben ser fijos en tu rutina, no un premio ocasional.",
+  "Worth a look on the Luxury tab: Pureology Strength Cure Blonde — a violet-toning shampoo/conditioner system built for exactly this, toning brassiness while repairing lightened hair.":
+    "Vale la pena mirar en la pestaña Lujo: Pureology Strength Cure Blonde — un sistema de shampoo/acondicionador con tono violeta hecho exactamente para esto, matizando el anaranjado mientras repara el cabello aclarado.",
+  "About that daily heat…": "Sobre ese calor diario…",
+  "Cumulative heat is the quiet killer of ends. Protectant every single time, and try to swap in air-drying or heatless styles a couple of days a week — your future ends will thank you.":
+    "El calor acumulado es el asesino silencioso de las puntas. Protector todas y cada una de las veces, e intenta cambiar a secado al aire o peinados sin calor un par de días a la semana — tus puntas futuras te lo agradecerán.",
+  "For the flakes you mentioned": "Para esas escamas que mencionaste",
+  "Rotate a medicated shampoo (pyrithione zinc or ketoconazole — Head & Shoulders or Nizoral) into your washes about twice a week. Use it as the second wash so it reaches skin instead of sitting on buildup, and keep the water warm, never hot.":
+    "Rota un shampoo medicado (zinc piritiona o ketoconazol — Head & Shoulders o Nizoral) en tus lavados unas dos veces por semana. Úsalo como segundo lavado para que llegue a la piel en lugar de quedarse sobre los residuos, y mantén el agua tibia, nunca caliente.",
+  "If flakes are painful, spreading, or haven't budged after a month of medicated washes, that's a dermatologist visit — not another product.":
+    "Si las escamas duelen, se extienden o no han cedido tras un mes de lavados medicados, eso es visita al dermatólogo — no otro producto.",
+  "Before your next color appointment": "Antes de tu próxima cita de color",
+  "At-home box dye contains metallic salts that build up in hair and can react unpredictably with future bleach or bond-repair services — sometimes causing gumminess or breakage.":
+    "El tinte de caja casero contiene sales metálicas que se acumulan en el cabello y pueden reaccionar impredeciblemente con futuras decoloraciones o servicios de reparación de enlaces — a veces causando textura chiclosa o quiebre.",
+  "Use a clarifying/chelating shampoo (like L'Oréal Metal Detox) for a few washes before any future bleach or salon color, and always mention the box dye history to your stylist so they can strand-test first.":
+    "Usa un shampoo clarificante/quelante (como L'Oréal Metal Detox) durante algunos lavados antes de cualquier decoloración o tinte de salón, y siempre menciona el historial de tinte de caja a tu estilista para que haga prueba de mechón primero.",
+  "Relaxed or permed hair needs gentle handling": "El cabello alaciado o permanentado necesita trato suave",
+  "Chemically restructured hair is most fragile when wet — detangle slowly with a wide-tooth comb, keep bond care regular, and space out any further chemical services.":
+    "El cabello reestructurado químicamente es más frágil mojado — desenreda despacio con peine de dientes anchos, mantén el cuidado de enlaces constante y espacia cualquier servicio químico adicional.",
+  "Protect that keratin treatment": "Protege ese tratamiento de keratina",
+  "Sulfates strip smoothing treatments early — stick to sulfate-free washes to get your money's worth.":
+    "Los sulfatos desgastan los alisados antes de tiempo — quédate con lavados sin sulfatos para que tu inversión rinda.",
+  "Sensitive-scalp ground rules": "Reglas base para cuero cabelludo sensible",
+  "Favor fragrance-light formulas, patch-test anything new behind your ear for a day or two, and keep rinse water warm rather than hot.":
+    "Prefiere fórmulas con poca fragancia, prueba todo lo nuevo detrás de la oreja un día o dos, y enjuaga con agua tibia en lugar de caliente.",
+  "Not sure about your hair yet? Start light": "¿Aún no conoces tu cabello? Empieza ligero",
+  "Use half the product you think you need — you can always add more. If hair falls flat by midday, your products are too heavy; if the ends still feel thirsty, go a step richer.":
+    "Usa la mitad del producto que crees necesitar — siempre puedes agregar más. Si el cabello se aplasta a mediodía, tus productos pesan mucho; si las puntas siguen sedientas, sube un nivel de riqueza.",
+  "A cream or oil over everything locks the style in — LOC order applies here too.":
+    "Una crema o aceite sobre todo lo demás fija el peinado — el orden LOC también aplica aquí.",
+  "A cream or oil over everything locks the style in — LCO order applies here too.":
+    "Una crema o aceite sobre todo lo demás fija el peinado — el orden LCO también aplica aquí.",
+
+  // ---- principle summaries + option blocks ----
+  "Oil on your mid-lengths and ends 10–20+ minutes before shampooing cuts friction and breakage during the wash. Every hair type can benefit.":
+    "Aceite de medios a puntas 10–20+ minutos antes del shampoo reduce la fricción y el quiebre durante el lavado. Todo tipo de cabello puede beneficiarse.",
+  "There's no fixed wash schedule — wash whenever works for you. One firm rule: if you sweat today, deal with it tonight.":
+    "No hay horario fijo de lavado — lava cuando te acomode. Una regla firme: si hoy sudaste, resuélvelo esta noche.",
+  "Only the scalp actually needs washing — that's where oil, sweat, and buildup live. The lather rinsing through is enough for your lengths.":
+    "Solo el cuero cabelludo necesita lavarse de verdad — ahí viven la grasa, el sudor y los residuos. La espuma que baja al enjuagar es suficiente para tus largos.",
+  "Skipping conditioner doesn't prevent breakage — it causes it. Unconditioned hair tangles more, and tangles plus friction are exactly how hair snaps.":
+    "Saltarte el acondicionador no evita el quiebre — lo causa. El cabello sin acondicionador se enreda más, y enredos más fricción son exactamente la forma en que el cabello se rompe.",
+  "One rule for everyone: always detangle from the ends and work up toward the roots — never drag from the root down through a tangle.":
+    "Una regla para todos: desenreda siempre desde las puntas y sube hacia la raíz — nunca arrastres de la raíz hacia abajo a través de un nudo.",
+  "If your scalp feels heavy with product, sweat, or buildup — shampoo twice. Most people skip this without realizing.":
+    "Si tu cuero cabelludo se siente cargado de producto, sudor o residuos — lava dos veces. La mayoría se lo salta sin darse cuenta.",
+  "It's about blood flow: massage boosts circulation to the follicles, which carries more oxygen and nutrients to where hair is actually built.":
+    "Se trata del flujo sanguíneo: el masaje aumenta la circulación hacia los folículos, llevando más oxígeno y nutrientes a donde el cabello realmente se construye.",
+  "You move a lot in your sleep — hours of hair rubbing on fabric and on itself is real, cumulative breakage and frizz.":
+    "Te mueves mucho al dormir — horas de cabello frotándose contra la tela y contra sí mismo son quiebre y frizz reales y acumulativos.",
+  "K18 is a luxury product that's worth it even on a budget — science-backed, and nobody has successfully duped it. A little goes far, so use it right:":
+    "K18 es un producto de lujo que vale la pena incluso con presupuesto ajustado — respaldado por la ciencia, y nadie ha logrado un dupe real. Rinde mucho, así que úsalo bien:",
+  "After the 4 minutes you've got two good options — don't skip this part out of confusion:":
+    "Después de los 4 minutos tienes dos buenas opciones — no te saltes esta parte por confusión:",
+  "Leave it in": "Déjalo puesto",
+  "Go straight to your leave-in conditioner and styling products. This is K18's official “leave-in treatment” use.":
+    "Pasa directo a tu leave-in y productos de peinado. Este es el uso oficial de K18 como “tratamiento sin enjuague”.",
+  "Rinse + condition": "Enjuaga + acondiciona",
+  "Rinse the K18 out, then apply your regular conditioner, wait however long that conditioner calls for, and rinse it out too. A lot of people find this gives noticeably softer hair and get more out of the K18 than skipping conditioner entirely — which is what most people accidentally do. The “no conditioner” rule in step 1 is only about before the treatment, not after.":
+    "Enjuaga el K18, aplica tu acondicionador habitual, espera lo que ese acondicionador indique y enjuágalo también. Mucha gente nota el cabello bastante más suave así y le saca más al K18 que saltándose el acondicionador por completo — que es lo que la mayoría hace sin querer. La regla de “sin acondicionador” del paso 1 es solo antes del tratamiento, no después.",
+  "UV exposure can visibly change the color and texture of your ends over a single summer — especially on color-treated hair.":
+    "La exposición UV puede cambiar visiblemente el color y la textura de tus puntas en un solo verano — sobre todo en cabello teñido.",
+  "At-home box dye contains metallic salts that can build up in hair and react unpredictably with future bleach or bond-repair services — sometimes causing gumminess or breakage.":
+    "El tinte de caja casero contiene sales metálicas que pueden acumularse en el cabello y reaccionar impredeciblemente con futuras decoloraciones o servicios de reparación de enlaces — a veces causando textura chiclosa o quiebre.",
+  "A three-layer system for locking in moisture — especially useful for curly, coily, or dry hair.":
+    "Un sistema de tres capas para sellar la hidratación — especialmente útil para cabello rizado, afro o seco.",
+  "Sometimes the cause isn't the routine at all — the basics below matter more than any product.":
+    "A veces la causa no es la rutina — lo básico de abajo importa más que cualquier producto.",
+  "HairIQ gives cosmetic styling guidance, not medical treatment.":
+    "How Is My Hair ofrece orientación cosmética de peinado, no tratamiento médico.",
+};
 
 
 // ===== lib/questions.js =====
@@ -322,8 +952,10 @@ const QUESTIONS = [
   },
   {
     id: "concern",
-    title: "What's your main hair concern?",
-    subtitle: "Pick the one that bugs you most — it drives your whole routine.",
+    title: "What are your main hair concerns?",
+    subtitle:
+      "Select all that apply — your plan covers every one you pick, led by the most routine-defining.",
+    multiSelect: true,
     options: [
       { value: "thinning", label: "Thinning or density loss", emoji: "🍂" },
       { value: "dryness", label: "Dryness or damage", emoji: "🥀" },
@@ -2357,7 +2989,57 @@ function makeStep(def) {
   };
 }
 
+// Concerns are multi-select (rev 8). One concern = exactly the old behavior.
+// Several = build each concern's routine and merge: the highest-priority
+// pick is the skeleton (its shampoo/headline/etc. win on collisions), the
+// others contribute their unique steps and notes. Priority puts the
+// routine-defining concerns first: medicated dandruff washing changes the
+// whole wash system, thinning/breakage add treatment steps, styling and
+// finishing concerns layer on top.
+const CONCERN_PRIORITY = ["dandruff", "thinning", "breakage", "curlyNew", "dryness", "frizz", "slowGrowth"];
+
 function buildRoutine(answers) {
+  const raw = Array.isArray(answers.concern)
+    ? answers.concern
+    : answers.concern
+      ? [answers.concern]
+      : [];
+  const ordered = CONCERN_PRIORITY.filter((x) => raw.includes(x));
+  if (ordered.length <= 1) {
+    return buildSingleRoutine({ ...answers, concern: ordered[0] || "dryness" });
+  }
+
+  const [primary, ...rest] = ordered;
+  const base = buildSingleRoutine({ ...answers, concern: primary });
+  const seenSteps = new Set(base.phases.flatMap((p) => p.steps.map((s) => s.id)));
+  const seenNotes = new Set(base.notes.map((n) => n.id));
+  for (const extraConcern of rest) {
+    const extra = buildSingleRoutine({ ...answers, concern: extraConcern });
+    for (const phase of base.phases) {
+      const extraPhase = extra.phases.find((p) => p.id === phase.id);
+      if (!extraPhase) continue;
+      for (const step of extraPhase.steps) {
+        if (seenSteps.has(step.id)) continue;
+        seenSteps.add(step.id);
+        phase.steps.push(step);
+      }
+    }
+    for (const note of extra.notes) {
+      if (seenNotes.has(note.id)) continue;
+      seenNotes.add(note.id);
+      base.notes.push(note);
+    }
+  }
+  // Every concern pushes steps in the same framework sequence, so the
+  // recorded construction index lines merged steps back into wash order.
+  for (const phase of base.phases) phase.steps.sort((a, b) => a.order - b.order);
+
+  base.summary.concernLabel = ordered.map((x) => CONCERNS[x].label).join(" + ");
+  base.summary.also = rest.map((x) => CONCERNS[x].label);
+  return base;
+}
+
+function buildSingleRoutine(answers) {
   const depth = DEPTHS[answers.time] || 2;
   const concern = CONCERNS[answers.concern] || CONCERNS.dryness;
   const c = answers.concern;
@@ -3306,7 +3988,9 @@ function buildRoutine(answers) {
   }
 
   // ------------------------------------------------------------- ASSEMBLE --
-  const built = steps.map(makeStep);
+  // `order` = framework construction index, used to re-sort merged
+  // multi-concern routines back into wash order (see buildRoutine).
+  const built = steps.map((def, i) => ({ ...makeStep(def), order: i }));
   const phases = [
     {
       id: "washDay",
@@ -3336,6 +4020,7 @@ function buildRoutine(answers) {
       headline: concern.headline,
       blurb: concern.blurb,
       concernLabel: concern.label,
+      also: [],
       chips: [
         optionLabel("hairType", answers.hairType),
         `${optionLabel("length", answers.length)} length`,
@@ -3366,12 +4051,45 @@ const app = document.getElementById("app");
 const state = {
   screen: "landing", idx: 0, answers: {}, tier: null, routine: null,
   signupTiers: [], signupEmail: "", signupZip: "", signupError: "", signedUp: false,
-  phase: "washDay",
+  phase: "washDay", lang: "en", unlockClicked: false,
 };
+try { if (localStorage.getItem("himh-demo-lang") === "es") state.lang = "es"; } catch {}
 
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+
+// 🌐 Español (rev 8): the artifact sandbox can't load Google Translate, so
+// the demo carries its own translations — lib/i18n-es.js maps every exact
+// English string to Spanish. Unmatched strings (product blurbs, brand
+// names) fall back to English on purpose.
+function t(s) {
+  if (state.lang !== "es" || !s) return s;
+  const hit = ES[s];
+  if (hit) return hit;
+  // composed summary chips: "Oily + Flaky scalp", "Grow it longer + Repair damage"
+  const scalpChip = s.match(/^(.+) scalp$/);
+  if (scalpChip) {
+    const parts = scalpChip[1].split(" + ").map((x) => (ES[x] || x).toLowerCase());
+    return "Cuero cabelludo " + parts.join(" + ");
+  }
+  if (s.includes(" + ")) return s.split(" + ").map((x) => t(x)).join(" + ");
+  return s;
+}
+
+const langBtn = document.getElementById("lang-toggle");
+function syncLangBtn() {
+  langBtn.querySelector("span").textContent = state.lang === "es" ? "English" : "Español";
+  langBtn.setAttribute("aria-label", state.lang === "es" ? "Switch to English" : "Traducir al español");
+}
+langBtn.addEventListener("click", () => {
+  state.lang = state.lang === "es" ? "en" : "es";
+  try { localStorage.setItem("himh-demo-lang", state.lang); } catch {}
+  readSignupFields();
+  syncLangBtn();
+  render();
+});
+syncLangBtn();
 
 function renderLanding() {
   return `
@@ -3383,12 +4101,12 @@ function renderLanding() {
       <!-- circular logo — same artwork as public/logo.webp in the app;
            scripts/logo-demo.webp is embedded here at build time -->
       <div class="logo" aria-hidden="true">
-        <img alt="" src="data:image/webp;base64,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" />
+        <img alt="" src="data:image/webp;base64,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" />
       </div>
       <h1 class="wordmark">How Is My <span>Hair</span></h1>
-      <p class="tagline">Eleven quick questions. One personalized hair routine — with picks for every budget.</p>
-      <div style="margin-top:2.2rem"><button class="pill" data-action="start">Take the Quiz</button></div>
-      <p class="fineprint">≈ 2 minutes · no account needed</p>
+      <p class="tagline">${esc(t("Eleven quick questions. One personalized hair routine — with picks for every budget."))}</p>
+      <div style="margin-top:2.2rem"><button class="pill" data-action="start">${esc(t("Take the Quiz"))}</button></div>
+      <p class="fineprint">${esc(t("≈ 2 minutes · no account needed"))}</p>
     </div>
   </main>`;
 }
@@ -3406,7 +4124,7 @@ function renderQuiz() {
       return `
       <button class="answer${selected ? " selected" : ""}" aria-pressed="${selected}" data-action="pick" data-value="${esc(o.value)}">
         <span class="emoji" aria-hidden="true">${o.emoji || ""}</span>
-        <span class="lab"><b>${esc(o.label)}</b>${o.sublabel ? `<small>${esc(o.sublabel)}</small>` : ""}</span>
+        <span class="lab"><b>${esc(t(o.label))}</b>${o.sublabel ? `<small>${esc(t(o.sublabel))}</small>` : ""}</span>
         <span class="tick ${q.multiSelect ? "square" : "round"}" aria-hidden="true">${selected ? "✓" : ""}</span>
       </button>`;
     })
@@ -3416,7 +4134,7 @@ function renderQuiz() {
   <main class="quiz col">
     <div>
       <div class="progress-meta">
-        <span class="label">Question ${state.idx + 1} of ${QUESTIONS.length}</span>
+        <span class="label">${state.lang === "es" ? `Pregunta ${state.idx + 1} de ${QUESTIONS.length}` : `Question ${state.idx + 1} of ${QUESTIONS.length}`}</span>
         <span class="pct">${pct}%</span>
       </div>
       <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="${QUESTIONS.length}" aria-valuenow="${state.idx + 1}">
@@ -3424,21 +4142,21 @@ function renderQuiz() {
       </div>
     </div>
     <div class="rise" style="flex:1;display:flex;flex-direction:column">
-      <h1>${esc(q.title)}</h1>
-      ${q.subtitle ? `<p class="subtitle">${esc(q.subtitle)}</p>` : ""}
-      <div class="answers" role="group" aria-label="${esc(q.title)}">${cards}</div>
+      <h1>${esc(t(q.title))}</h1>
+      ${q.subtitle ? `<p class="subtitle">${esc(t(q.subtitle))}</p>` : ""}
+      <div class="answers" role="group" aria-label="${esc(t(q.title))}">${cards}</div>
     </div>
     <nav>
-      <button class="ghost" data-action="back">← Back</button>
-      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${isLast ? "See my results ✨" : "Next"}</button>
+      <button class="ghost" data-action="back">${esc(t("← Back"))}</button>
+      <button class="pill" data-action="next" ${answered ? "" : "disabled"}>${esc(t(isLast ? "See my results ✨" : "Next"))}</button>
     </nav>
   </main>`;
 }
 
 function productCard(p, tier) {
   const badges =
-    (p.tags && p.tags.includes("new") ? `<span class="badge butter">New</span>` : "") +
-    (p.crueltyFree ? `<span class="badge mint">Cruelty-Free</span>` : "");
+    (p.tags && p.tags.includes("new") ? `<span class="badge butter">${esc(t("New"))}</span>` : "") +
+    (p.crueltyFree ? `<span class="badge mint">${esc(t("Cruelty-Free"))}</span>` : "");
   return `
   <div class="prod">
     <div class="prod-top"><span class="brand">${esc(p.brand)}</span><span class="badges">${badges}</span></div>
@@ -3451,17 +4169,17 @@ function productCard(p, tier) {
 function principleBlock(id) {
   const pr = getPrinciple(id);
   if (!pr) return "";
-  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : "";
+  const steps = pr.steps ? `<ol>${pr.steps.map((s) => `<li>${esc(t(s))}</li>`).join("")}</ol>` : "";
   const options = pr.options
-    ? `<p>${esc(pr.options.intro)}</p><div class="choices">${pr.options.choices
-        .map((ch) => `<div class="choice"><b>${esc(ch.label)}</b><p>${esc(ch.text)}</p></div>`)
+    ? `<p>${esc(t(pr.options.intro))}</p><div class="choices">${pr.options.choices
+        .map((ch) => `<div class="choice"><b>${esc(t(ch.label))}</b><p>${esc(t(ch.text))}</p></div>`)
         .join("")}</div>`
     : "";
-  const body = pr.body.map((p) => `<p>${esc(p)}</p>`).join("");
+  const body = pr.body.map((p) => `<p>${esc(t(p))}</p>`).join("");
   return `
   <details class="principle">
-    <summary>${esc(pr.linkLabel || "Why this works")}</summary>
-    <div class="principle-body"><p>${esc(pr.summary)}</p>${steps}${options}${body}</div>
+    <summary>${esc(t(pr.linkLabel || "Why this works"))}</summary>
+    <div class="principle-body"><p>${esc(t(pr.summary))}</p>${steps}${options}${body}</div>
   </details>`;
 }
 
@@ -3479,11 +4197,11 @@ function stepCard(step, index, tier) {
           const inner = vp.length
             ? `<div class="prods">${vp.map((p) => productCard(p, tier)).join("")}</div>`
             : v.emptyText
-              ? `<div class="empty">${esc(v.emptyText)}</div>`
+              ? `<div class="empty">${esc(t(v.emptyText))}</div>`
               : "";
           return `<div class="variant${primary ? " primary" : ""}">
-            <div class="variant-head"><b>${esc(v.label)}</b>${v.tag ? `<span class="vtag${primary ? " hot" : ""}">${esc(v.tag)}</span>` : ""}</div>
-            ${v.note ? `<p class="how">${esc(v.note)}</p>` : ""}
+            <div class="variant-head"><b>${esc(t(v.label))}</b>${v.tag ? `<span class="vtag${primary ? " hot" : ""}">${esc(t(v.tag))}</span>` : ""}</div>
+            ${v.note ? `<p class="how">${esc(t(v.note))}</p>` : ""}
             ${inner}</div>`;
         })
         .join("") +
@@ -3492,7 +4210,7 @@ function stepCard(step, index, tier) {
     productHtml = products.length
       ? `<div class="prods">${products.map((p) => productCard(p, tier)).join("")}</div>`
       : step.emptyText
-        ? `<div class="empty">${esc(step.emptyText)}</div>`
+        ? `<div class="empty">${esc(t(step.emptyText))}</div>`
         : "";
   }
   return `
@@ -3500,10 +4218,10 @@ function stepCard(step, index, tier) {
     <div class="step-head">
       <span class="step-num" aria-hidden="true">${index}</span>
       <div>
-        <h3>${esc(step.title)}</h3>
-        ${step.optional ? `<span class="optional">(optional)</span>` : ""}
-        ${step.frequency ? `<span class="freq">${esc(step.frequency)}</span>` : ""}
-        <p class="how">${esc(step.how)}</p>
+        <h3>${esc(t(step.title))}</h3>
+        ${step.optional ? `<span class="optional">${esc(t("(optional)"))}</span>` : ""}
+        ${step.frequency ? `<span class="freq">${esc(t(step.frequency))}</span>` : ""}
+        <p class="how">${esc(t(step.how))}</p>
       </div>
     </div>
     ${productHtml}
@@ -3517,12 +4235,12 @@ function renderResults() {
   const tabs = TIER_KEYS.map((key) => {
     const meta = TIER_META[key];
     return `<button class="tab${key === tier ? " active" : ""}" role="tab" aria-selected="${key === tier}" data-action="tier" data-value="${key}">
-      <span class="tab-emoji" aria-hidden="true">${meta.emoji}</span> ${meta.label}</button>`;
+      <span class="tab-emoji" aria-hidden="true">${meta.emoji}</span> ${esc(t(meta.label))}</button>`;
   }).join("");
 
   const subtabs = [...r.phases.map((ph) => ({ id: ph.id, title: ph.title, emoji: ph.emoji })), { id: "tips", title: "Tips", emoji: "💡" }]
     .map(
-      (pt) => `<button type="button" role="tab" aria-selected="${pt.id === state.phase}" class="subtab${pt.id === state.phase ? " active" : ""}" data-action="phase" data-value="${pt.id}"><span class="tab-emoji" aria-hidden="true">${pt.emoji} </span>${esc(pt.title)}</button>`
+      (pt) => `<button type="button" role="tab" aria-selected="${pt.id === state.phase}" class="subtab${pt.id === state.phase ? " active" : ""}" data-action="phase" data-value="${pt.id}"><span class="tab-emoji" aria-hidden="true">${pt.emoji} </span>${esc(t(pt.title))}</button>`
     )
     .join("");
 
@@ -3530,45 +4248,47 @@ function renderResults() {
   const phases = active
     ? `
       <section class="phase rise">
-        <h2><span aria-hidden="true">${active.emoji}</span> ${esc(active.title)}</h2>
-        ${active.intro ? `<p class="intro">${esc(active.intro)}</p>` : ""}
+        <h2><span aria-hidden="true">${active.emoji}</span> ${esc(t(active.title))}</h2>
+        ${active.intro ? `<p class="intro">${esc(t(active.intro))}</p>` : ""}
         <ol class="steps">${active.steps.map((s, i) => stepCard(s, i + 1, tier)).join("")}</ol>
       </section>`
     : `
       <section class="phase rise">
-        <h2>💡 Good to know</h2>
-        ${r.notes.map((n) => `<div class="note"><h3>${esc(n.title)}</h3>${n.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`).join("")}
+        <h2>${esc(t("💡 Good to know"))}</h2>
+        ${r.notes.map((n) => `<div class="note"><h3>${esc(t(n.title))}</h3>${n.body.map((p) => `<p>${esc(t(p))}</p>`).join("")}</div>`).join("")}
       </section>`;
 
   return `
   <main class="results">
     <div class="col">
       <header class="rise">
-        <p class="eyebrow">Your routine is ready ✨</p>
-        <h1>${esc(r.summary.headline)}</h1>
-        <p class="blurb">${esc(r.summary.blurb)}</p>
-        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
+        <p class="eyebrow">${esc(t("Your routine is ready ✨"))}</p>
+        <h1>${esc(t(r.summary.headline))}</h1>
+        <p class="blurb">${esc(t(r.summary.blurb))}</p>
+        ${r.summary.also && r.summary.also.length ? `<p class="also">${esc(t("Also folded in:"))} ${r.summary.also.map((a) => esc(t(a))).join(" · ")}</p>` : ""}
+        <ul class="chips">${r.summary.chips.map((c) => `<li>${esc(t(c))}</li>`).join("")}</ul>
       </header>
       <div class="tabs-wrap">
         <div class="tabs" role="tablist" aria-label="Product tier">${tabs}</div>
         <div class="subtabs" role="tablist" aria-label="Routine section">${subtabs}</div>
       </div>
-      ${tier === "crueltyFree" ? `<p class="cf-note">🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy.</p>` : ""}
+      ${tier === "crueltyFree" ? `<p class="cf-note">${esc(t("🐰 Certified or independently tracked cruelty-free — across every price point. Certifications can change; verify via Leaping Bunny or PETA before you buy."))}</p>` : ""}
       ${phases}
       <div class="actions">
         <div class="save-wrap">
-          <button class="pill" disabled aria-disabled="true" title="${esc(PREMIUM.unlockLabel)}">🔒 Save My Routine</button>
-          <span class="soon">🔒 ${esc(PREMIUM.unlockLabel)}</span>
+          <button class="pill" data-action="unlock" title="${esc(t(PREMIUM.unlockLabel))}">🔒 ${esc(t("Save My Routine"))}</button>
+          <span class="soon">🔒 ${esc(t(PREMIUM.unlockLabel))}</span>
         </div>
-        <p class="paywall-note">In the full app this opens a secure Stripe checkout (card, Apple Pay, Google Pay) and unlocks routine saving — payments are switched off in this shareable demo.</p>
-        <button class="pill retake" data-action="retake">Retake Quiz</button>
+        <p class="paywall-note${state.unlockClicked ? " hot" : ""}">${esc(t(state.unlockClicked
+          ? "This shareable demo can't take payments — on the live site this button opens a secure Stripe checkout (card, Apple Pay, Google Pay) and your routine unlocks right after."
+          : "In the full app this opens a secure Stripe checkout (card, Apple Pay, Google Pay) and unlocks routine saving — payments are switched off in this shareable demo."))}</p>
+        <button class="pill retake" data-action="retake">${esc(t("Retake Quiz"))}</button>
       </div>
       ${renderSignup()}
       <footer>
-        How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful,
-        spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change.
+        ${esc(t("How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues — anything painful, spreading, or unresponsive to over-the-counter care — deserve a dermatologist visit rather than a routine change."))}
         <br /><br />
-        Live demo — same quiz data &amp; recommendation engine as the How Is My Hair app (v1).
+        ${esc(t("Live demo — same quiz data & recommendation engine as the How Is My Hair app (v1)."))}
       </footer>
     </div>
   </main>`;
@@ -3581,29 +4301,29 @@ function renderSignup() {
   if (state.signedUp) {
     return `
     <section class="signup">
-      <h2>You're in! 💌</h2>
-      <p class="how">We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime.
-      <em>(Demo build — signups aren't stored yet.)</em></p>
+      <h2>${esc(t("You're in! 💌"))}</h2>
+      <p class="how">${esc(t("We'll only send what you picked — new products, treatments, and deals. Unsubscribe anytime."))}
+      <em>${esc(t("(Demo build — signups aren't stored yet.)"))}</em></p>
     </section>`;
   }
   const chips = NEWSLETTER_TIERS.map(
-    (t) => `<button type="button" class="tier-chip${state.signupTiers.includes(t.value) ? " on" : ""}" aria-pressed="${state.signupTiers.includes(t.value)}" data-action="signup-tier" data-value="${t.value}">${esc(t.label)}</button>`
+    (tier) => `<button type="button" class="tier-chip${state.signupTiers.includes(tier.value) ? " on" : ""}" aria-pressed="${state.signupTiers.includes(tier.value)}" data-action="signup-tier" data-value="${tier.value}">${esc(t(tier.label))}</button>`
   ).join("");
   const allOn = state.signupTiers.length === NEWSLETTER_TIERS.length;
   return `
   <section class="signup" aria-label="Email signup">
-    <h2>Get new products, treatments, and deals sent to you 💌</h2>
-    <p class="how">Free, and segmented to what you actually care about — pick one, two, or all three.</p>
+    <h2>${esc(t("Get new products, treatments, and deals sent to you 💌"))}</h2>
+    <p class="how">${esc(t("Free, and segmented to what you actually care about — pick one, two, or all three."))}</p>
     <div class="tier-chips">${chips}
-      <button type="button" class="tier-chip${allOn ? " on" : ""}" aria-pressed="${allOn}" data-action="signup-all">All three ✨</button>
+      <button type="button" class="tier-chip${allOn ? " on" : ""}" aria-pressed="${allOn}" data-action="signup-all">${esc(t("All three ✨"))}</button>
     </div>
     <div class="signup-fields">
       <input id="signup-email" type="email" placeholder="you@example.com" aria-label="Email address" value="${esc(state.signupEmail || "")}" />
-      <input id="signup-zip" type="text" inputmode="numeric" placeholder="ZIP (optional)" aria-label="ZIP code (optional)" value="${esc(state.signupZip || "")}" />
+      <input id="signup-zip" type="text" inputmode="numeric" placeholder="${esc(t("ZIP (optional)"))}" aria-label="ZIP code (optional)" value="${esc(state.signupZip || "")}" />
     </div>
-    <p class="how" style="font-size:.78rem">ZIP just helps us point you to options in your area — no location tracking.</p>
-    ${state.signupError ? `<p class="signup-error">${esc(state.signupError)}</p>` : ""}
-    <button type="button" class="pill signup-btn" data-action="signup-submit">Sign me up</button>
+    <p class="how" style="font-size:.78rem">${esc(t("ZIP just helps us point you to options in your area — no location tracking."))}</p>
+    ${state.signupError ? `<p class="signup-error">${esc(t(state.signupError))}</p>` : ""}
+    <button type="button" class="pill signup-btn" data-action="signup-submit">${esc(t("Sign me up"))}</button>
   </section>`;
 }
 
@@ -3700,11 +4420,16 @@ app.addEventListener("click", (e) => {
       state.signedUp = true;
     }
     render();
+  } else if (action === "unlock") {
+    // demo can't charge — respond honestly instead of doing nothing
+    state.unlockClicked = true;
+    render();
   } else if (action === "retake") {
     state.answers = {};
     state.routine = null;
     state.idx = 0;
     state.phase = "washDay";
+    state.unlockClicked = false;
     state.screen = "quiz";
     render();
   }
