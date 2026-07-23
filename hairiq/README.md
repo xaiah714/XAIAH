@@ -40,7 +40,12 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # production build
 npm run build:demo # regenerate demo/index.html (single-file live demo)
+npm run preview    # build + run on the local Cloudflare Workers runtime
+npm run deploy     # build + deploy to Cloudflare (see LAUNCH.md)
 ```
+
+**Deploying for real?** The whole owner playbook — Supabase project,
+Cloudflare deploy, domain, Stripe, Resend — is in **[`LAUNCH.md`](LAUNCH.md)**.
 
 ## Where things live
 
@@ -83,14 +88,14 @@ with a pick-one timing choice (in-shower highlighted), per the §8 callout.
 
 The results page ends with the free segmented newsletter form: tier topics
 (multi-select, plus an "All three" option), email, and optional ZIP. It
-posts to `/api/subscribe`, which stores signups in **our own Postgres** —
-no third-party marketing account needed to capture the list. The table
-`hairiq_subscribers` (email unique, `tiers text[]`, zip, created_at) is
-auto-created on first signup; re-signups update preferences instead of
-erroring. On Vercel, attach Vercel Postgres and `POSTGRES_URL` is set
-automatically (any Postgres works via `DATABASE_URL` — see `.env.example`);
-until one is set, signups validate but are not stored and the server logs
-a warning.
+posts to `/api/subscribe`, which stores signups in **our Supabase project**
+(rev 9 — Postgres under the hood, no third-party marketing account needed
+to capture the list). The table `hairiq_subscribers` (email unique,
+`tiers text[]`, zip, created_at) is created once by running
+`supabase/schema.sql` in the Supabase SQL editor; re-signups update
+preferences instead of erroring. Configure `SUPABASE_URL` +
+`SUPABASE_SERVICE_ROLE_KEY` (see `.env.example` / `LAUNCH.md`); until both
+are set, signups validate but are not stored and the server logs a warning.
 
 Delivery is wired through **Resend** (`lib/email.js`): with
 `RESEND_API_KEY` set, every signup receives a branded confirmation email

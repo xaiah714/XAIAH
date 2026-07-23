@@ -1,0 +1,19 @@
+// Cloudflare Workers config (rev 9). Deploy with: npm run deploy
+// Secrets (Supabase/Stripe/Resend keys) are NOT set here — put them in
+// .dev.vars for local preview and set them once in production with
+//   npx wrangler secret put <NAME>
+// (see LAUNCH.md for the exact list).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "how-is-my-hair",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-05-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

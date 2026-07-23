@@ -22,7 +22,10 @@ import { PREMIUM } from "@/lib/config";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
-  return key ? new Stripe(key) : null;
+  if (!key) return null;
+  // fetch-based HTTP client so the same code runs on Cloudflare Workers
+  // (no Node http sockets there) and locally.
+  return new Stripe(key, { httpClient: Stripe.createFetchHttpClient() });
 }
 
 function siteOrigin(request) {

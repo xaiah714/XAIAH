@@ -1,51 +1,28 @@
 // Free segmented email signup (spec §12) — self-contained capture-and-store.
-// Signups go straight into our own Postgres (Vercel Postgres or any provider
-// that hands us a connection string): one row per email with tier tags, ZIP,
-// and timestamp. No third-party marketing account needed to CAPTURE signups.
+// Signups go into our Supabase project (rev 9 — chosen for the Cloudflare
+// deployment): one row per email with tier tags, ZIP, and timestamp.
 //
-// Configure via env (see .env.example): POSTGRES_URL (set automatically when
-// you attach Vercel Postgres) or DATABASE_URL. Until one is set, signups
-// validate and return ok but are NOT stored (a server warning is logged).
+// Configure via env (see .env.example / LAUNCH.md):
+//   SUPABASE_URL              — the project's API URL
+//   SUPABASE_SERVICE_ROLE_KEY — server-only key (never expose client-side)
+// Table: hairiq_subscribers — created once by running supabase/schema.sql
+// in the Supabase SQL editor. Until the env vars are set, signups validate
+// and return ok but are NOT stored (a server warning is logged).
 //
 // Sending (rev 7): when RESEND_API_KEY is set, every signup also gets a
 // confirmation/welcome email and is mirrored into a Resend Audience for
 // dashboard-managed newsletters — see lib/email.js for the owner setup.
-// Delivery still requires the owner's one-time domain verification there;
-// until the key is set, signups store fine and simply skip the email.
 
-import { Pool } from "pg";
+import { createClient } from "@supabase/supabase-js";
 import { emailConfigured, sendWelcomeEmail, addToAudience } from "@/lib/email";
 
 const VALID_TIERS = ["drugstore", "luxury", "crueltyFree"];
 
-let pool = null;
-let tableReady = false;
-
-function getPool() {
-  const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-  if (!url) return null;
-  if (!pool) {
-    pool = new Pool({
-      connectionString: url,
-      max: 3,
-      ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false },
-    });
-  }
-  return pool;
-}
-
-async function ensureTable(db) {
-  if (tableReady) return;
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS hairiq_subscribers (
-      id SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      tiers TEXT[] NOT NULL,
-      zip TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-  tableReady = true;
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false } });
 }
 
 export async function POST(request) {
@@ -70,30 +47,24 @@ export async function POST(request) {
     return Response.json({ ok: false, error: "ZIP should be 5 digits." }, { status: 400 });
   }
 
-  const db = getPool();
+  const supabase = getSupabase();
   let stored = false;
-  if (!db) {
-    console.warn("[subscribe] No POSTGRES_URL/DATABASE_URL configured — signup NOT stored.", { email, tiers, zip });
+  if (!supabase) {
+    console.warn("[subscribe] SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY not configured — signup NOT stored.", { email, tiers, zip });
   } else {
-    try {
-      await ensureTable(db);
-      // Re-signup updates preferences instead of erroring.
-      await db.query(
-        `INSERT INTO hairiq_subscribers (email, tiers, zip)
-         VALUES ($1, $2, NULLIF($3, ''))
-         ON CONFLICT (email) DO UPDATE
-           SET tiers = EXCLUDED.tiers,
-               zip = COALESCE(NULLIF(EXCLUDED.zip, ''), hairiq_subscribers.zip)`,
-        [email, tiers, zip]
-      );
-      stored = true;
-    } catch (err) {
-      console.error("[subscribe] Database error:", err.message);
+    // Re-signup updates preferences instead of erroring (upsert on email).
+    const row = { email, tiers, ...(zip ? { zip } : {}) };
+    const { error } = await supabase
+      .from("hairiq_subscribers")
+      .upsert(row, { onConflict: "email" });
+    if (error) {
+      console.error("[subscribe] Supabase error:", error.message);
       return Response.json(
         { ok: false, error: "Couldn't save your signup right now — try again in a bit." },
         { status: 502 }
       );
     }
+    stored = true;
   }
 
   // Confirmation email + Audience mirror — best-effort: a delivery hiccup
