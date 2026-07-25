@@ -46,7 +46,18 @@ export default function ResultsPage() {
       fetch(`/api/checkout?session_id=${encodeURIComponent(sessionId)}`)
         .then((r) => r.json())
         .then((data) => {
-          if (data.paid) unlock();
+          if (data.paid) {
+            unlock();
+            // Blueprint credentials — email-bound, restorable on any device
+            if (data.email && data.token) {
+              try {
+                localStorage.setItem(
+                  "hairiq-blueprint-v1",
+                  JSON.stringify({ email: data.email, token: data.token })
+                );
+              } catch {}
+            }
+          }
         })
         .catch(() => {});
     }
@@ -207,6 +218,12 @@ export default function ResultsPage() {
                 ? "Your routine lives on the home screen now — retake the quiz any time without losing it."
                 : "Premium unlocked on this device ✨ Save your routine to reach it from the home screen."}
             </p>
+            <a
+              href="/premium"
+              className="w-full max-w-sm rounded-full bg-cocoa px-8 py-4 text-center font-display text-lg font-bold text-cream shadow-card transition hover:bg-berry active:scale-95"
+            >
+              🔓 Open my Blueprint — 12 guides
+            </a>
           </>
         ) : (
           <>

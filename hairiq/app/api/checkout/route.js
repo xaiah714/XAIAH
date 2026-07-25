@@ -19,6 +19,7 @@
 
 import Stripe from "stripe";
 import { PREMIUM } from "@/lib/config";
+import { mintToken } from "@/lib/premium-auth";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -50,6 +51,9 @@ export async function POST(request) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // create a Customer so purchases are findable by email later
+      // (cross-device "restore my Blueprint" — see /api/premium)
+      customer_creation: "always",
       line_items: [
         process.env.STRIPE_PRICE_ID
           ? { price: process.env.STRIPE_PRICE_ID, quantity: 1 }
@@ -84,7 +88,12 @@ export async function GET(request) {
   }
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    return Response.json({ ok: true, paid: session.payment_status === "paid" });
+    const paid = session.payment_status === "paid";
+    const email = paid ? session.customer_details?.email || null : null;
+    // paid → hand back the email-bound access token so the Blueprint
+    // unlocks on this device and can be restored on others
+    const token = email ? await mintToken(email) : null;
+    return Response.json({ ok: true, paid, email, token });
   } catch (err) {
     console.error("[checkout] Session verify failed:", err.message);
     return Response.json({ ok: false, paid: false }, { status: 502 });
