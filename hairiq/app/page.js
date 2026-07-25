@@ -34,7 +34,7 @@ export default function LandingPage() {
         <Logo className="mb-6 h-24 w-24 shadow-soft" />
 
         <h1 className="font-title text-5xl leading-snug sm:text-6xl" style={{ textWrap: "balance" }}>
-          How Is My <span className="text-coral-deep">Hair</span>
+          How&rsquo;s my <span className="text-berry">hair?</span>
         </h1>
 
         <p className="mt-4 text-lg font-semibold text-cocoa-soft">

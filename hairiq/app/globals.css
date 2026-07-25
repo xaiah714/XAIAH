@@ -15,6 +15,7 @@
   --color-blush: #ffa1cb; /* soft fills — light pink between bg and accent */
   --color-blush-deep: #ff61a3; /* borders / gradient — THE pink */
   --color-butter: #ffdb61; /* yellow badge */
+  --color-berry: #b3125a; /* wordmark accent — deep raspberry, 4:1+ on the pink bg */
   --color-mint: #c8e6c9; /* cruelty-free badge (semantic, kept) */
   --color-mint-deep: #386641;
   /* Text darkened for the v3 pink background (owner request): near-black
@@ -44,6 +45,37 @@ body {
   h2,
   h3 {
     font-family: var(--font-display);
+  }
+}
+
+/* ambient sparkles (rev 10) — tiny white stars around the viewport edges */
+.sparkles {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.sparkle {
+  position: absolute;
+  filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.9));
+  animation: twinkle 4.5s ease-in-out infinite;
+  opacity: 0.25;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sparkle {
+    animation: none;
+    opacity: 0.35;
   }
 }
 

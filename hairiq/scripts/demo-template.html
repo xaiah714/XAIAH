@@ -18,6 +18,7 @@
     --blush: #ffa1cb;
     --blush-deep: #ff61a3;
     --butter: #ffdb61;
+    --berry: #b3125a;
     --mint: #c8e6c9;
     --mint-deep: #386641;
     /* near-black dark brown text for the pink bg (rev 7): 9.9:1 / 7.3:1 */
@@ -96,7 +97,7 @@
   }
   .logo img { display: block; width: 100%; height: 100%; border-radius: 50%; }
   .landing h1 { font-family: var(--title); font-weight: 400; font-size: clamp(2.3rem, 9vw, 3.4rem); line-height: 1.35; text-wrap: balance; }
-  .landing h1 span { color: var(--coral-deep); }
+  .landing h1 span { color: var(--berry); }
   .tagline { margin-top: 1rem; font-size: 1.1rem; color: var(--cocoa-soft); max-width: 26rem; }
   .fineprint { margin-top: 1.2rem; font-size: 0.85rem; color: rgb(77 47 36 / 0.85); }
   /* 🌐 Español toggle — absolute (not fixed) so it scrolls away instead of
@@ -111,6 +112,18 @@
   }
   #lang-toggle:hover { border-color: var(--coral-deep); }
   .also { margin-top: 0.6rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: var(--coral-deep); }
+  /* ambient sparkles (rev 10) — tiny white stars near the edges, CSS-only twinkle */
+  .sparkles { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+  .sparkle {
+    position: absolute; opacity: 0.25;
+    filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.9));
+    animation: twinkle 4.5s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.7); }
+    50% { opacity: 0.7; transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) { .sparkle { animation: none; opacity: 0.35; } }
   .paywall-note.hot { color: var(--coral-deep); font-weight: 800; }
 
   /* quiz */
@@ -155,21 +168,26 @@
   .chips li { background: var(--butter); color: var(--cocoa); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 800; box-shadow: var(--shadow-card); }
   .tabs-wrap { position: sticky; top: 0; z-index: 10; background: rgb(255 180 213 / 0.95); backdrop-filter: blur(4px); padding: 0.75rem 0; margin-top: 2rem; }
   .tabs { display: flex; gap: 0.4rem; background: #fff; border: 1px solid rgb(255 97 163 / 0.3); border-radius: 999px; padding: 0.4rem; box-shadow: var(--shadow-card); }
+  /* nav tabs (rev 10): ALL CAPS + high-contrast dark fill on the active
+     tab — obvious at a glance, ADHD-friendly */
   .tab {
     flex: 1; min-height: 2.75rem; white-space: nowrap; border-radius: 999px; padding: 0.6rem 0.25rem; text-align: center;
-    font-family: var(--display); font-weight: 700; font-size: 13px; line-height: 1.2; color: var(--cocoa-soft);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    font-family: var(--display); font-weight: 800; font-size: 10px; line-height: 1.2; color: var(--cocoa-soft);
     transition: background 0.15s ease, color 0.15s ease;
   }
-  @media (min-width: 640px) { .tab { font-size: 0.95rem; padding: 0.6rem 0.5rem; } }
+  @media (min-width: 640px) { .tab { font-size: 0.85rem; padding: 0.6rem 0.5rem; } }
   @media (max-width: 639px) { .tab .tab-emoji, .subtab .tab-emoji { display: none; } }
   .tab:hover { background: rgb(255 161 203 / 0.4); }
-  .tab.active { background: var(--coral); color: var(--cocoa); box-shadow: var(--shadow-soft); }
+  .tab.active { background: var(--cocoa); color: var(--cream); box-shadow: var(--shadow-card); }
   .subtabs { display: flex; gap: 0.35rem; margin-top: 0.6rem; }
   .subtab {
     flex: 1; min-height: 2.75rem; white-space: nowrap; border-radius: 999px; padding: 0.45rem 0.25rem;
-    font-family: var(--display); font-weight: 700; font-size: 13px; line-height: 1.2;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    font-family: var(--display); font-weight: 800; font-size: 10px; line-height: 1.2;
     color: var(--cocoa-soft); background: rgb(255 255 255 / 0.8); transition: background 0.15s ease, color 0.15s ease;
   }
+  @media (min-width: 640px) { .subtab { font-size: 0.75rem; } }
   .subtab:hover { background: rgb(255 161 203 / 0.4); }
   .subtab.active { background: var(--cocoa); color: var(--cream); box-shadow: var(--shadow-card); }
   .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
@@ -248,6 +266,17 @@
 </style>
 
 <button id="lang-toggle" type="button" aria-label="Traducir al español">🌐 <span>Español</span></button>
+<div class="sparkles" aria-hidden="true">
+  <span class="sparkle" style="top:6%;left:7%"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:13%;right:9%;animation-delay:1.1s"><svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:30%;left:3%;animation-delay:2.3s"><svg viewBox="0 0 24 24" width="8" height="8" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:44%;right:4%;animation-delay:.6s"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:62%;left:5%;animation-delay:1.8s"><svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:71%;right:7%;animation-delay:2.9s"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:86%;left:10%;animation-delay:.9s"><svg viewBox="0 0 24 24" width="9" height="9" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:92%;right:13%;animation-delay:2s"><svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:22%;left:14%;animation-delay:3.4s"><svg viewBox="0 0 24 24" width="7" height="7" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+</div>
 <div id="app"></div>
 
 <script>
@@ -312,7 +341,7 @@ function renderLanding() {
       <div class="logo" aria-hidden="true">
         <img alt="" src="data:image/webp;base64,__LOGO_B64__" />
       </div>
-      <h1 class="wordmark">How Is My <span>Hair</span></h1>
+      <h1 class="wordmark">How&rsquo;s my <span>hair?</span></h1>
       <p class="tagline">${esc(t("Eleven quick questions. One personalized hair routine — with picks for every budget."))}</p>
       <div style="margin-top:2.2rem"><button class="pill" data-action="start">${esc(t("Take the Quiz"))}</button></div>
       <p class="fineprint">${esc(t("≈ 2 minutes · no account needed"))}</p>

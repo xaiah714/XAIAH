@@ -12,7 +12,7 @@
 // Owner setup (one-time, ~5 min):
 //   1. Create a free Resend account → API Keys → set RESEND_API_KEY.
 //   2. Verify the sending domain (Resend → Domains → add DNS records),
-//      then set NEWSLETTER_FROM, e.g.  How Is My Hair <hello@yourdomain.com>
+//      then set NEWSLETTER_FROM, e.g.  How Is My Hair <hello@howsmyhair.org>
 //      (until then the resend.dev test sender below works, but only
 //      delivers to the Resend account owner's own inbox).
 //   3. Optional: create an Audience → set RESEND_AUDIENCE_ID so signups

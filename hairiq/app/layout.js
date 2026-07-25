@@ -2,6 +2,7 @@ import { Quicksand, Nunito, Pacifico } from "next/font/google";
 import Script from "next/script";
 import { QuizProvider } from "@/components/QuizProvider";
 import LanguageToggle from "@/components/LanguageToggle";
+import Sparkles from "@/components/Sparkles";
 import "./globals.css";
 
 const quicksand = Quicksand({
@@ -25,6 +26,8 @@ const pacifico = Pacifico({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://howsmyhair.org"),
+  alternates: { canonical: "/" },
   title: "How Is My Hair — your hair's game plan",
   description:
     "A 2-minute quiz that builds your personalized hair care routine — with affordable, luxury, and cruelty-free picks for every step.",
@@ -33,6 +36,7 @@ export const metadata = {
     description:
       "A 2-minute quiz that builds your personalized hair care routine — with affordable, luxury, and cruelty-free picks for every step.",
     siteName: "How Is My Hair",
+    url: "https://howsmyhair.org",
     type: "website",
   },
 };
@@ -48,6 +52,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${quicksand.variable} ${nunito.variable} ${pacifico.variable}`}>
       <body className="min-h-dvh antialiased">
+        <Sparkles />
         <QuizProvider>{children}</QuizProvider>
         <LanguageToggle />
         {/* Google Website Translator (Español toggle). The init script also

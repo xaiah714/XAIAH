@@ -128,7 +128,7 @@ export default function ResultsPage() {
                 aria-selected={active}
                 type="button"
                 onClick={() => setPhase(pt.id)}
-                className={`min-h-11 flex-1 whitespace-nowrap rounded-full px-1 py-2 font-display text-[13px] font-bold leading-tight transition active:scale-95 sm:text-sm ${
+                className={`min-h-11 flex-1 whitespace-nowrap rounded-full px-1 py-2 font-display text-[10px] font-extrabold uppercase leading-tight tracking-wide transition active:scale-95 sm:text-xs ${
                   active
                     ? "bg-cocoa text-cream shadow-card"
                     : "bg-white/80 text-cocoa-soft hover:bg-blush/40"

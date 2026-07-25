@@ -80,7 +80,7 @@ chat along with the two Supabase values, and I'll deploy from here.
 2. Domains → add your domain → add the DNS records it shows (in
    Cloudflare DNS — takes 2 minutes, verifies fast) → then
    `wrangler secret put NEWSLETTER_FROM` with e.g.
-   `How Is My Hair <hello@yourdomain.com>`.
+   `How Is My Hair <hello@howsmyhair.org>`.
 3. Optional: Audiences → create one → `wrangler secret put
    RESEND_AUDIENCE_ID`. Newsletters are then written and sent from
    Resend's **Broadcasts** tab — no code, unsubscribe links automatic.
