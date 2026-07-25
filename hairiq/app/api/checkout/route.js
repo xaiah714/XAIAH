@@ -48,9 +48,17 @@ export async function POST(request) {
   }
 
   const origin = siteOrigin(request);
+  // the answers fingerprint travels in session metadata: the payment is
+  // for ONE exact routine, and verification hands back a token bound to it
+  let fp = "";
+  try {
+    const body = await request.json();
+    if (typeof body.fingerprint === "string" && /^[a-f0-9]{16,64}$/.test(body.fingerprint)) fp = body.fingerprint;
+  } catch {}
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      metadata: { fp },
       // create a Customer so purchases are findable by email later
       // (cross-device "restore my Blueprint" — see /api/premium)
       customer_creation: "always",
@@ -90,10 +98,10 @@ export async function GET(request) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const paid = session.payment_status === "paid";
     const email = paid ? session.customer_details?.email || null : null;
-    // paid → hand back the email-bound access token so the Blueprint
-    // unlocks on this device and can be restored on others
-    const token = email ? await mintToken(email) : null;
-    return Response.json({ ok: true, paid, email, token });
+    const fp = session.metadata?.fp || "";
+    // paid → access token bound to email + the exact answers paid for
+    const token = email ? await mintToken(email, fp) : null;
+    return Response.json({ ok: true, paid, email, fp, token });
   } catch (err) {
     console.error("[checkout] Session verify failed:", err.message);
     return Response.json({ ok: false, paid: false }, { status: 502 });

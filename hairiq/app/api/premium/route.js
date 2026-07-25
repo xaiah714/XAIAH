@@ -11,17 +11,24 @@ import { emailConfigured } from "@/lib/email";
 
 export async function GET(request) {
   const url = new URL(request.url);
-  const valid = await checkToken(url.searchParams.get("email") || "", url.searchParams.get("token") || "");
+  const valid = await checkToken(
+    url.searchParams.get("email") || "",
+    url.searchParams.get("fp") || "",
+    url.searchParams.get("token") || ""
+  );
   return Response.json({ ok: true, valid });
 }
 
-async function hasPurchase(stripe, email) {
+// Latest paid purchase for this email → its answers fingerprint (rev 13:
+// the restore link re-grants exactly the routine that was paid for).
+async function latestPurchase(stripe, email) {
   const customers = await stripe.customers.search({ query: `email:'${email.replace(/'/g, "")}'`, limit: 10 });
   for (const c of customers.data) {
-    const pis = await stripe.paymentIntents.list({ customer: c.id, limit: 20 });
-    if (pis.data.some((pi) => pi.status === "succeeded")) return true;
+    const sessions = await stripe.checkout.sessions.list({ customer: c.id, limit: 20 });
+    const paid = sessions.data.find((s) => s.payment_status === "paid");
+    if (paid) return { fp: paid.metadata?.fp || "" };
   }
-  return false;
+  return null;
 }
 
 export async function POST(request) {
@@ -41,19 +48,19 @@ export async function POST(request) {
   }
 
   const stripe = new Stripe(key, { httpClient: Stripe.createFetchHttpClient() });
-  let purchased = false;
+  let purchase = null;
   try {
-    purchased = await hasPurchase(stripe, email);
+    purchase = await latestPurchase(stripe, email);
   } catch (err) {
     console.error("[premium] Stripe lookup failed:", err.message);
     return Response.json({ ok: false, error: "Couldn't check purchases right now." }, { status: 502 });
   }
 
   // Always answer the same either way — no purchase-status oracle.
-  if (purchased) {
-    const token = await mintToken(email);
+  if (purchase) {
+    const token = await mintToken(email, purchase.fp);
     const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-    const link = `${origin}/premium?email=${encodeURIComponent(email)}&grant=${token}`;
+    const link = `${origin}/premium?email=${encodeURIComponent(email)}&fp=${encodeURIComponent(purchase.fp)}&grant=${token}`;
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",

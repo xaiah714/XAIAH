@@ -36,26 +36,41 @@ export default function PremiumPage() {
 
   useEffect(() => {
     // personalize every tab from the stored quiz answers (rev 12)
-    setTabs(buildPremiumTabs(buildProfile(readAnswers())));
+    const answers = readAnswers();
+    setTabs(buildPremiumTabs(buildProfile(answers)));
     (async () => {
       // arriving from an access link?
       const params = new URLSearchParams(window.location.search);
       const grantEmail = params.get("email");
       const grant = params.get("grant");
+      const grantFp = params.get("fp") || "";
       if (grantEmail && grant) window.history.replaceState(null, "", "/premium");
 
       let creds = null;
       try {
         creds = JSON.parse(localStorage.getItem(CRED_KEY));
       } catch {}
-      if (grantEmail && grant) creds = { email: grantEmail, token: grant };
+      if (grantEmail && grant) creds = { email: grantEmail, fp: grantFp, token: grant };
       if (!creds?.email || !creds?.token) return setState("locked");
       try {
         const res = await fetch(
-          `/api/premium?email=${encodeURIComponent(creds.email)}&token=${encodeURIComponent(creds.token)}`
+          `/api/premium?email=${encodeURIComponent(creds.email)}&fp=${encodeURIComponent(creds.fp || "")}&token=${encodeURIComponent(creds.token)}`
         );
         const data = await res.json();
         if (data.valid) {
+          // rev 13: the purchase covers ONE answer set — if this device's
+          // current quiz differs from the paid one, that's a different
+          // (unpaid) routine, so the Blueprint stays locked for it.
+          if (answers) {
+            const { fingerprint } = await import("@/lib/premium-auth");
+            const current = await fingerprint(answers);
+            if (creds.fp && current !== creds.fp) {
+              setMsg(
+                "These quiz answers don't match the routine this Blueprint was purchased for. Retake the quiz with your original answers — or unlock this new routine below."
+              );
+              return setState("locked");
+            }
+          }
           localStorage.setItem(CRED_KEY, JSON.stringify(creds));
           setEmail(creds.email);
           return setState("unlocked");
@@ -68,7 +83,14 @@ export default function PremiumPage() {
   async function buy() {
     setBusy(true);
     try {
-      const res = await fetch("/api/checkout", { method: "POST" });
+      const answers = readAnswers();
+      const { fingerprint } = await import("@/lib/premium-auth");
+      const fp = answers ? await fingerprint(answers) : "";
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fingerprint: fp }),
+      });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.url) return (window.location.href = data.url);
       setMsg(res.status === 503 ? "Payments are almost live — check back soon!" : "Couldn't start checkout — try again.");

@@ -11,7 +11,24 @@ function secret() {
   return process.env.PREMIUM_SECRET || process.env.ADMIN_PASSWORD || "";
 }
 
-export async function mintToken(email) {
+// Canonical fingerprint of one exact set of quiz answers (rev 13) — a
+// payment buys THIS routine, not the device. Same answers → same hash →
+// free re-unlock; any change → different hash → new payment. Runs in the
+// browser and on Workers (Web Crypto only).
+export async function fingerprint(answers) {
+  const a = answers || {};
+  const canon = Object.keys(a)
+    .sort()
+    .map((k) => {
+      const v = a[k];
+      return `${k}=${Array.isArray(v) ? [...v].sort().join(",") : String(v)}`;
+    })
+    .join("|");
+  const dig = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canon));
+  return [...new Uint8Array(dig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function mintToken(email, fp = "") {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret()),
@@ -19,13 +36,17 @@ export async function mintToken(email) {
     false,
     ["sign"]
   );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(email.toLowerCase()));
+  const sig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(`${email.toLowerCase()}|${fp}`)
+  );
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function checkToken(email, token) {
+export async function checkToken(email, fp, token) {
   if (!secret() || !email || !token) return false;
-  const expect = await mintToken(email);
+  const expect = await mintToken(email, fp || "");
   if (expect.length !== token.length) return false;
   let diff = 0;
   for (let i = 0; i < expect.length; i++) diff |= expect.charCodeAt(i) ^ token.charCodeAt(i);

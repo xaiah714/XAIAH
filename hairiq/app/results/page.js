@@ -33,9 +33,11 @@ export default function ResultsPage() {
     if (routine && tier === null) setTier(routine.defaultTier);
   }, [routine, tier]);
 
-  // Premium (rev 7): Stripe Checkout → success redirect lands back here with
-  // a session_id; verify it server-side before unlocking on this device.
-  const { unlocked, saved, unlock, saveRoutine } = usePremium();
+  // Premium (rev 13): a payment is bound to THIS exact answer set. The
+  // checkout carries the answers fingerprint; the verified session hands
+  // back a matching unlock, so different answers = different routine =
+  // new payment, while identical answers stay unlocked forever.
+  const { unlocked, fp, saved, unlock, saveRoutine } = usePremium(answers);
   const [payState, setPayState] = useState("idle"); // idle | starting | unavailable | error
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -47,13 +49,13 @@ export default function ResultsPage() {
         .then((r) => r.json())
         .then((data) => {
           if (data.paid) {
-            unlock();
-            // Blueprint credentials — email-bound, restorable on any device
+            unlock(data.fp || undefined);
+            // Blueprint credentials — email+answers-bound, restorable
             if (data.email && data.token) {
               try {
                 localStorage.setItem(
                   "hairiq-blueprint-v1",
-                  JSON.stringify({ email: data.email, token: data.token })
+                  JSON.stringify({ email: data.email, fp: data.fp || "", token: data.token })
                 );
               } catch {}
             }
@@ -62,12 +64,16 @@ export default function ResultsPage() {
         .catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fp]);
 
   async function startCheckout() {
     setPayState("starting");
     try {
-      const res = await fetch("/api/checkout", { method: "POST" });
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fingerprint: fp }),
+      });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.url) {
         window.location.href = data.url;

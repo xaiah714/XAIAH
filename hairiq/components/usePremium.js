@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fingerprint } from "@/lib/premium-auth";
 
-// Premium unlock + saved-routine state (rev 7). No accounts yet (§13 v2),
-// so both live in localStorage — the unlock is per device/browser until
-// accounts arrive; then this hook swaps its storage for an API without
-// touching the screens that use it.
-const UNLOCK_KEY = "hairiq-premium-v1";
+// Premium unlock + saved-routine state (rev 13). A payment buys ONE exact
+// set of quiz answers: unlocks are stored as answer fingerprints, so
+// revisiting the same paid answers is free forever, while ANY changed
+// answer means a new (unpaid) routine — closing the shared-device
+// loophole. No accounts; localStorage holds the paid-fingerprint list.
+const UNLOCK_KEY = "hairiq-premium-v2";
 const SAVED_KEY = "hairiq-saved-v1";
+
+function readFps() {
+  try {
+    const v = JSON.parse(localStorage.getItem(UNLOCK_KEY));
+    return Array.isArray(v?.fps) ? v.fps : [];
+  } catch {
+    return [];
+  }
+}
 
 export function readSavedAnswers() {
   try {
@@ -18,32 +29,45 @@ export function readSavedAnswers() {
   }
 }
 
-export function usePremium() {
+// `answers` = the routine currently on screen; unlocked is true only if
+// THIS exact answer set has been paid for.
+export function usePremium(answers) {
   const [unlocked, setUnlocked] = useState(false);
+  const [fp, setFp] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    try {
-      setUnlocked(Boolean(localStorage.getItem(UNLOCK_KEY)));
-      setSaved(Boolean(localStorage.getItem(SAVED_KEY)));
-    } catch {
-      // storage blocked — stay locked
-    }
-  }, []);
+    let dead = false;
+    (async () => {
+      try {
+        const f = await fingerprint(answers || {});
+        if (dead) return;
+        setFp(f);
+        setUnlocked(readFps().includes(f));
+        setSaved(Boolean(localStorage.getItem(SAVED_KEY)));
+      } catch {}
+    })();
+    return () => {
+      dead = true;
+    };
+  }, [answers]);
 
-  function unlock() {
+  function unlock(paidFp) {
+    const f = paidFp || fp;
     try {
-      localStorage.setItem(UNLOCK_KEY, JSON.stringify({ unlocked: true, at: Date.now() }));
+      const fps = readFps();
+      if (!fps.includes(f)) fps.push(f);
+      localStorage.setItem(UNLOCK_KEY, JSON.stringify({ fps }));
     } catch {}
-    setUnlocked(true);
+    if (f === fp) setUnlocked(true);
   }
 
-  function saveRoutine(answers) {
+  function saveRoutine(a) {
     try {
-      localStorage.setItem(SAVED_KEY, JSON.stringify(answers));
+      localStorage.setItem(SAVED_KEY, JSON.stringify(a));
     } catch {}
     setSaved(true);
   }
 
-  return { unlocked, saved, unlock, saveRoutine };
+  return { unlocked, fp, saved, unlock, saveRoutine };
 }
