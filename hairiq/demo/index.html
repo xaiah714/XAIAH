@@ -17,7 +17,7 @@
     --coral-deep: #c2410c;
     --blush: #ffa1cb;
     --blush-deep: #ff61a3;
-    --butter: #ffdb61;
+    --butter: #ffbb87;
     --berry: #b3125a;
     --mint: #c8e6c9;
     --mint-deep: #386641;
@@ -115,15 +115,15 @@
   /* ambient sparkles (rev 10) — tiny white stars near the edges, CSS-only twinkle */
   .sparkles { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
   .sparkle {
-    position: absolute; opacity: 0.25;
-    filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.9));
+    position: absolute; opacity: 0.5;
+    filter: drop-shadow(0 0 5px rgb(255 255 255 / 1)) drop-shadow(0 0 10px rgb(255 255 255 / 0.6));
     animation: twinkle 4.5s ease-in-out infinite;
   }
   @keyframes twinkle {
-    0%, 100% { opacity: 0.15; transform: scale(0.7); }
-    50% { opacity: 0.7; transform: scale(1); }
+    0%, 100% { opacity: 0.35; transform: scale(0.75); }
+    50% { opacity: 1; transform: scale(1.15); }
   }
-  @media (prefers-reduced-motion: reduce) { .sparkle { animation: none; opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { .sparkle { animation: none; opacity: 0.65; } }
   .paywall-note.hot { color: var(--coral-deep); font-weight: 800; }
 
   /* quiz */
@@ -190,6 +190,11 @@
   @media (min-width: 640px) { .subtab { font-size: 0.75rem; } }
   .subtab:hover { background: rgb(255 161 203 / 0.4); }
   .subtab.active { background: var(--cocoa); color: var(--cream); box-shadow: var(--shadow-card); }
+  @media (min-width: 1024px) {
+    .results .col { max-width: 62rem; }
+    .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+    .steps .step { margin-top: 0; }
+  }
   .cf-note { text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); margin-top: 0.6rem; }
   .phase { margin-top: 2.5rem; }
   .phase h2 { font-size: 1.6rem; }
@@ -262,20 +267,22 @@
   .signup-fields input:focus { border-color: var(--coral-deep); outline: none; }
   .signup-error { margin-top: 0.5rem; font-size: 0.88rem; font-weight: 800; color: var(--coral-deep); }
   .signup-btn { margin-top: 1rem; padding: 0.85rem 2rem; font-size: 1rem; }
+  .pill.berry { background: var(--berry); color: #fff; }
+  .pill.berry:hover { background: var(--blush-deep); color: #fff; }
   footer { margin-top: 2.5rem; border-top: 1px solid rgb(255 161 203 / 0.7); padding-top: 1.5rem; text-align: center; font-size: 0.78rem; color: var(--cocoa-soft); }
 </style>
 
 <button id="lang-toggle" type="button" aria-label="Traducir al español">🌐 <span>Español</span></button>
 <div class="sparkles" aria-hidden="true">
-  <span class="sparkle" style="top:6%;left:7%"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:13%;right:9%;animation-delay:1.1s"><svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:30%;left:3%;animation-delay:2.3s"><svg viewBox="0 0 24 24" width="8" height="8" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:44%;right:4%;animation-delay:.6s"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:62%;left:5%;animation-delay:1.8s"><svg viewBox="0 0 24 24" width="10" height="10" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:71%;right:7%;animation-delay:2.9s"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:86%;left:10%;animation-delay:.9s"><svg viewBox="0 0 24 24" width="9" height="9" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:92%;right:13%;animation-delay:2s"><svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
-  <span class="sparkle" style="top:22%;left:14%;animation-delay:3.4s"><svg viewBox="0 0 24 24" width="7" height="7" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:6%;left:7%"><svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:13%;right:9%;animation-delay:1.1s"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:30%;left:3%;animation-delay:2.3s"><svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:44%;right:4%;animation-delay:.6s"><svg viewBox="0 0 24 24" width="19" height="19" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:62%;left:5%;animation-delay:1.8s"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:71%;right:7%;animation-delay:2.9s"><svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:86%;left:10%;animation-delay:.9s"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:92%;right:13%;animation-delay:2s"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
+  <span class="sparkle" style="top:22%;left:14%;animation-delay:3.4s"><svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 0c.6 7.4 4.6 11.4 12 12-7.4.6-11.4 4.6-12 12-.6-7.4-4.6-11.4-12-12C7.4 11.4 11.4 7.4 12 0Z"/></svg></span>
 </div>
 <div id="app"></div>
 
@@ -4305,7 +4312,7 @@ function renderResults() {
       ${phases}
       <div class="actions">
         <div class="save-wrap">
-          <button class="pill" data-action="unlock" title="${esc(t(PREMIUM.unlockLabel))}">🔒 ${esc(t("Save My Routine"))}</button>
+          <button class="pill berry" data-action="unlock" title="${esc(t(PREMIUM.unlockLabel))}">🔒 ${esc(t("Save My Routine"))}</button>
           <span class="soon">🔒 ${esc(t(PREMIUM.unlockLabel))}</span>
         </div>
         <p class="paywall-note${state.unlockClicked ? " hot" : ""}">${esc(t(state.unlockClicked
@@ -4352,7 +4359,7 @@ function renderSignup() {
     </div>
     <p class="how" style="font-size:.78rem">${esc(t("ZIP just helps us point you to options in your area — no location tracking."))}</p>
     ${state.signupError ? `<p class="signup-error">${esc(t(state.signupError))}</p>` : ""}
-    <button type="button" class="pill signup-btn" data-action="signup-submit">${esc(t("Sign me up"))}</button>
+    <button type="button" class="pill berry signup-btn" data-action="signup-submit">${esc(t("Sign me up"))}</button>
   </section>`;
 }
 

@@ -82,7 +82,7 @@ export default function ResultsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 pb-16 pt-16 sm:pt-10">
+    <main className="mx-auto w-full max-w-2xl px-6 pb-16 pt-16 sm:pt-10 lg:max-w-5xl">
       {/* summary header */}
       <header className="animate-rise text-center">
         <p className="font-display text-sm font-bold uppercase tracking-widest text-coral-deep">
@@ -165,7 +165,8 @@ export default function ResultsPage() {
                 {activePhase.intro}
               </p>
             ) : null}
-            <ol className="mt-4 space-y-4">
+            {/* mobile: stacked (unchanged); desktop: two-up grid (rev 11) */}
+            <ol className="mt-4 space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
               {activePhase.steps.map((step, i) => (
                 <StepCard key={step.id} step={step} index={i + 1} activeTier={tier} />
               ))}
@@ -196,7 +197,7 @@ export default function ResultsPage() {
               className={`w-full max-w-sm rounded-full px-8 py-4 font-display text-lg font-bold transition active:scale-95 ${
                 saved
                   ? "cursor-default bg-butter text-cocoa"
-                  : "bg-coral text-cocoa shadow-soft hover:bg-coral-deep hover:text-cream"
+                  : "bg-berry text-white shadow-soft hover:bg-blush-deep"
               }`}
             >
               {saved ? "Saved ✓" : "💾 Save My Routine"}
@@ -215,7 +216,7 @@ export default function ResultsPage() {
                 onClick={startCheckout}
                 disabled={payState === "starting"}
                 title={PREMIUM.unlockLabel}
-                className="w-full rounded-full bg-blush/60 px-8 py-4 font-display text-lg font-bold text-cocoa shadow-card transition hover:bg-blush active:scale-95 disabled:cursor-wait disabled:opacity-70"
+                className="w-full rounded-full bg-berry px-8 py-4 font-display text-lg font-bold text-white shadow-soft transition hover:bg-blush-deep active:scale-95 disabled:cursor-wait disabled:opacity-70"
               >
                 <span aria-hidden="true" className="mr-2">🔒</span>
                 {payState === "starting" ? "Opening secure checkout…" : "Save My Routine"}

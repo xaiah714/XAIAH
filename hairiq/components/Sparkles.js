@@ -4,15 +4,17 @@
 // screen readers, and static under prefers-reduced-motion — magic
 // without distraction or a mobile perf cost.
 const SPOTS = [
-  { top: "6%", left: "7%", size: 14, delay: 0 },
-  { top: "13%", right: "9%", size: 10, delay: 1.1 },
-  { top: "30%", left: "3%", size: 8, delay: 2.3 },
-  { top: "44%", right: "4%", size: 12, delay: 0.6 },
-  { top: "62%", left: "5%", size: 10, delay: 1.8 },
-  { top: "71%", right: "7%", size: 14, delay: 2.9 },
-  { top: "86%", left: "10%", size: 9, delay: 0.9 },
-  { top: "92%", right: "13%", size: 11, delay: 2.0 },
-  { top: "22%", left: "14%", size: 7, delay: 3.4 },
+  { top: "6%", left: "7%", size: 22, delay: 0 },
+  { top: "13%", right: "9%", size: 16, delay: 1.1 },
+  { top: "30%", left: "3%", size: 13, delay: 2.3 },
+  { top: "44%", right: "4%", size: 19, delay: 0.6 },
+  { top: "62%", left: "5%", size: 16, delay: 1.8 },
+  { top: "71%", right: "7%", size: 22, delay: 2.9 },
+  { top: "86%", left: "10%", size: 14, delay: 0.9 },
+  { top: "92%", right: "13%", size: 17, delay: 2.0 },
+  { top: "22%", left: "14%", size: 12, delay: 3.4 },
+  { top: "52%", right: "16%", size: 12, delay: 3.9 },
+  { top: "78%", left: "16%", size: 13, delay: 1.4 },
 ];
 
 function Star({ size }) {

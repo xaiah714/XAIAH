@@ -143,7 +143,7 @@ export default function EmailSignup() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="mt-4 w-full rounded-full bg-coral px-8 py-3.5 font-display text-base font-bold text-cocoa shadow-soft transition hover:bg-coral-deep hover:text-cream active:scale-95 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+          className="mt-4 w-full rounded-full bg-berry px-8 py-3.5 font-display text-base font-bold text-white shadow-soft transition hover:bg-blush-deep active:scale-95 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
         >
           {status === "sending" ? "Signing you up…" : "Sign me up"}
         </button>

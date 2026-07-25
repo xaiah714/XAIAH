@@ -84,3 +84,37 @@ export async function addToAudience({ email }) {
   await resend(`/audiences/${audienceId}/contacts`, { email, unsubscribed: false });
   return true;
 }
+
+// Weekly newsletter (rev 11) — wraps the owner's pasted content in the
+// brand shell and sends via Resend's batch endpoint (100 emails/call).
+function newsletterHtml(contentHtml) {
+  return `
+    <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:28px 20px;color:#2e1c15">
+      <div style="background:linear-gradient(135deg,#ff61a3,#ff8d61);border-radius:20px;padding:20px 22px;text-align:center;margin-bottom:22px">
+        <h1 style="margin:0;color:#ffffff;font-size:22px">How's my hair? 💌</h1>
+      </div>
+      <div style="font-size:15px;line-height:1.65">${contentHtml}</div>
+      <p style="margin-top:26px;font-size:12px;line-height:1.6;color:#4d2f24">
+        You're getting this because you signed up on howsmyhair.org. Reply to say hi —
+        or reply "unsubscribe" and we'll take you off the list right away.
+      </p>
+    </div>`;
+}
+
+export async function sendNewsletter({ subject, contentHtml, recipients }) {
+  const from = fromAddress();
+  const html = newsletterHtml(contentHtml);
+  let sent = 0;
+  const failed = [];
+  for (let i = 0; i < recipients.length; i += 100) {
+    const chunk = recipients.slice(i, i + 100);
+    try {
+      await resend("/emails/batch", chunk.map((to) => ({ from, to: [to], subject, html })));
+      sent += chunk.length;
+    } catch (err) {
+      console.error("[newsletter] Batch failed:", err.message);
+      failed.push(...chunk);
+    }
+  }
+  return { sent, failed };
+}
