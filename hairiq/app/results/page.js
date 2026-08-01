@@ -17,10 +17,29 @@ export default function ResultsPage() {
   const { answers, reset, ready } = useQuiz();
   const complete = ready && isQuizComplete(answers);
 
+  // Routine links from the purchase receipt (rev 14): ?a=<packed answers>
+  // rehydrates the exact paid routine on any device, then cleans the URL.
+  const [hydrating, setHydrating] = useState(true);
+  useEffect(() => {
+    const packed = new URLSearchParams(window.location.search).get("a");
+    if (packed) {
+      try {
+        const json = decodeURIComponent(
+          escape(atob(packed.replace(/-/g, "+").replace(/_/g, "/")))
+        );
+        sessionStorage.setItem("hairiq-answers-v1", JSON.stringify(JSON.parse(json)));
+        window.location.replace("/results");
+        return;
+      } catch {}
+    }
+    setHydrating(false);
+  }, []);
+
   // No answers (deep link / expired session) → back to the quiz.
   useEffect(() => {
+    if (hydrating) return;
     if (ready && !complete) router.replace("/quiz");
-  }, [ready, complete, router]);
+  }, [hydrating, ready, complete, router]);
 
   // All three tiers come back pre-calculated in one pass (spec §1, §4).
   const routine = useMemo(() => (complete ? buildRoutine(answers) : null), [complete, answers]);
@@ -50,6 +69,9 @@ export default function ResultsPage() {
         .then((data) => {
           if (data.paid) {
             unlock(data.fp || undefined);
+            // frictionless (rev 14): paying IS the intent to save — no
+            // second click needed after coming back from Stripe
+            saveRoutine(answers);
             // Blueprint credentials — email+answers-bound, restorable
             if (data.email && data.token) {
               try {
@@ -72,7 +94,7 @@ export default function ResultsPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fingerprint: fp }),
+        body: JSON.stringify({ fingerprint: fp, answers }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.url) {
@@ -129,7 +151,7 @@ export default function ResultsPage() {
       </header>
 
       {/* tier tabs (pre-calculated) + phase tabs, one sticky block */}
-      <div className="sticky top-0 z-10 -mx-6 mt-8 bg-cream/95 px-6 py-3 backdrop-blur-sm">
+      <div className="no-print sticky top-0 z-10 -mx-6 mt-8 bg-cream/95 px-6 py-3 backdrop-blur-sm">
         <TierTabs activeTier={tier} onChange={setTier} />
         <div
           role="tablist"
@@ -204,7 +226,7 @@ export default function ResultsPage() {
       {/* actions — explicit paywall per spec §13.1: lock + price. One click →
           Stripe's hosted checkout (card / Apple Pay / Google Pay) → back here
           with a verified session → unlocked. */}
-      <div className="mt-12 flex flex-col items-center gap-3">
+      <div className="no-print mt-12 flex flex-col items-center gap-3">
         {unlocked ? (
           <>
             <button
@@ -230,6 +252,13 @@ export default function ResultsPage() {
             >
               🔓 Open my Blueprint — 12 guides
             </a>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="w-full max-w-sm rounded-full bg-white px-8 py-3 font-display text-base font-bold text-cocoa shadow-card transition hover:bg-blush/40 active:scale-95"
+            >
+              🖨️ Print / Save as PDF
+            </button>
           </>
         ) : (
           <>
@@ -268,7 +297,7 @@ export default function ResultsPage() {
 
       {/* free email signup (spec §12) — below the paywall, visually separate
           so it never reads as "pay to get emails" */}
-      <div className="mt-12">
+      <div className="no-print mt-12">
         <EmailSignup />
       </div>
 

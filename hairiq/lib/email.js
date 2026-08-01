@@ -85,6 +85,37 @@ export async function addToAudience({ email }) {
   return true;
 }
 
+// Purchase receipt (rev 14) — sent immediately after a verified $1.99
+// payment. Separate flow from the newsletter welcome email: it confirms
+// the charge and carries permanent links to view/print (Save as PDF) the
+// routine and open the Blueprint, so the purchase is never trapped in one
+// browser.
+export async function sendPurchaseEmail({ email, headline, blurb, routineUrl, blueprintUrl, amountCents }) {
+  const price = `$${((amountCents || 199) / 100).toFixed(2)}`;
+  await resend("/emails", {
+    from: fromAddress(),
+    to: [email],
+    subject: "Your routine is unlocked 🔓 — How's my hair?",
+    html: `
+      <div style="font-family:Helvetica,Arial,sans-serif;max-width:540px;margin:0 auto;padding:28px 20px;color:#2e1c15">
+        <div style="background:linear-gradient(135deg,#ff61a3,#ff8d61);border-radius:20px;padding:24px 22px;text-align:center">
+          <h1 style="margin:0;color:#ffffff;font-size:24px">You're unlocked! 🔓</h1>
+        </div>
+        <p style="font-size:15px;line-height:1.6">Thank you — your <strong>${price}</strong> payment went through, and your personalized routine is yours to keep.</p>
+        ${headline ? `<div style="background:#ffe9f3;border-radius:16px;padding:16px 18px;margin:18px 0"><p style="margin:0;font-size:17px;font-weight:bold">${headline}</p>${blurb ? `<p style="margin:6px 0 0;font-size:14px;line-height:1.55;color:#4d2f24">${blurb}</p>` : ""}</div>` : ""}
+        <p style="text-align:center;margin:26px 0 10px">
+          <a href="${routineUrl}" style="display:inline-block;background:#b3125a;color:#fff;text-decoration:none;font-weight:bold;padding:14px 26px;border-radius:999px">View &amp; print my routine</a>
+        </p>
+        <p style="text-align:center;margin:0 0 22px">
+          <a href="${blueprintUrl}" style="display:inline-block;background:#2e1c15;color:#fff;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:999px">Open my Blueprint — 12 guides</a>
+        </p>
+        <p style="font-size:13px;line-height:1.6;color:#4d2f24">Tip: open the routine link and use your browser's <strong>Print → Save as PDF</strong> to keep an offline copy. Both links work on any device — bookmark this email.</p>
+        <p style="font-size:12px;line-height:1.6;color:#4d2f24">Questions? Just reply to this email.</p>
+      </div>
+    `,
+  });
+}
+
 // Weekly newsletter (rev 11) — wraps the owner's pasted content in the
 // brand shell and sends via Resend's batch endpoint (100 emails/call).
 function newsletterHtml(contentHtml) {

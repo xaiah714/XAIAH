@@ -42,7 +42,7 @@ function PrincipleDetails({ principleId }) {
 export default function StepCard({ step, index, activeTier }) {
   const products = step.products[activeTier] || [];
   return (
-    <li className="rounded-3xl bg-white/70 p-5 shadow-card sm:p-6">
+    <li className="step-card rounded-3xl bg-white/70 p-5 shadow-card sm:p-6">
       <div className="flex items-start gap-4">
         <span
           aria-hidden="true"

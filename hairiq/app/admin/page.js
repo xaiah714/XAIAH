@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [html, setHtml] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [receiptTo, setReceiptTo] = useState("");
 
   function toggle(value) {
     setTiers((prev) => (prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]));
@@ -26,11 +27,15 @@ export default function AdminPage() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, action, tiers, subject, html }),
+        body: JSON.stringify({ password, action, tiers, subject, html, to: receiptTo }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
         setStatus(`⚠️ ${data.error || "Something went wrong."}`);
+      } else if (action === "test-receipt") {
+        setStatus(`✅ Sample purchase receipt sent to ${receiptTo}.`);
+      } else if (action === "sync-purchases") {
+        setStatus(`✅ Purchase ledger synced from Stripe: ${data.synced} recorded${data.failed ? `, ${data.failed} failed` : ""}.`);
       } else if (action === "preview") {
         setStatus(`👀 This would go to ${data.recipients} subscriber${data.recipients === 1 ? "" : "s"}.`);
       } else {
@@ -120,6 +125,42 @@ export default function AdminPage() {
         </div>
         {status ? <p className="text-sm font-bold">{status}</p> : null}
       </div>
+
+      <section className="mt-10 rounded-3xl bg-white/70 p-5">
+        <h2 className="font-display text-lg font-bold">Purchase receipt preview 🧾</h2>
+        <p className="mt-1 text-sm font-semibold text-cocoa-soft">
+          Buyers get this automatically right after paying. Send yourself a sample to check the wording and links.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            type="email"
+            value={receiptTo}
+            onChange={(e) => setReceiptTo(e.target.value)}
+            placeholder="you@example.com"
+            className={`${input} flex-1`}
+          />
+          <button
+            type="button"
+            onClick={() => call("test-receipt")}
+            disabled={busy}
+            className="rounded-full bg-cocoa px-6 py-3 font-display text-base font-bold text-cream shadow-card disabled:opacity-60"
+          >
+            Send sample
+          </button>
+        </div>
+        <p className="mt-5 text-sm font-semibold text-cocoa-soft">
+          Purchases are recorded in Supabase (<code>hairiq_purchases</code>) automatically. Stripe is always
+          the source of truth — use this to rebuild or backfill the table any time.
+        </p>
+        <button
+          type="button"
+          onClick={() => call("sync-purchases")}
+          disabled={busy}
+          className="mt-2 rounded-full bg-white px-6 py-3 font-display text-base font-bold text-cocoa shadow-card disabled:opacity-60"
+        >
+          🔄 Sync purchases from Stripe
+        </button>
+      </section>
     </main>
   );
 }

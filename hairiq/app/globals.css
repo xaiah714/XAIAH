@@ -79,6 +79,33 @@ body {
   }
 }
 
+/* Print / Save as PDF (rev 14) — drop the chrome, keep the routine.
+   Every phase renders so the printed copy is the WHOLE plan, not just
+   the tab that happened to be open. */
+@media print {
+  .sparkles,
+  #lang-toggle,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding-top: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  details {
+    display: block !important;
+  }
+  details > *:not(summary) {
+    display: block !important;
+  }
+  .step-card {
+    break-inside: avoid;
+  }
+}
+
 /* gentle entrance for quiz question changes and results sections */
 @keyframes rise {
   from {
