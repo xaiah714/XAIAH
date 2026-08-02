@@ -18,6 +18,8 @@
 
 import { QUESTIONS } from "./questions";
 import { TIER_META } from "./products";
+import { buildHaircutSections } from "./haircuts";
+import { retailerLinks, storeFinderLinks } from "./affiliates";
 
 const label = (qid, v) => {
   const q = QUESTIONS.find((x) => x.id === qid);
@@ -99,25 +101,16 @@ export function buildPremiumTabs(profile) {
       sections: [
         forYou(p, "shopping-list"),
         {
-          heading: "Retailers",
-          body: ["Placeholder — retailer links organized to match your routine's product list."],
-          links: [
-            { label: "Amazon", url: "https://www.amazon.com/s?k=hair+care" },
-            { label: "Target", url: "https://www.target.com/c/hair-care" },
-            { label: "Ulta", url: "https://www.ulta.com/shop/hair" },
-            { label: "Walmart", url: "https://www.walmart.com/browse/beauty/hair-care" },
-            { label: "CVS", url: "https://www.cvs.com/shop/beauty/hair-care" },
+          heading: "Shop the hair aisle",
+          body: [
+            "Every product card in your routine now has its own Buy row — one tap goes straight to that exact product at the retailer you choose. These links open the full hair-care section at each store:",
           ],
+          links: retailerLinks(),
         },
         {
           heading: "Find a store near you",
-          body: ["Placeholder — store-locator links for each retailer."],
-          links: [
-            { label: "Target stores", url: "https://www.target.com/store-locator/find-stores" },
-            { label: "Ulta stores", url: "https://www.ulta.com/stores" },
-            { label: "Walmart stores", url: "https://www.walmart.com/store-finder" },
-            { label: "CVS stores", url: "https://www.cvs.com/store-locator/landing" },
-          ],
+          body: ["Prefer to grab it today? Store locators:"],
+          links: storeFinderLinks(),
         },
       ],
     },
@@ -136,14 +129,9 @@ export function buildPremiumTabs(profile) {
       title: "Haircut",
       emoji: "✂️",
       intro: p.hairTypeLabel
-        ? `Cut strategy for ${p.hairTypeLabel.toLowerCase()} hair — matched to your goal.`
-        : "Cut strategy matched to your goal — thickness, volume, curl shape, growth, or face-framing.",
-      sections: [
-        forYou(p, "haircut"),
-        { heading: "By goal", body: ["Placeholder — goal-based recommendations (thickness, volume, curl shape, growth, face-framing), varied by hair type."] },
-        { heading: "Dusting", body: ["Placeholder — dusting as its own option: what it is, when to ask for it, how often."] },
-        { heading: "⚠️ Skip the at-home split-end gadgets", body: ["Placeholder — why at-home split-end trimmers deserve caution, and what to do instead."] },
-      ],
+        ? `Your cut, decided in three steps: how ${p.hairTypeLabel.toLowerCase()} hair should be cut → what your goal needs → the length that suits your face.`
+        : "Your cut, decided in three steps: how your hair type should be cut → what your goal needs → the length that suits your face.",
+      sections: buildHaircutSections(p),
     },
     {
       id: "colored",

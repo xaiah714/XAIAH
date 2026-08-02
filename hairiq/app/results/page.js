@@ -303,6 +303,10 @@ export default function ResultsPage() {
 
       {/* disclaimer */}
       <footer className="mt-10 border-t border-blush/70 pt-6 text-center text-xs font-semibold leading-relaxed text-cocoa-soft">
+        Some product links are affiliate links — if you buy through them we may earn a small
+        commission at no extra cost to you. It never changes which products we recommend.
+        <br />
+        <br />
         How Is My Hair gives cosmetic styling guidance, not medical treatment. Persistent scalp issues —
         anything painful, spreading, or unresponsive to over-the-counter care — deserve a
         dermatologist visit rather than a routine change.

@@ -6,6 +6,13 @@ import { PREMIUM } from "@/lib/config";
 import { buildProfile, buildPremiumTabs } from "@/lib/premium-content";
 import Tracker from "@/components/Tracker";
 
+// **bold** → <strong>, without dangerouslySetInnerHTML
+function bold(text) {
+  return String(text)
+    .split(/\*\*(.+?)\*\*/g)
+    .map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part));
+}
+
 function readAnswers() {
   // personalization source: current quiz session, else the saved routine
   try {
@@ -215,9 +222,23 @@ export default function PremiumPage() {
             {active.sections.map((s) => (
               <div key={s.heading} className="rounded-3xl bg-white/80 p-5 shadow-card">
                 <h3 className="font-display text-lg font-bold">{s.heading}</h3>
-                {s.body.map((p, i) => (
-                  <p key={i} className="mt-2 text-sm font-semibold leading-relaxed text-cocoa-soft">{p}</p>
+                {(s.body || []).map((p, i) => (
+                  <p key={i} className="mt-2 text-sm font-semibold leading-relaxed text-cocoa-soft">
+                    {bold(p)}
+                  </p>
                 ))}
+                {s.items ? (
+                  <ul className="mt-3 space-y-2.5">
+                    {s.items.map((it) => (
+                      <li key={it.label} className="rounded-2xl bg-blush/25 px-4 py-3">
+                        <p className="font-display text-sm font-extrabold leading-snug">{it.label}</p>
+                        <p className="mt-1 text-sm font-semibold leading-relaxed text-cocoa-soft">
+                          {bold(it.text)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 {s.links ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {s.links.map((l) => (
