@@ -20,10 +20,22 @@
 export const AFFILIATES = {
   // Amazon Associates tracking id (live)
   amazonTag: "howsmyhair-20",
-  // Sovrn Commerce / Skimlinks site id — wraps every non-Amazon retailer
-  // link. Leave blank to send plain (unmonetized) links.
+
+  // --- the non-Amazon retailers: EITHER of these two works ---------------
+  //
+  // Option A — auto-link script (easiest: the id is inside the snippet the
+  // network tells you to install). Paste just the script SRC here, e.g.
+  //   Skimlinks: "https://s.skimresources.com/js/123456X.skimlinks.js"
+  //   Sovrn:     "https://cdn.viglink.com/api/vglnk.js"  (+ set networkId)
+  // Once set, EVERY outbound retailer link on the site is converted
+  // automatically — including links added in future content.
+  autoLinkScript: "",
+
+  // Option B — id only. Links get wrapped server-side, no script needed.
+  //   Sovrn/VigLink: the "key" value from a generated link
+  //   Skimlinks:     your publisher/site id
   networkId: "",
-  // "sovrn" | "skimlinks" — which wrapper the id above belongs to
+  // "sovrn" | "skimlinks" — which network the id above belongs to
   network: "sovrn",
 };
 

@@ -3,6 +3,7 @@ import Script from "next/script";
 import { QuizProvider } from "@/components/QuizProvider";
 import LanguageToggle from "@/components/LanguageToggle";
 import Sparkles from "@/components/Sparkles";
+import { AFFILIATES } from "@/lib/affiliates";
 import "./globals.css";
 
 const quicksand = Quicksand({
@@ -58,6 +59,19 @@ export default function RootLayout({ children }) {
         {/* Google Website Translator (Español toggle). The init script also
             patches removeChild/insertBefore — the standard fix for React
             crashes when translation wraps text nodes in <font> tags. */}
+        {/* affiliate auto-linking (rev 16) — when a network script is
+            configured, it converts every outbound retailer link on the
+            site into a tracked one, including links we add later. */}
+        {AFFILIATES.autoLinkScript ? (
+          <>
+            {AFFILIATES.networkId && AFFILIATES.network === "sovrn" ? (
+              <Script id="vglnk-config" strategy="afterInteractive">{`
+                var vglnk = { key: ${JSON.stringify(AFFILIATES.networkId)} };
+              `}</Script>
+            ) : null}
+            <Script src={AFFILIATES.autoLinkScript} strategy="afterInteractive" />
+          </>
+        ) : null}
         <div id="google_translate_element" className="hidden" aria-hidden="true" />
         <Script id="gt-init" strategy="afterInteractive">{`
           if (typeof Node !== "undefined" && !window.__gtDomPatched) {
