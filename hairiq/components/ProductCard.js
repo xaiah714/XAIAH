@@ -35,7 +35,12 @@ export default function ProductCard({ product, activeTier }) {
               href={l.url}
               target="_blank"
               rel="nofollow sponsored noopener noreferrer"
-              className="rounded-full bg-butter px-2.5 py-1 text-[11px] font-extrabold text-cocoa transition hover:bg-coral"
+              // Amazon carries our own Associates tag, so tell Skimlinks to
+              // leave it alone ("noskim") — direct pays better than letting
+              // the network re-attribute it. Every other retailer is fair game.
+              className={`rounded-full bg-butter px-2.5 py-1 text-[11px] font-extrabold text-cocoa transition hover:bg-coral${
+                l.id === "amazon" ? " noskim" : ""
+              }`}
             >
               {l.label}
             </a>
