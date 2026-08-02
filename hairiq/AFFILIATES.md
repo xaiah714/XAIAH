@@ -1,4 +1,23 @@
-# Affiliate setup — how many programs do you actually need?
+# Affiliate setup
+
+## ⭐ START HERE — sign up for these 2, that's the whole job
+
+| # | Program | Link | What you'll get |
+| --- | --- | --- | --- |
+| 1 | **Amazon Associates** | affiliate-program.amazon.com | a tag like `howsmyhair-20` |
+| 2 | **Sovrn Commerce** (or Skimlinks) | sovrn.com/affiliate-marketing | a site id number |
+
+Send those two strings to Claude → they get pasted into
+`lib/affiliates.js` → redeploy → **every product on the site earns,
+forever, with no further work.** Amazon carries all 54 brands; Sovrn
+covers Target, Ulta, Walmart, CVS and ~50,000 other stores
+automatically, including any product added later.
+
+Everything below is optional rate-optimization, not a coverage gap.
+
+---
+
+## The long version — how many programs do you actually need?
 
 Every product on the site now shows a **Buy** row (Amazon · Target · Ulta ·
 Walmart · CVS) that links straight to that product. The links work today;
