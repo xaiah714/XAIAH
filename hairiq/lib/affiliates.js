@@ -18,8 +18,8 @@
 // ---------------------------------------------------------------------------
 
 export const AFFILIATES = {
-  // Amazon Associates tracking id, e.g. "howsmyhair-20"
-  amazonTag: "",
+  // Amazon Associates tracking id (live)
+  amazonTag: "howsmyhair-20",
   // Sovrn Commerce / Skimlinks site id — wraps every non-Amazon retailer
   // link. Leave blank to send plain (unmonetized) links.
   networkId: "",
