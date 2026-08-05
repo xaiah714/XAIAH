@@ -15,6 +15,9 @@ export default function AdminPage() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [receiptTo, setReceiptTo] = useState("");
+  const [giftTo, setGiftTo] = useState("");
+  const [giftLink, setGiftLink] = useState("");
+  const [giftSend, setGiftSend] = useState(true);
 
   function toggle(value) {
     setTiers((prev) => (prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]));
@@ -27,13 +30,24 @@ export default function AdminPage() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, action, tiers, subject, html, to: receiptTo }),
+        body: JSON.stringify({
+          password,
+          action,
+          tiers,
+          subject,
+          html,
+          to: action === "grant-access" ? giftTo : receiptTo,
+          send: giftSend,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
         setStatus(`⚠️ ${data.error || "Something went wrong."}`);
       } else if (action === "test-receipt") {
         setStatus(`✅ Sample purchase receipt sent to ${receiptTo}.`);
+      } else if (action === "grant-access") {
+        setGiftLink(data.link);
+        setStatus(data.emailed ? `✅ Free access emailed to ${giftTo}.` : "✅ Link ready — copy it below.");
       } else if (action === "sync-purchases") {
         setStatus(`✅ Purchase ledger synced from Stripe: ${data.synced} recorded${data.failed ? `, ${data.failed} failed` : ""}.`);
       } else if (action === "preview") {
@@ -127,6 +141,51 @@ export default function AdminPage() {
       </div>
 
       <section className="mt-10 rounded-3xl bg-white/70 p-5">
+        <h2 className="font-display text-lg font-bold">Give free access 💝</h2>
+        <p className="mt-1 text-sm font-semibold text-cocoa-soft">
+          Gift the full paid experience — routine + all 12 Blueprint guides — to family, friends, or
+          anyone you choose. Their access never expires and works on every device they open the link
+          on. No payment, no code for them to remember.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            type="email"
+            value={giftTo}
+            onChange={(e) => setGiftTo(e.target.value)}
+            placeholder="mom@example.com"
+            className={`${input} flex-1`}
+          />
+          <button
+            type="button"
+            onClick={() => call("grant-access")}
+            disabled={busy}
+            className="rounded-full bg-berry px-6 py-3 font-display text-base font-bold text-white shadow-soft disabled:opacity-60"
+          >
+            Give access
+          </button>
+        </div>
+        <label className="mt-2 flex items-center gap-2 text-sm font-semibold text-cocoa-soft">
+          <input type="checkbox" checked={giftSend} onChange={(e) => setGiftSend(e.target.checked)} />
+          Email them the link automatically
+        </label>
+        {giftLink ? (
+          <div className="mt-3 rounded-2xl bg-blush/30 p-3">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-cocoa-soft">
+              Their access link — send it however you like
+            </p>
+            <p className="mt-1 break-all text-xs font-semibold">{giftLink}</p>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(giftLink)}
+              className="mt-2 rounded-full bg-cocoa px-4 py-2 font-display text-xs font-bold text-cream"
+            >
+              Copy link
+            </button>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="mt-6 rounded-3xl bg-white/70 p-5">
         <h2 className="font-display text-lg font-bold">Purchase receipt preview 🧾</h2>
         <p className="mt-1 text-sm font-semibold text-cocoa-soft">
           Buyers get this automatically right after paying. Send yourself a sample to check the wording and links.

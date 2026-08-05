@@ -11,13 +11,24 @@ import { fingerprint } from "@/lib/premium-auth";
 const UNLOCK_KEY = "hairiq-premium-v2";
 const SAVED_KEY = "hairiq-saved-v1";
 
-function readFps() {
+function readUnlock() {
   try {
-    const v = JSON.parse(localStorage.getItem(UNLOCK_KEY));
-    return Array.isArray(v?.fps) ? v.fps : [];
+    return JSON.parse(localStorage.getItem(UNLOCK_KEY)) || {};
   } catch {
-    return [];
+    return {};
   }
+}
+
+function readFps() {
+  const v = readUnlock();
+  return Array.isArray(v.fps) ? v.fps : [];
+}
+
+// Comped accounts (rev 17): the owner gifted this device permanent access,
+// server-verified when the gift link was opened. No fingerprint applies —
+// every routine they build stays unlocked.
+function isComped() {
+  return readUnlock().comp === true;
 }
 
 export function readSavedAnswers() {
@@ -43,7 +54,7 @@ export function usePremium(answers) {
         const f = await fingerprint(answers || {});
         if (dead) return;
         setFp(f);
-        setUnlocked(readFps().includes(f));
+        setUnlocked(isComped() || readFps().includes(f));
         setSaved(Boolean(localStorage.getItem(SAVED_KEY)));
       } catch {}
     })();

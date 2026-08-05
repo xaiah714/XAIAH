@@ -79,6 +79,18 @@ export default function PremiumPage() {
             }
           }
           localStorage.setItem(CRED_KEY, JSON.stringify(creds));
+          // A verified token with no fingerprint = gifted/comped access
+          // (rev 17). Mirror it into the unlock store so the results page
+          // is unlocked too, for every routine they build.
+          if (!creds.fp) {
+            try {
+              const prev = JSON.parse(localStorage.getItem("hairiq-premium-v2")) || {};
+              localStorage.setItem(
+                "hairiq-premium-v2",
+                JSON.stringify({ ...prev, fps: prev.fps || [], comp: true })
+              );
+            } catch {}
+          }
           setEmail(creds.email);
           return setState("unlocked");
         }

@@ -7,11 +7,11 @@
 // and nowhere else. If it becomes a subscription, make the label read
 // "$X/month" so the copy always matches the model.
 export const PREMIUM = {
-  priceLabel: "$1.99",
-  unlockLabel: "Unlock for $1.99",
+  priceLabel: "$3.99",
+  unlockLabel: "Unlock for $3.99",
   // Stripe Checkout charges exactly this (unless STRIPE_PRICE_ID overrides
   // it with a dashboard-managed Price). Keep in sync with the labels above.
-  amountCents: 199,
+  amountCents: 399,
   currency: "usd",
   productName: "How Is My Hair — Premium (save your routine)",
 };

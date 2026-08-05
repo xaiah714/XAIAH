@@ -29,9 +29,13 @@ export const AFFILIATES = {
   //   Sovrn:     "https://cdn.viglink.com/api/vglnk.js"  (+ set networkId)
   // Once set, EVERY outbound retailer link on the site is converted
   // automatically — including links added in future content.
-  // LIVE: Skimlinks publisher 307120, site 1795395. Converts Target,
-  // Ulta, Walmart, CVS (and ~50k other merchants) at click time.
-  autoLinkScript: "https://s.skimresources.com/js/307120X1795395.skimlinks.js",
+  // Skimlinks declined the application (new site, pre-traffic), so their
+  // script is removed — a script from a rejected account monetizes
+  // nothing and just costs a request. Drop the next network's snippet
+  // here and it goes live instantly:
+  //   Skimlinks: "https://s.skimresources.com/js/307120X1795395.skimlinks.js"
+  //   Sovrn:     "https://cdn.viglink.com/api/vglnk.js"  (+ networkId)
+  autoLinkScript: "",
 
   // Option B — id only. Links get wrapped server-side, no script needed.
   //   Sovrn/VigLink: the "key" value from a generated link

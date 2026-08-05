@@ -116,6 +116,27 @@ export async function sendPurchaseEmail({ email, headline, blurb, routineUrl, bl
   });
 }
 
+// Gifted access (rev 17) — the owner comping someone in for free.
+export async function sendGiftEmail({ email, link }) {
+  await resend("/emails", {
+    from: fromAddress(),
+    to: [email],
+    subject: "You've been given full access 💝 — How's my hair?",
+    html: `
+      <div style="font-family:Helvetica,Arial,sans-serif;max-width:540px;margin:0 auto;padding:28px 20px;color:#2e1c15">
+        <div style="background:linear-gradient(135deg,#ff61a3,#ff8d61);border-radius:20px;padding:24px 22px;text-align:center">
+          <h1 style="margin:0;color:#ffffff;font-size:24px">A gift for you 💝</h1>
+        </div>
+        <p style="font-size:15px;line-height:1.6">You've been given <strong>full free access</strong> to How's my hair? — the personalized routine plus all twelve Blueprint guides.</p>
+        <p style="text-align:center;margin:26px 0">
+          <a href="${link}" style="display:inline-block;background:#b3125a;color:#fff;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:999px">Unlock my access</a>
+        </p>
+        <p style="font-size:13px;line-height:1.6;color:#4d2f24">Tap it once on each device you use — it never expires, and you can retake the quiz as often as you like.</p>
+      </div>
+    `,
+  });
+}
+
 // Weekly newsletter (rev 11) — wraps the owner's pasted content in the
 // brand shell and sends via Resend's batch endpoint (100 emails/call).
 function newsletterHtml(contentHtml) {

@@ -9,7 +9,7 @@
 //   send    → { ok, sent, failedCount }
 
 import { createClient } from "@supabase/supabase-js";
-import { emailConfigured, sendNewsletter, sendPurchaseEmail } from "@/lib/email";
+import { emailConfigured, sendNewsletter, sendPurchaseEmail, sendGiftEmail } from "@/lib/email";
 
 const VALID_TIERS = ["drugstore", "luxury", "crueltyFree"];
 
@@ -66,6 +66,32 @@ export async function POST(request) {
       amountCents: 199,
     });
     return Response.json({ ok: true, sent: 1 });
+  }
+
+  // Comp access (rev 17) — the owner gifts full, permanent access to
+  // anyone (family, friends, press) without a payment. The link carries an
+  // access token bound to that person's email with NO answers fingerprint,
+  // which is what makes it unrestricted: they can retake the quiz as many
+  // times as they like and everything stays unlocked.
+  if (body.action === "grant-access") {
+    const to = typeof body.to === "string" ? body.to.trim().toLowerCase() : "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      return Response.json({ ok: false, error: "Enter a valid email to gift access to." }, { status: 400 });
+    }
+    const { mintToken } = await import("@/lib/premium-auth");
+    const token = await mintToken(to, "");
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+    const link = `${origin}/premium?email=${encodeURIComponent(to)}&grant=${token}`;
+
+    // optionally email it straight to them
+    if (body.send && emailConfigured()) {
+      try {
+        await sendGiftEmail({ email: to, link });
+      } catch (err) {
+        console.error("[grant] Gift email failed:", err.message);
+      }
+    }
+    return Response.json({ ok: true, link, emailed: Boolean(body.send && emailConfigured()) });
   }
 
   // Backfill/repair the purchase ledger from Stripe (rev 14) — Stripe is
