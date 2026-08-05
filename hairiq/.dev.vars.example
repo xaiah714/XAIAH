@@ -1,0 +1,10 @@
+# Local Cloudflare preview secrets — copy to .dev.vars (gitignored) and fill in.
+# In production, set each once with: npx wrangler secret put <NAME>
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+STRIPE_SECRET_KEY=
+RESEND_API_KEY=
+# NEWSLETTER_FROM=How Is My Hair <hello@howsmyhair.org>
+# RESEND_AUDIENCE_ID=
+# STRIPE_PRICE_ID=
+# NEXT_PUBLIC_SITE_URL=https://howsmyhair.org

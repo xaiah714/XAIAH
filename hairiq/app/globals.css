@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/* HairIQ saturated pink-orange-yellow theme (spec §3, July 12 revision —
+   the "groovy" palette that supersedes the original pastels).
+   Token NAMES are historical (cream/coral/blush/butter) so components don't
+   churn; only the values changed. To revert to pastel, swap values here and
+   in scripts/demo-template.html. */
+@theme {
+  /* Palette v3 — owner-picked (rev 6): pink bg + true orange CTAs + hot pink
+     accents. #ff61a3 and #ff8d61 straight from the owner; coral-deep darkened
+     to #c2410c so accent text stays readable on white cards. */
+  --color-cream: #ffb4d5; /* background — pink */
+  --color-coral: #ff8d61; /* primary CTA — orange (less yellow) */
+  --color-coral-deep: #c2410c; /* hover / accent text — deep burnt orange */
+  --color-blush: #ffa1cb; /* soft fills — light pink between bg and accent */
+  --color-blush-deep: #ff61a3; /* borders / gradient — THE pink */
+  --color-butter: #ffbb87; /* chip/badge fill — light orange (rev 11, was yellow) */
+  --color-berry: #b3125a; /* wordmark accent — deep raspberry, 4:1+ on the pink bg */
+  --color-mint: #c8e6c9; /* cruelty-free badge (semantic, kept) */
+  --color-mint-deep: #386641;
+  /* Text darkened for the v3 pink background (owner request): near-black
+     dark brown. cocoa 9.9:1 and cocoa-soft 7.3:1 on the pink bg (AAA). */
+  --color-cocoa: #2e1c15;
+  --color-cocoa-soft: #4d2f24;
+
+  --font-display: var(--font-quicksand), "Quicksand", "Poppins", ui-rounded, system-ui, sans-serif;
+  --font-body: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
+  /* wordmark only — chunky cursive */
+  --font-title: var(--font-pacifico), "Pacifico", "Brush Script MT", cursive;
+
+  --shadow-soft: 0 10px 26px -10px rgb(194 65 12 / 0.5);
+  --shadow-card: 0 6px 22px -10px rgb(46 28 21 / 0.18);
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-cocoa);
+  font-family: var(--font-body);
+}
+
+/* layered so single-purpose utilities (e.g. the wordmark's font-title)
+   can still override the default heading face */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* ambient sparkles (rev 10) — tiny white stars around the viewport edges */
+.sparkles {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.sparkle {
+  position: absolute;
+  filter: drop-shadow(0 0 5px rgb(255 255 255 / 1)) drop-shadow(0 0 10px rgb(255 255 255 / 0.6));
+  animation: twinkle 4.5s ease-in-out infinite;
+  opacity: 0.5;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sparkle {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
+/* Print / Save as PDF (rev 14) — drop the chrome, keep the routine.
+   Every phase renders so the printed copy is the WHOLE plan, not just
+   the tab that happened to be open. */
+@media print {
+  .sparkles,
+  #lang-toggle,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding-top: 0 !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  details {
+    display: block !important;
+  }
+  details > *:not(summary) {
+    display: block !important;
+  }
+  .step-card {
+    break-inside: avoid;
+  }
+}
+
+/* gentle entrance for quiz question changes and results sections */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.35s ease both;
+}
+
+/* expandable "why this works" details */
+details.principle summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.principle summary::-webkit-details-marker {
+  display: none;
+}
+details.principle summary::after {
+  content: "▾";
+  display: inline-block;
+  margin-left: 0.35rem;
+  transition: transform 0.2s ease;
+}
+details.principle[open] summary::after {
+  transform: rotate(180deg);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-coral);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Google Translate widget: hide its banner/tooltip chrome — the Español
+   toggle drives it via cookie, so none of Google's UI should show. */
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+body > .skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
