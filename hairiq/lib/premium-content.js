@@ -20,6 +20,14 @@ import { QUESTIONS } from "./questions";
 import { TIER_META } from "./products";
 import { buildHaircutSections } from "./haircuts";
 import { retailerLinks, storeFinderLinks } from "./affiliates";
+import {
+  volumeSections,
+  coloredSections,
+  nightSections,
+  swimmingSections,
+  brushedSections,
+  damageFreeSections,
+} from "./blueprint-tabs";
 
 const label = (qid, v) => {
   const q = QUESTIONS.find((x) => x.id === qid);
@@ -134,68 +142,54 @@ export function buildPremiumTabs(profile) {
       sections: buildHaircutSections(p),
     },
     {
-      id: "colored",
-      title: "Colored",
-      emoji: "🎨",
-      intro: p.colorTreated
-        ? "You told us your hair is color-treated — this tab starts with your situation."
-        : "Color care by situation — going blonde, going darker, bleach, vivids, patterns, and upkeep.",
-      sections: [
-        forYou(p, "color-care"),
-        { heading: "Blonde & lightening", body: ["Placeholder."] },
-        { heading: "Going darker", body: ["Placeholder."] },
-        { heading: "Vivids & patterns", body: ["Placeholder."] },
-        { heading: "Maintenance & transitions", body: ["Placeholder — keeping color alive, and transition guidance between colors."] },
-      ],
+      id: "volume",
+      title: "Volume",
+      emoji: "🎈",
+      intro: p.density === "fine"
+        ? "Fine density means volume takes strategy — here's what actually works, and what won't."
+        : "Where volume really comes from, what kills it, and how to get it back.",
+      sections: volumeSections(p),
     },
     {
-      id: "bleached",
-      title: "Bleached",
-      emoji: "🫧",
+      id: "colored",
+      title: "Colored & Bleached",
+      emoji: "🎨",
       intro: p.bleached
-        ? "Your quiz says bleached — this whole tab is your home base."
-        : "Dedicated care for bleached hair — porosity, bonds, and rebuilding.",
-      sections: [forYou(p, "bleach-care"), { heading: "The bleached-hair rules", body: ["Placeholder — dedicated bleach care content."] }],
+        ? "You told us your hair is bleached — this tab starts with your situation."
+        : p.colorTreated
+          ? "You told us your hair is color-treated — maintenance is where to start."
+          : "Going lighter, going darker, bleach care, and keeping color alive between salon visits.",
+      sections: coloredSections(p),
     },
     {
       id: "night",
       title: "At Night",
       emoji: "🌙",
-      intro: "Overnight protection and sleep-friendly hairstyles, in depth.",
-      sections: [
-        forYou(p, "night-care"),
-        { heading: "Protection setups", body: ["Placeholder — bonnets, pillowcases, wraps, varied by hair type and length."] },
-        { heading: "Overnight hairstyles", body: ["Placeholder — braids, pineapples, heatless curls, varied by hair type."] },
-      ],
+      intro: "Overnight protection, hairstyles, and scalp care — matched to what's actually bothering you.",
+      sections: nightSections(p),
     },
     {
       id: "swimming",
       title: "After Swimming",
       emoji: "🏊",
-      intro: "Salt, chlorine, and plain water damage hair differently — here's the right recovery for each.",
-      sections: [
-        forYou(p, "swim-recovery"),
-        { heading: "🌊 Saltwater / ocean", body: ["Placeholder — why salt dehydrates, pre-swim prep, and the post-swim recovery routine (varied by hair type and color treatment)."] },
-        { heading: "🏊 Chlorine / pools", body: ["Placeholder — chlorine bonding to hair, chelating washes, and the post-swim recovery routine."] },
-        { heading: "💧 Fresh water", body: ["Placeholder — hygral stress from long soaks and the post-swim routine."] },
-        { heading: "Swim caps worth buying", body: ["Placeholder — swim cap recommendations."] },
-      ],
+      intro: "Salt, chlorine and fresh water damage hair differently — here's the right prep and recovery for each.",
+      sections: swimmingSections(p),
     },
     {
       id: "brushed",
       title: "Brushed",
       emoji: "🪮",
       intro: p.hairTypeLabel
-        ? `Brushing technique for ${p.hairTypeLabel.toLowerCase()} hair, tool by tool.`
-        : "Brushing technique, tool by tool and texture by texture.",
-      sections: [forYou(p, "brushing"), { heading: "Technique", body: ["Placeholder — brushing technique guidance, varied by texture and density."] }],
+        ? `How to brush ${p.hairTypeLabel.toLowerCase()} hair without breaking it.`
+        : "How to brush without breaking your hair — the method almost nobody is taught.",
+      sections: brushedSections(p),
     },
     {
       id: "damage-free",
       title: "Damage-Free",
       emoji: "🛡️",
-      intro: "Protective and damage-free hairstyles that still look good.",
-      sections: [forYou(p, "protective-styles"), { heading: "Styles", body: ["Placeholder — protective/damage-free hairstyles, varied by hair type and length."] }],
+      intro: "Protective styles that don't pull — and the ones quietly costing you your hairline.",
+      sections: damageFreeSections(p),
     },
     {
       id: "supplements",

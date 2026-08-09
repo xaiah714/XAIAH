@@ -54,17 +54,19 @@ export async function POST(request) {
   } else {
     // Re-signup updates preferences instead of erroring (upsert on email).
     const row = { email, tiers, ...(zip ? { zip } : {}) };
-    const { error } = await supabase
-      .from("hairiq_subscribers")
-      .upsert(row, { onConflict: "email" });
-    if (error) {
-      console.error("[subscribe] Supabase error:", error.message);
-      return Response.json(
-        { ok: false, error: "Couldn't save your signup right now — try again in a bit." },
-        { status: 502 }
-      );
+    try {
+      const { error } = await supabase
+        .from("hairiq_subscribers")
+        .upsert(row, { onConflict: "email" });
+      if (error) throw new Error(error.message);
+      stored = true;
+    } catch (err) {
+      // Never turn a database blip into a lost subscriber (rev 18). Free
+      // Supabase projects pause when idle, and the visitor shouldn't see
+      // an error for that. We still send the welcome email — which lands
+      // in Resend's log — and print the full row so it can be recovered.
+      console.error("[subscribe] NOT STORED — recover this signup:", err.message, JSON.stringify(row));
     }
-    stored = true;
   }
 
   // Confirmation email + Audience mirror — best-effort: a delivery hiccup

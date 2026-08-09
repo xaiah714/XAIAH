@@ -15,17 +15,22 @@ export const CUT_SHAPES = [
   {
     id: "blunt",
     label: "Blunt (one length)",
-    text: "Every strand ends at the same line. Nothing is removed from the perimeter, so your ends look as thick as they possibly can — this is the #1 cut for making hair look denser. Trade-off: zero built-in movement, and on very thick or curly hair it can go triangular.",
+    text: "Every strand ends at the same sharp line. Nothing is removed from the perimeter, so your ends look as thick as they possibly can — this is the #1 cut for density. Trade-off: zero built-in movement, and on very thick or curly hair it can go triangular.",
   },
   {
     id: "u-shape",
-    label: "U-shape",
-    text: "A soft curve — slightly shorter at the front, longest through the back, ends still full. It keeps nearly all the thickness of a blunt cut but loses the flat, board-like edge. The best of both worlds if you want thick ends with a little shape.",
+    label: "U-shape — soft, rounded, thick ends",
+    text: "A soft rounded shape that keeps the ends thick. It's the density-keeper's cut: you can wear it with layers, with no layers, or with face-framing layers only, and the ends stay full either way. If you want thickness without the flat board edge of a blunt cut, this is it.",
   },
   {
     id: "v-shape",
-    label: "V-shape",
-    text: "A defined point down the back. It removes weight from the perimeter and creates long, dramatic movement — but it makes your ends read thinner. Choose it if your hair is heavy and you want it to move; skip it if thick ends are the goal.",
+    label: "V-shape — tapers to a point",
+    text: "Tapers to a sharp point down the back, usually with heavy layers. Genuinely great on really thick hair and on thick curly hair, where the taper removes weight that would otherwise puff out. But on finer hair it can make you look like you have far less hair than you do — the point reads as thin ends.",
+  },
+  {
+    id: "blend",
+    label: "Blend cut / thinning shears",
+    text: "Not a shape — a technique. Thinning shears break up the ends so they blend instead of stopping at a sharp line, which adds texture and softness. The catch: it also removes bulk from your ends. On thick hair it's a relief; on fine hair it's how you end up with wispy, see-through tips. Blunt keeps thickness and a sharp line; blending gives texture and no line.",
   },
   {
     id: "face-framing",
@@ -199,6 +204,55 @@ export const GOLDEN_RATIO = {
     "Treat it like a starting suggestion. Your hair's density, your neck length, your glasses, how you part it, and — most of all — what you actually like will all outrank a tape measure.",
 };
 
+// --- face shape: find yours, then cut to flatter it ------------------------
+export const FACE_SHAPE = {
+  heading: "🪞 Find your face shape (then cut to flatter it)",
+  intro: [
+    "Face shape is the other half of choosing a cut — it decides where length and volume should sit. Work through these steps once and you'll know yours for life.",
+    "**Set up first:** pull all your hair back off your face. Take off glasses. Relaxed face — no smiling. You're only looking at the outline.",
+  ],
+  steps: [
+    {
+      label: "Step 1 — Which part of your face is widest?",
+      text: "Forehead, cheekbones, or jaw? (Or is everything roughly the same width?) That answer sends you to one of the branches below.",
+    },
+    {
+      label: "If your FOREHEAD is widest",
+      text: "Pointy chin? → **Heart** or **inverted triangle**. Then check the jaw: soft and rounded → **Heart**. Sharper, more angular → **Inverted triangle**. No pointy chin at all → you're likely **Oval** or **Oblong**, decided by length in step 3.",
+    },
+    {
+      label: "If your CHEEKBONES are widest",
+      text: "Pointy chin? → **Diamond**. Not pointy → **Oval**. Small forehead alongside those cheekbones pushes it further toward **Diamond**.",
+    },
+    {
+      label: "If your JAW is widest",
+      text: "Very square jaw → **Square**. Not square, just wider than your forehead → **Pear** (also called triangle). The difference: square means forehead and jaw are about the same width; pear means the jaw is noticeably wider.",
+    },
+    {
+      label: "If EVERYTHING is about the same width",
+      text: "Now it's about length. Longer than it is wide → **Oval**. Much longer than wide (roughly 1.6× or more) → **Oblong**. About as long as it is wide → **Round** or **Square**, decided by your corners.",
+    },
+    {
+      label: "Step 2 — Check your corners",
+      text: "Your corners are where the jaw changes direction, roughly below your ears. Is there a noticeable angle there, or does it curve smoothly? Sharp angle → **Square**. Soft and smooth → **Round**.",
+    },
+    {
+      label: "Step 3 — How long is your face?",
+      text: "About as long as it is wide → **Round** or **Square**. Longer than wide → **Oval**. Much longer than wide (about 1.6× or more) → **Oblong**.",
+    },
+    {
+      label: "Step 4 — Check the sides",
+      text: "Do the sides run straight down? → **Square** or **Oblong**. Do they curve inward toward the chin? → **Oval**.",
+    },
+    {
+      label: "Step 5 — Take the most common answer",
+      text: "Run all the steps and pick whichever shape came up most often — you're not looking for a perfect match, just the closest one. Example: if your answers land on Oval, Oval/Oblong/Heart, Oval/Round, and Oval, you're an **Oval**.",
+    },
+  ],
+  shapes:
+    "The nine shapes: **Oval · Round · Square · Rectangle · Oblong · Heart · Inverted triangle · Diamond · Triangle (pear)**.",
+};
+
 // Which goals matter for THIS person, in priority order, derived from
 // their quiz answers.
 function goalsFor(p) {
@@ -244,9 +298,18 @@ export function buildHaircutSections(p) {
     });
   }
 
+  sections.push({
+    heading: "🧮 Step 2 — be honest about maintenance",
+    body: [
+      "A haircut is only as good as the version of it you'll actually wear. Some cuts only look right styled — and if you don't style, that cut will disappoint you every single day.",
+      "Before you book, answer these: **How much time do you really have in the morning? Do you use heat? Do you style at all, or air-dry and go? Do you WANT to start styling — honestly?**",
+      "A heavily textured, heavily layered cut on someone who air-dries and never touches a round brush is the #1 way people end up hating a technically good haircut. Tell your stylist your real routine, not your aspirational one.",
+    ],
+  });
+
   const myGoals = goalsFor(p);
   sections.push({
-    heading: "🎯 Step 2 — your goal decides the shape",
+    heading: "🎯 Step 3 — your goal decides the shape",
     body: [
       p.hasQuiz
         ? "Based on your quiz answers, these are the branches that apply to you — in order:"
@@ -259,11 +322,33 @@ export function buildHaircutSections(p) {
   const shapeIds = [...new Set(myGoals.flatMap((g) => g.shapes))];
   if (guide) for (const s of guide.bestShapes) if (!shapeIds.includes(s)) shapeIds.push(s);
   sections.push({
-    heading: "🔤 Step 3 — the letter shapes, decoded",
+    heading: "🔤 Step 4 — the letter shapes, decoded",
     body: [
       "Blunt, U, V — these describe the outline of your hair when you look at it from behind. It's the single biggest decision for how thick your ends look:",
     ],
     items: shapeIds.map(shapeById).filter(Boolean).map((s) => ({ label: s.label, text: s.text })),
+  });
+
+  sections.push({
+    heading: "⚠️ Two things that quietly ruin a good cut",
+    items: [
+      {
+        label: "An uneven part will fake a bad haircut",
+        text: "If you part your hair off-centre and then bring it forward over your shoulders, one side can look four inches shorter than the other — even though the cut is perfectly even. Before you panic (or ask for a correction), part it dead centre and check again.",
+      },
+      {
+        label: "Cowlicks decide where bangs can go",
+        text: "Find your cowlicks before anyone cuts a fringe — hair that grows in a swirl will never lie the way a photo does. Forehead size matters too: a small forehead can mean bangs get cut shorter than you expected once they're shaped.",
+      },
+    ],
+  });
+
+  sections.push({
+    heading: FACE_SHAPE.heading,
+    body: FACE_SHAPE.intro,
+    items: FACE_SHAPE.steps,
+    images: [{ caption: "Face shape chart — all nine shapes" }],
+    footer: FACE_SHAPE.shapes,
   });
 
   sections.push({
@@ -289,28 +374,6 @@ export function buildHaircutSections(p) {
       "Same caution for cutting your own ends with kitchen or craft scissors — they crush the strand instead of cutting it cleanly, and a crushed end splits within weeks. If you cut at home, use actual hair shears, cut tiny amounts, and never cut curly hair while it's stretched straight.",
       "The safe home version is search-and-destroy: twist a small section, snip only the individual split hairs that pop out, and stop after ten minutes.",
     ],
-  });
-
-  // full reference for the other hair types
-  sections.push({
-    heading: "📚 Full reference — every hair type",
-    body: ["The other branches of the tree, so you can look up a friend's hair (or your own after a texture change):"],
-    items: Object.values(TYPE_GUIDES).map((g) => ({
-      label: g.label,
-      text: `${g.method} ${g.watchOuts}`,
-    })),
-  });
-
-  sections.push({
-    heading: "📚 Full reference — every goal",
-    body: ["Every branch, in one place:"],
-    items: GOAL_CUTS.map((g) => ({ label: `${g.label} → ${g.answer}`, text: g.text })),
-  });
-
-  sections.push({
-    heading: "📚 Full reference — every shape",
-    body: ["All twelve shapes and what each one actually does to your hair:"],
-    items: CUT_SHAPES.map((s) => ({ label: s.label, text: s.text })),
   });
 
   return sections;

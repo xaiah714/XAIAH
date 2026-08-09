@@ -251,6 +251,26 @@ export default function PremiumPage() {
                     ))}
                   </ul>
                 ) : null}
+                {/* image slots — owner's final photos drop in here */}
+                {s.images ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {s.images.map((im) => (
+                      <div
+                        key={im.caption}
+                        className="flex min-h-28 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blush-deep/50 bg-blush/15 p-4 text-center"
+                      >
+                        <span aria-hidden="true" className="text-xl">🖼️</span>
+                        <p className="mt-1 text-xs font-bold text-cocoa-soft">{im.caption}</p>
+                        <p className="text-[10px] font-semibold text-cocoa-soft/70">image coming soon</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {s.footer ? (
+                  <p className="mt-3 rounded-2xl bg-butter/40 px-4 py-2.5 text-sm font-bold">
+                    {bold(s.footer)}
+                  </p>
+                ) : null}
                 {s.links ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {s.links.map((l) => (
